@@ -165,7 +165,7 @@ export class PontifexScene extends Scene2D {
     this.settings.setCustom('level2', idx);
     for (const id of MATERIAL_ORDER) { const b = this.matButtons.get(id); if (b) b.visible = this.level.materials.includes(id); }
     if (this.tool !== 'delete' && !this.level.materials.includes(this.tool)) this.tool = this.level.materials[0];
-    this.btnLevel?.setText(`▾ ${this.level.id}. ${this.level.name}`);
+    this.btnLevel?.setText(`▾ ${this.level.label}. ${this.level.name}`);
     const v = this.level.vehicle;
     this.lblHint.setText(`${this.level.hint}  ·  Véhicule : ${v.name}, ${(v.mass / 10).toFixed(1).replace('.', ',')} t`);
     drawScene.static(this.layers, this.level, this.snapOn);
@@ -368,7 +368,7 @@ export class PontifexScene extends Scene2D {
       const ok = this.unlocked(i);
       const b = new Button({
         width: bw, height: bh, disabled: !ok,
-        text: `${lv.id}. ${lv.name}\n${ok ? '★'.repeat(s) + '☆'.repeat(3 - s) : '— verrouillé —'}`,
+        text: `${lv.label}. ${lv.name}\n${ok ? '★'.repeat(s) + '☆'.repeat(3 - s) : '— verrouillé —'}`,
         label: { size: 12 },
         onClick: () => { win.close(); this.loadLevel(i); },
       });
@@ -490,10 +490,11 @@ export class PontifexScene extends Scene2D {
     this.botBar.clear().rect(0, oy, vw, h).fill({ color: 0x0f172a, alpha: 0.92 }).rect(0, oy, vw, 1).fill(0x1e293b);
     // caméra : le monde 800×550 tient dans l'espace libre
     const availH = oy - this.topH, availW = vw;
-    const zoom = Math.min(availW / WORLD_W, availH / WORLD_H);
+    const view = this.level?.view ?? { x: 0, y: 0, w: WORLD_W, h: WORLD_H };
+    const zoom = Math.min(availW / view.w, availH / view.h);
     this.camera.setViewport(vw, availH, 0, this.topH);
     this.camera.zoom = zoom;
-    this.camera.snapTo(WORLD_W / 2, WORLD_H / 2);
+    this.camera.snapTo(view.x + view.w / 2, view.y + view.h / 2);
     this.camera.update(0);
   }
   private topH = 54;

@@ -23,7 +23,7 @@ for (let i = 0; i < LEVELS.length; i++) {
   });
   test(`niveau ${lv.id} : un pont sans la moitié de ses poutres ne tient pas`, () => {
     const s = reference(i);
-    const half = { nodes: s.nodes, beams: s.beams.filter((_, j) => j % 2 === 0) };
+    const half = { nodes: s.nodes, beams: s.beams.length > 1 ? s.beams.filter((_, j) => j % 2 === 0) : [] };
     assert.notEqual(run(lv, half).status, 'won');
   });
 }
@@ -90,8 +90,8 @@ test('progression : un nouveau matériau n\'apparaît qu\'en élargissant la lis
 });
 
 test('câble porteur : accrocher une suspente coupe le câble en deux sans changer la longueur ni le coût', () => {
-  const lv = LEVELS[6];
-  const s = JSON.parse(JSON.stringify(reference(6)));
+  const lv = LEVELS[7];
+  const s = JSON.parse(JSON.stringify(reference(7)));
   const before = structureCost(s);
   const rope = s.beams.findIndex((b: { mat: string }) => b.mat === 'rope');
   const a = s.nodes[s.beams[rope].a], b = s.nodes[s.beams[rope].b];
@@ -105,15 +105,28 @@ test('câble porteur : accrocher une suspente coupe le câble en deux sans chang
 });
 
 test('câble porteur : pas d\'accrochage près d\'un nœud existant ni sur autre chose qu\'un câble porteur', () => {
-  const s = reference(6);
+  const s = reference(7);
   const rope = s.beams.find((b) => b.mat === 'rope')!;
   const a = s.nodes[rope.a];
   assert.equal(ropeHit(s, { x: a.x + 2, y: a.y + 2 }), null);
-  assert.equal(ropeHit(reference(1), { x: 400, y: 340 }), null);
+  assert.equal(ropeHit(reference(2), { x: 400, y: 340 }), null);
 });
 
-test('niveau 7 : sans le câble porteur, le tablier suspendu ne tient pas', () => {
-  const s = reference(6);
+test('niveau 7 (indice 7) : sans le câble porteur, le tablier suspendu ne tient pas', () => {
+  const s = reference(7);
   const noRope = { nodes: s.nodes, beams: s.beams.filter((b) => b.mat !== 'rope') };
-  assert.notEqual(run(LEVELS[6], noRope).status, 'won');
+  assert.notEqual(run(LEVELS[7], noRope).status, 'won');
+});
+
+test('niveau 1bis : la chaussée seule, tendue, ne suffit pas ; le triangle de bois oui', () => {
+  const lv = LEVELS[1];
+  const roadOnly = build(lv, [[400, 340]], [[0, 2, 'road'], [2, 1, 'road']]);
+  assert.equal(run(lv, roadOnly).status, 'failed');
+  assert.equal(run(lv, reference(1)).status, 'won');
+});
+
+test('niveau 1 : les deux points sont à 6 cases, 1bis à 10 cases', () => {
+  const gap = (i: number) => (LEVELS[i].x1 - LEVELS[i].x0) / 20;
+  assert.equal(gap(0), 6);
+  assert.equal(gap(1), 10);
 });

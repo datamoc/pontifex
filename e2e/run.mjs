@@ -37,15 +37,25 @@ const check = (label, ok) => { console.log(ok ? '✔' : '✖', label); if (!ok) 
 
 // 1. niveau 1 (chaussée seule) : trois tronçons à la souris
 await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());
-await drag([260, 340], [360, 340]); await drag([360, 340], [440, 340]); await drag([440, 340], [540, 340]);
-check('niveau 1 : 3 tronçons posés à la souris', (await sc(() => window.__pontifex.structure.beams.length)) === 3);
+await drag([340, 340], [460, 340]);
+check('niveau 1 : une poutre posée à la souris entre les 2 points', (await sc(() => window.__pontifex.structure.beams.length)) === 1);
 check('niveau 1 : seule la chaussée est proposée', JSON.stringify(await sc(() => [...window.__pontifex.matButtons].filter(([, b]) => b.visible).map(([k]) => k))) === JSON.stringify(['road', 'delete']));
 await page.screenshot({ path: `${out}/1-niveau1.png` });
 await click('btnTest'); await waitEnd(); await page.screenshot({ path: `${out}/1b-resultat.png` });
 check('niveau 1 réussi', (await sc(() => window.__pontifex.sim.status)) === 'won');
 
-// 2. niveau 2 : treillis en chaussée + bois, à la souris
+// 1bis. niveau 1bis : poinçon en chaussée + bois, à la souris
 await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.loadLevel(1); });
+await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());
+await drag([300, 340], [400, 340]); await drag([400, 340], [500, 340]);
+await sc(() => window.__pontifex.matButtons.get('wood').onClick.dispatch());
+await drag([300, 340], [400, 400]); await drag([400, 400], [500, 340]); await drag([400, 340], [400, 400]);
+await page.screenshot({ path: `${out}/1c-niveau1bis.png` });
+await click('btnTest'); await waitEnd();
+check('niveau 1bis réussi', (await sc(() => window.__pontifex.sim.status)) === 'won');
+
+// 2. niveau 2 : treillis en chaussée + bois, à la souris
+await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.stopSim(); s.loadLevel(2); });
 await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());
 const roadX = [180, 280, 400, 520, 620];
 for (let i = 0; i < 4; i++) await drag([roadX[i], 340], [roadX[i + 1], 340]);
@@ -56,15 +66,15 @@ await click('btnTest'); await sleep(3500); await page.screenshot({ path: `${out}
 await waitEnd(); check('niveau 2 réussi', (await sc(() => window.__pontifex.sim.status)) === 'won');
 
 // 3. niveaux 3 à 7 : ponts de référence
-for (const i of [2, 3, 4, 5, 6]) {
+for (const i of [3, 4, 5, 6, 7]) {
   await sc((i, st) => { const s = window.__pontifex; s.windows.closeAll(); s.stopSim(); s.loadLevel(i); s.structure = st; s.refreshHud(); s.toggleSim(); s.speed = 2; }, i, refs[i]);
   await sleep(4000); await page.screenshot({ path: `${out}/niveau${i + 1}.png` });
   await waitEnd();
-  check(`niveau ${i + 1} réussi`, (await sc(() => window.__pontifex.sim.status)) === 'won');
+  check(`niveau ${await sc(() => window.__pontifex.level.label)} réussi`, (await sc(() => window.__pontifex.sim.status)) === 'won');
 }
 
 // 3b. câble porteur : accrocher une suspente à la souris au milieu d'un câble
-await sc((st) => { const s = window.__pontifex; s.windows.closeAll(); s.stopSim(); s.loadLevel(6); s.structure = { nodes: st.nodes, beams: st.beams.filter((b) => b.mat !== 'cable') }; s.refreshHud(); }, refs[6]);
+await sc((st) => { const s = window.__pontifex; s.windows.closeAll(); s.stopSim(); s.loadLevel(7); s.structure = { nodes: st.nodes, beams: st.beams.filter((b) => b.mat !== 'cable') }; s.refreshHud(); }, refs[7]);
 const nb = await sc(() => [window.__pontifex.structure.nodes.length, window.__pontifex.structure.beams.length]);
 await sc(() => window.__pontifex.matButtons.get('cable').onClick.dispatch());
 await drag([370, 260], [400, 340]);
@@ -73,7 +83,7 @@ check('suspente accrochée au câble porteur (+1 nœud, +2 poutres)', na[0] === 
 await page.screenshot({ path: `${out}/6-suspente.png` });
 
 // 4. échec : un pont trop mince (niveau 2)
-await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.loadLevel(1); });
+await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.loadLevel(2); });
 await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());
 await drag([180, 340], [280, 340]); await drag([280, 340], [400, 340]);
 await click('btnTest'); await waitEnd(); await page.screenshot({ path: `${out}/4-echec.png` });

@@ -6,7 +6,7 @@ type Beam = [number, number, MaterialId];
 
 /** Ponts de référence : prouvent que chaque niveau est faisable et servent de garde-fou au réglage. */
 function legacy(levelIdx: number): Structure {
-  const L = LEVELS[levelIdx + 1];
+  const L = LEVELS[levelIdx + 2];
   if (levelIdx === 0) {
     const y = 440;
     const free: [number, number][] = [[280, 340], [400, 340], [520, 340], [240, y], [340, y], [460, y], [560, y]];
@@ -62,13 +62,15 @@ type Free = [number, number][];
 export function reference(i: number): Structure {
   const L = LEVELS[i];
   switch (i) {
-    case 0: // chaussée seule : trois tronçons, deux points intermédiaires
-      return build(L, [[360, 340], [440, 340]], [[0, 2, 'road'], [2, 3, 'road'], [3, 1, 'road']]);
-    case 1: return legacy(0);
-    case 2: return legacy(1);
-    case 3: return legacy(2);
-    case 4: return legacy(3);
-    case 5: { // pylône central : tablier + haubans (câbles fins)
+    case 0: // une seule poutre de chaussée entre les deux points (6 cases)
+      return build(L, [], [[0, 1, 'road']]);
+    case 1: // 10 cases : tablier en deux tronçons soutenu par un triangle de bois (poutre « à poinçon »)
+      return build(L, [[400, 340], [400, 400]], [[0, 2, 'road'], [2, 1, 'road'], [0, 3, 'wood'], [3, 1, 'wood'], [2, 3, 'wood']]);
+    case 2: return legacy(0);
+    case 3: return legacy(1);
+    case 4: return legacy(2);
+    case 5: return legacy(3);
+    case 6: { // pylône central : tablier + haubans (câbles fins)
       // ancres 0:(140,340) 1:(660,340) 2:(400,160)
       const free: Free = [[240, 340], [340, 340], [400, 340], [460, 340], [560, 340]]; // 3..7
       const b: Beam[] = [[0, 3, 'road'], [3, 4, 'road'], [4, 5, 'road'], [5, 6, 'road'], [6, 7, 'road'], [7, 1, 'road'],

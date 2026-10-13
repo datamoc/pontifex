@@ -112,7 +112,8 @@ export class BridgeSim {
     for (const l of this.links) {
       if (l.broken) continue;
       const m = MATERIALS[l.mat];
-      const inst = Math.abs(l.force) / m.strength;
+      // l.force > 0 : traction
+      const inst = l.force > 0 ? l.force / (m.tensionStrength ?? m.strength) : -l.force / m.strength;
       l.ratio += (inst - l.ratio) * k;
       cur = Math.max(cur, l.ratio);
       if (l.ratio > 1 && this.time > SETTLE * 0.5) {

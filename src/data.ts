@@ -12,8 +12,10 @@ export interface MaterialDef {
   color: number;
   /** raideur EA (force) : plus elle est grande, moins la poutre s'étire */
   stiffness: number;
-  /** effort de rupture */
+  /** effort de rupture (compression, et traction si `tensionStrength` n'est pas donné) */
   strength: number;
+  /** effort de rupture en traction, s'il diffère (la chaussée est bien moins résistante tendue que comprimée) */
+  tensionStrength?: number;
   /** masse linéique (par px) */
   density: number;
   isRoad: boolean;
@@ -23,7 +25,7 @@ export interface MaterialDef {
 }
 
 export const MATERIALS: Record<MaterialId, MaterialDef> = {
-  road: { id: 'road', name: 'Chaussée', cost: 6, maxLen: 120, color: 0xf59e0b, stiffness: 1.6e6, strength: 35000, density: 0.02, isRoad: true, tensionOnly: false, key: '1' },
+  road: { id: 'road', name: 'Chaussée', cost: 6, maxLen: 120, color: 0xf59e0b, stiffness: 1.6e6, strength: 35000, tensionStrength: 14000, density: 0.02, isRoad: true, tensionOnly: false, key: '1' },
   wood: { id: 'wood', name: 'Bois', cost: 3, maxLen: 130, color: 0xc2410c, stiffness: 7e5, strength: 22000, density: 0.008, isRoad: false, tensionOnly: false, key: '2' },
   steel: { id: 'steel', name: 'Acier', cost: 10, maxLen: 160, color: 0x94a3b8, stiffness: 3e6, strength: 58000, density: 0.02, isRoad: false, tensionOnly: false, key: '3' },
   rope: { id: 'rope', name: 'Câble porteur', cost: 7, maxLen: 300, color: 0xe5e7eb, stiffness: 4e6, strength: 60000, density: 0.012, isRoad: false, tensionOnly: true, key: '4' },
@@ -54,6 +56,10 @@ export interface Pt { x: number; y: number }
 
 export interface LevelDef {
   id: number;
+  /** numéro affiché (« 1bis ») */
+  label: string;
+  /** zone du monde cadrée à l'écran (par défaut tout le monde 800×550) */
+  view?: { x: number; y: number; w: number; h: number };
   name: string;
   hint: string;
   budget: number;
@@ -82,18 +88,30 @@ export const GRID = 20;
 
 export const LEVELS: LevelDef[] = [
   {
-    id: 1, name: 'Premiers pas', hint: 'Relie les deux points orange avec de la chaussée : glisse de proche en proche.',
-    budget: 260, materials: ['road'],
+    id: 1, label: '1', name: 'Premiers pas', hint: 'Relie les deux points orange avec une poutre de chaussée : glisse de l’un à l’autre.',
+    budget: 150, materials: ['road'],
+    view: { x: 190, y: 190, w: 420, h: 290 },
     vehicle: CARS.citadine,
-    anchors: [{ x: 260, y: 340 }, { x: 540, y: 340 }],
-    deckY: 340, x0: 260, x1: 540,
-    leftCliff: [{ x: 0, y: 340 }, { x: 260, y: 340 }, { x: 260, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 540, y: 340 }, { x: 800, y: 340 }, { x: 800, y: 550 }, { x: 540, y: 550 }],
-    waterY: 480,
+    anchors: [{ x: 340, y: 340 }, { x: 460, y: 340 }],
+    deckY: 340, x0: 340, x1: 460,
+    leftCliff: [{ x: 0, y: 340 }, { x: 340, y: 340 }, { x: 340, y: 550 }, { x: 0, y: 550 }],
+    rightCliff: [{ x: 460, y: 340 }, { x: 800, y: 340 }, { x: 800, y: 550 }, { x: 460, y: 550 }],
+    waterY: 470,
   },
   {
-    id: 2, name: 'La Ravine', hint: 'Le bois est léger et bon marché : un triangle ne se déforme pas.',
-    budget: 750, materials: ['road', 'wood'],
+    id: 8, label: '1bis', name: 'Le Petit Gué', hint: 'Nouveau : le bois. La chaussée tendue casse vite : soutiens-la par en dessous avec un triangle.',
+    budget: 400, materials: ['road', 'wood'],
+    view: { x: 150, y: 190, w: 500, h: 290 },
+    vehicle: CARS.citadine,
+    anchors: [{ x: 300, y: 340 }, { x: 500, y: 340 }],
+    deckY: 340, x0: 300, x1: 500,
+    leftCliff: [{ x: 0, y: 340 }, { x: 300, y: 340 }, { x: 300, y: 550 }, { x: 0, y: 550 }],
+    rightCliff: [{ x: 500, y: 340 }, { x: 800, y: 340 }, { x: 800, y: 550 }, { x: 500, y: 550 }],
+    waterY: 470,
+  },
+  {
+    id: 2, label: '2', name: 'La Ravine', hint: 'Le bois est léger et bon marché : un triangle ne se déforme pas.',
+    budget: 800, materials: ['road', 'wood'],
     vehicle: CARS.citadine,
     anchors: [{ x: 180, y: 340 }, { x: 620, y: 340 }],
     deckY: 340, x0: 180, x1: 620,
@@ -102,7 +120,7 @@ export const LEVELS: LevelDef[] = [
     waterY: 480,
   },
   {
-    id: 3, name: 'Le Fleuve profond', hint: 'L’acier coûte cher mais encaisse : réserve-le aux appuis.',
+    id: 3, label: '3', name: 'Le Fleuve profond', hint: 'L’acier coûte cher mais encaisse : réserve-le aux appuis.',
     budget: 1250, materials: ['road', 'wood', 'steel'],
     vehicle: CARS.jeep1,
     anchors: [{ x: 140, y: 320 }, { x: 140, y: 420 }, { x: 660, y: 320 }, { x: 660, y: 420 }],
@@ -112,7 +130,7 @@ export const LEVELS: LevelDef[] = [
     waterY: 490,
   },
   {
-    id: 4, name: 'Le Canyon périlleux', hint: 'Un îlot au milieu : appuie-toi dessus.',
+    id: 4, label: '4', name: 'Le Canyon périlleux', hint: 'Un îlot au milieu : appuie-toi dessus.',
     budget: 1800, materials: ['road', 'wood', 'steel'],
     vehicle: CARS.jeep2,
     anchors: [{ x: 120, y: 280 }, { x: 120, y: 440 }, { x: 400, y: 480 }, { x: 680, y: 280 }, { x: 680, y: 440 }],
@@ -123,7 +141,7 @@ export const LEVELS: LevelDef[] = [
     waterY: 510,
   },
   {
-    id: 5, name: 'Les Deux Îlots', hint: 'Deux piliers naturels : répartis la charge entre eux.',
+    id: 5, label: '5', name: 'Les Deux Îlots', hint: 'Deux piliers naturels : répartis la charge entre eux.',
     budget: 2300, materials: ['road', 'wood', 'steel'],
     vehicle: CARS.jeep2,
     anchors: [{ x: 100, y: 300 }, { x: 100, y: 420 }, { x: 300, y: 480 }, { x: 500, y: 480 }, { x: 700, y: 300 }, { x: 700, y: 420 }],
@@ -135,7 +153,7 @@ export const LEVELS: LevelDef[] = [
     waterY: 520,
   },
   {
-    id: 6, name: 'Le Pylône', hint: 'Nouveau : le câble fin ne travaille qu’en traction. Suspends le tablier au sommet du pylône.',
+    id: 6, label: '6', name: 'Le Pylône', hint: 'Nouveau : le câble fin ne travaille qu’en traction. Suspends le tablier au sommet du pylône.',
     budget: 1000, materials: ['road', 'wood', 'steel', 'cable'],
     vehicle: CARS.jeep1,
     anchors: [{ x: 140, y: 340 }, { x: 660, y: 340 }, { x: 400, y: 160 }],
@@ -147,7 +165,7 @@ export const LEVELS: LevelDef[] = [
     waterY: 510,
   },
   {
-    id: 7, name: 'Le Grand Viaduc', hint: 'Nouveau : le câble porteur. Tends-le entre les pylônes en le laissant s’affaisser, puis accroche-y des câbles fins (au bout du doigt, n’importe où sur le câble).',
+    id: 7, label: '7', name: 'Le Grand Viaduc', hint: 'Nouveau : le câble porteur. Tends-le entre les pylônes en le laissant s’affaisser, puis accroche-y des câbles fins (au bout du doigt, n’importe où sur le câble).',
     budget: 1300, materials: ['road', 'wood', 'steel', 'rope', 'cable'],
     vehicle: CARS.jeep2,
     anchors: [{ x: 140, y: 340 }, { x: 660, y: 340 }, { x: 120, y: 150 }, { x: 680, y: 150 }],

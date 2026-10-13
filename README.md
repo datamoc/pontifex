@@ -10,7 +10,7 @@ Raccourcis : `1`–`5` matériaux, `X` effacer, `G` grille, `Ctrl+Z` / `Ctrl+Y` 
 
 ## Progression et matériaux
 
-Les matériaux arrivent progressivement (✦ = nouveau) : 1 chaussée seule entre 2 points · 2 + bois · 3 + acier ·
+Les matériaux arrivent progressivement (✦ = nouveau) : 1 chaussée seule, une poutre entre 2 points (6 cases) · 1bis + bois, 10 cases, la chaussée tendue casse vite · 2 + bois · 3 + acier ·
 6 + **câble fin** (traction seule : haubans, suspentes) · 7 + **câble porteur** (câble épais tendu entre pylônes).
 Un câble fin s'accroche **n'importe où sur un câble porteur** : le câble porteur est alors coupé en deux et un nœud est créé.
 Les niveaux sont de simples données (`src/data.ts`), prêts pour un futur éditeur de scénarios.
