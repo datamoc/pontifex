@@ -78,6 +78,7 @@ export class PontifexScene extends Scene2D {
   private topBar = new Shape2D();
   private botBar = new Shape2D();
   private lblTitle = new Label({ text: 'PONTIFEX', size: 18, bold: true, color: 0xfbbf24 });
+  private badgeSpace = new Shape2D().rect(0, 0, 196, 38).fill({ color: 0x0f172a, alpha: 0 });
   private btnLevel!: Button;
   private lblBudget = new Label({ text: '', size: 13 });
   private barBudget = new Bar({ width: 150, height: 10, color: 0x10b981, background: 0x1e293b, max: 1 });
@@ -642,7 +643,7 @@ export class PontifexScene extends Scene2D {
       return y + rowH + pad;
     };
     // barre haute : titre, niveau, jauges (label au-dessus de la barre)
-    const topItems = [this.lblTitle, this.btnLevel];
+    const topItems = [this.badgeSpace, this.lblTitle, this.btnLevel];
     let topH = place(topItems, 12, 10);
     let x = this.btnLevel.x + this.btnLevel.width + 24;
     const gy = 8;
