@@ -89,8 +89,54 @@ await drag([180, 340], [280, 340]); await drag([280, 340], [400, 340]);
 await click('btnTest'); await waitEnd(); await page.screenshot({ path: `${out}/4-echec.png` });
 check('pont trop mince : effondrement', (await sc(() => window.__pontifex.sim.status)) === 'failed');
 
+// 6. éditeur de niveaux : outils à la souris, essai, validation, enregistrement, import, rejeu
+await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.stopSim(); s.enterEditor(null); });
+await sleep(400); // un rendu pour que les boutons de l'éditeur aient leur position
+check('éditeur ouvert', await sc(() => window.__pontifex.editing));
+const clickEd = async (t) => { const pos = await sc((t) => { const b = window.__pontifex.editor.items.find((i) => i.children.some((c) => c.text?.includes?.(t)));
+  const g = b.getGlobalPosition(); return [g.x + b.width / 2, g.y + b.height / 2]; }, t); await page.mouse.click(...pos); };
+const draft = () => sc(() => JSON.parse(JSON.stringify(window.__pontifex.editor.draft)));
+await clickEd('Écart +'); check('écart + : 12 cases', ((d) => (d.x1 - d.x0) / 20 === 12)(await draft()));
+await clickEd('Îlot'); { const [x, y] = await w2s(400, 440); await page.mouse.click(x, y); }
+check('îlot posé à la souris (+1 ancrage)', ((d) => d.islands.length === 1 && d.anchors.length === 3)(await draft()));
+await clickEd('Pylône'); { const [x, y] = await w2s(240, 160); await page.mouse.click(x, y); }
+check('pylône posé à la souris', ((d) => d.towers.length === 1)(await draft()));
+await page.screenshot({ path: `${out}/7-editeur.png` });
+{ const [x, y] = await w2s(400, 440); await clickEd('Îlot'); await page.mouse.click(x, y); }
+{ const [x, y] = await w2s(240, 160); await clickEd('Pylône'); await page.mouse.click(x, y); }
+await clickEd('Écart −');
+check('retour à 10 cases sans îlot ni pylône', ((d) => (d.x1 - d.x0) / 20 === 10 && d.islands.length === 0 && d.towers.length === 0 && d.anchors.length === 2)(await draft()));
+await clickEd('Budget +'); await clickEd('Bois');
+check('bois retiré puis…', ((d) => !d.materials.includes('wood'))(await draft()));
+await clickEd('Bois');
+check('…remis', ((d) => d.materials.includes('wood'))(await draft()));
+await clickEd('Tester');
+check('essai du brouillon : niveau chargé', await sc(() => window.__pontifex.testingSpec !== null && !window.__pontifex.editing));
+await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());
+await drag([300, 340], [400, 340]); await drag([400, 340], [500, 340]);
+await sc(() => window.__pontifex.matButtons.get('wood').onClick.dispatch());
+await drag([300, 340], [400, 400]); await drag([400, 400], [500, 340]); await drag([400, 340], [400, 400]);
+await click('btnTest'); await waitEnd(); await page.screenshot({ path: `${out}/8-essai.png` });
+check('essai réussi : la solution est validée', (await sc(() => window.__pontifex.sim.status)) === 'won' && (await sc(() => !!window.__pontifex.testingSpec.solution)));
+await sc(() => { window.__pontifex.windows.closeAll(); window.__pontifex.backToEditor(); });
+await sleep(400);
+check('retour à l’éditeur avec la solution', (await sc(() => window.__pontifex.editor.status())).includes('solution ✔'));
+await clickEd('Enregistrer');
+check('niveau enregistré', (await sc(() => window.__pontifex.customs.length)) === 1);
+const exported = await sc(() => JSON.stringify(window.__pontifex.editor.draft));
+await sc((t) => window.__pontifex.importText(t), exported.replace('Nouveau niveau', 'Copie importée'));
+check('import d’un niveau exporté', (await sc(() => window.__pontifex.customs.map((c) => c.name))).join('|') === 'Nouveau niveau|Copie importée');
+await sc(() => window.__pontifex.importText('{"name":"x"}'));
+check('import invalide refusé', (await sc(() => window.__pontifex.customs.length)) === 2);
+await page.screenshot({ path: `${out}/9-liste.png` });
+await clickEd('Quitter');
+await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.loadLevel(s.builtinCount); s.structure = JSON.parse(JSON.stringify(s.customs[0].solution)); s.refreshHud(); s.toggleSim(); s.speed = 2; });
+await waitEnd();
+check('niveau personnalisé rejoué avec sa solution', (await sc(() => window.__pontifex.sim.status)) === 'won');
+await sc(() => { window.__pontifex.windows.closeAll(); window.__pontifex.stopSim(); window.__pontifex.loadLevel(0); });
+
 // 5. Échap ferme une fenêtre
-await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.stopSim(); s.showLevels(); });
+await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.stopSim(); s.loadLevel(0); s.showLevels(); });
 await sleep(300); await page.screenshot({ path: `${out}/5-niveaux.png` });
 await page.keyboard.press('Escape'); await sleep(300);
 check('Échap ferme la fenêtre des niveaux', await sc(() => window.__pontifex.windows.isEmpty));

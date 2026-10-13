@@ -73,12 +73,11 @@ export interface LevelDef {
   x1: number;
   leftCliff: Pt[];
   rightCliff: Pt[];
-  island?: Pt[];
-  island2?: Pt[];
+  islands: Pt[][];
   /** matériaux disponibles dans ce niveau (introduction progressive) */
   materials: MaterialId[];
   /** pylônes dessinés (les points d'ancrage en haut sont dans `anchors`) */
-  towers?: { x: number; top: number; base: number }[];
+  towers: { x: number; top: number; base: number }[];
   waterY: number;
 }
 
@@ -86,93 +85,3 @@ export const WORLD_W = 800;
 export const WORLD_H = 550;
 export const GRID = 20;
 
-export const LEVELS: LevelDef[] = [
-  {
-    id: 1, label: '1', name: 'Premiers pas', hint: 'Relie les deux points orange avec une poutre de chaussée : glisse de l’un à l’autre.',
-    budget: 150, materials: ['road'],
-    view: { x: 190, y: 190, w: 420, h: 290 },
-    vehicle: CARS.citadine,
-    anchors: [{ x: 340, y: 340 }, { x: 460, y: 340 }],
-    deckY: 340, x0: 340, x1: 460,
-    leftCliff: [{ x: 0, y: 340 }, { x: 340, y: 340 }, { x: 340, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 460, y: 340 }, { x: 800, y: 340 }, { x: 800, y: 550 }, { x: 460, y: 550 }],
-    waterY: 470,
-  },
-  {
-    id: 8, label: '1bis', name: 'Le Petit Gué', hint: 'Nouveau : le bois. La chaussée tendue casse vite : soutiens-la par en dessous avec un triangle.',
-    budget: 400, materials: ['road', 'wood'],
-    view: { x: 150, y: 190, w: 500, h: 290 },
-    vehicle: CARS.citadine,
-    anchors: [{ x: 300, y: 340 }, { x: 500, y: 340 }],
-    deckY: 340, x0: 300, x1: 500,
-    leftCliff: [{ x: 0, y: 340 }, { x: 300, y: 340 }, { x: 300, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 500, y: 340 }, { x: 800, y: 340 }, { x: 800, y: 550 }, { x: 500, y: 550 }],
-    waterY: 470,
-  },
-  {
-    id: 2, label: '2', name: 'La Ravine', hint: 'Le bois est léger et bon marché : un triangle ne se déforme pas.',
-    budget: 800, materials: ['road', 'wood'],
-    vehicle: CARS.citadine,
-    anchors: [{ x: 180, y: 340 }, { x: 620, y: 340 }],
-    deckY: 340, x0: 180, x1: 620,
-    leftCliff: [{ x: 0, y: 340 }, { x: 180, y: 340 }, { x: 180, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 620, y: 340 }, { x: 800, y: 340 }, { x: 800, y: 550 }, { x: 620, y: 550 }],
-    waterY: 480,
-  },
-  {
-    id: 3, label: '3', name: 'Le Fleuve profond', hint: 'L’acier coûte cher mais encaisse : réserve-le aux appuis.',
-    budget: 1250, materials: ['road', 'wood', 'steel'],
-    vehicle: CARS.jeep1,
-    anchors: [{ x: 140, y: 320 }, { x: 140, y: 420 }, { x: 660, y: 320 }, { x: 660, y: 420 }],
-    deckY: 320, x0: 140, x1: 660,
-    leftCliff: [{ x: 0, y: 320 }, { x: 140, y: 320 }, { x: 140, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 660, y: 320 }, { x: 800, y: 320 }, { x: 800, y: 550 }, { x: 660, y: 550 }],
-    waterY: 490,
-  },
-  {
-    id: 4, label: '4', name: 'Le Canyon périlleux', hint: 'Un îlot au milieu : appuie-toi dessus.',
-    budget: 1800, materials: ['road', 'wood', 'steel'],
-    vehicle: CARS.jeep2,
-    anchors: [{ x: 120, y: 280 }, { x: 120, y: 440 }, { x: 400, y: 480 }, { x: 680, y: 280 }, { x: 680, y: 440 }],
-    deckY: 280, x0: 120, x1: 680,
-    leftCliff: [{ x: 0, y: 280 }, { x: 120, y: 280 }, { x: 120, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 680, y: 280 }, { x: 800, y: 280 }, { x: 800, y: 550 }, { x: 680, y: 550 }],
-    island: [{ x: 370, y: 480 }, { x: 430, y: 480 }, { x: 410, y: 550 }, { x: 390, y: 550 }],
-    waterY: 510,
-  },
-  {
-    id: 5, label: '5', name: 'Les Deux Îlots', hint: 'Deux piliers naturels : répartis la charge entre eux.',
-    budget: 2300, materials: ['road', 'wood', 'steel'],
-    vehicle: CARS.jeep2,
-    anchors: [{ x: 100, y: 300 }, { x: 100, y: 420 }, { x: 300, y: 480 }, { x: 500, y: 480 }, { x: 700, y: 300 }, { x: 700, y: 420 }],
-    deckY: 300, x0: 100, x1: 700,
-    leftCliff: [{ x: 0, y: 300 }, { x: 100, y: 300 }, { x: 100, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 700, y: 300 }, { x: 800, y: 300 }, { x: 800, y: 550 }, { x: 700, y: 550 }],
-    island: [{ x: 270, y: 480 }, { x: 330, y: 480 }, { x: 315, y: 550 }, { x: 285, y: 550 }],
-    island2: [{ x: 470, y: 480 }, { x: 530, y: 480 }, { x: 515, y: 550 }, { x: 485, y: 550 }],
-    waterY: 520,
-  },
-  {
-    id: 6, label: '6', name: 'Le Pylône', hint: 'Nouveau : le câble fin ne travaille qu’en traction. Suspends le tablier au sommet du pylône.',
-    budget: 1000, materials: ['road', 'wood', 'steel', 'cable'],
-    vehicle: CARS.jeep1,
-    anchors: [{ x: 140, y: 340 }, { x: 660, y: 340 }, { x: 400, y: 160 }],
-    deckY: 340, x0: 140, x1: 660,
-    leftCliff: [{ x: 0, y: 340 }, { x: 140, y: 340 }, { x: 140, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 660, y: 340 }, { x: 800, y: 340 }, { x: 800, y: 550 }, { x: 660, y: 550 }],
-    island: [{ x: 370, y: 480 }, { x: 430, y: 480 }, { x: 410, y: 550 }, { x: 390, y: 550 }],
-    towers: [{ x: 400, top: 160, base: 480 }],
-    waterY: 510,
-  },
-  {
-    id: 7, label: '7', name: 'Le Grand Viaduc', hint: 'Nouveau : le câble porteur. Tends-le entre les pylônes en le laissant s’affaisser, puis accroche-y des câbles fins (au bout du doigt, n’importe où sur le câble).',
-    budget: 1300, materials: ['road', 'wood', 'steel', 'rope', 'cable'],
-    vehicle: CARS.jeep2,
-    anchors: [{ x: 140, y: 340 }, { x: 660, y: 340 }, { x: 120, y: 150 }, { x: 680, y: 150 }],
-    deckY: 340, x0: 140, x1: 660,
-    leftCliff: [{ x: 0, y: 340 }, { x: 140, y: 340 }, { x: 140, y: 550 }, { x: 0, y: 550 }],
-    rightCliff: [{ x: 660, y: 340 }, { x: 800, y: 340 }, { x: 800, y: 550 }, { x: 660, y: 550 }],
-    towers: [{ x: 120, top: 150, base: 340 }, { x: 680, top: 150, base: 340 }],
-    waterY: 500,
-  },
-];

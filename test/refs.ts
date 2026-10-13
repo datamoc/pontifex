@@ -1,5 +1,5 @@
 import { build } from './helpers.ts';
-import { LEVELS } from '../src/data.ts';
+import { LEVELS } from '../src/levels.ts';
 import type { MaterialId } from '../src/data.ts';
 import type { Structure } from '../src/physics.ts';
 type Beam = [number, number, MaterialId];

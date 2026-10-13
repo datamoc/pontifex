@@ -15,6 +15,14 @@ Les matériaux arrivent progressivement (✦ = nouveau) : 1 chaussée seule, une
 Un câble fin s'accroche **n'importe où sur un câble porteur** : le câble porteur est alors coupé en deux et un nœud est créé.
 Les niveaux sont de simples données (`src/data.ts`), prêts pour un futur éditeur de scénarios.
 
+## Éditeur de niveaux
+
+Menu des niveaux → **＋ Nouveau niveau** (ou ✎ Éditer). Outils **Ancre / Pylône / Îlot** (clic pour poser, re-clic pour retirer),
+boutons pour l'écart des rives, la hauteur de la route et de l'eau, le budget, le véhicule (la masse suit la taille) et les matériaux autorisés.
+**▶ Tester** lance le brouillon : traverse-le avec un pont, il devient la *solution de référence* (✔ dans la liste).
+**Enregistrer** garde le niveau dans le navigateur ; **Exporter** donne un fichier `.json` (aussi copié dans le presse-papiers) ;
+glisser un `.json` sur la page, ou *Importer (presse-papiers)*, l'ajoute. Un fichier importé est toujours validé (`src/level.ts`).
+
 ## Développer
 
 ```
@@ -33,7 +41,9 @@ Test Windows : `e2e/win-smoke.mjs` (Node + Chrome Windows).
 | fichier | rôle |
 | --- | --- |
 | `src/physics.ts` | moteur XPBD à pas fixe, déterministe, sans rendu (efforts en force, rupture, câbles en traction seule) |
-| `src/data.ts` | matériaux, voitures (la masse suit la taille du véhicule), niveaux |
+| `src/data.ts` | matériaux, voitures (la masse suit la taille du véhicule) |
+| `src/level.ts`, `src/levels.ts` | format de niveau (`LevelSpec`), validation des imports, niveaux du jeu |
+| `src/editor.ts`, `src/editor-ui.ts` | éditeur de niveaux : opérations pures testées, puis interface |
 | `src/scene.ts` | scène MWG : éditeur, simulation, interface (`Button`, `Bar`, `Window`, `Label`…) |
 | `src/render.ts`, `src/art.ts` | dessin vectoriel (`Shape2D`), décor et véhicules animés (`SpriteSheet`, `AnimatedSprite`) |
 | `src/audio.ts` | effets sonores synthétisés (aucun fichier audio) |

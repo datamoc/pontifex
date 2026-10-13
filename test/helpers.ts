@@ -1,5 +1,6 @@
 import { BridgeSim, type Structure, FRAME_DT } from '../src/physics.ts';
-import { LEVELS, type LevelDef, type MaterialId } from '../src/data.ts';
+import { type LevelDef, type MaterialId } from '../src/data.ts';
+import { LEVELS } from '../src/levels.ts';
 
 /** Construit une Structure depuis des nœuds libres et des poutres données par coordonnées. */
 export function build(level: LevelDef, free: [number, number][], beams: [number, number, MaterialId][]): Structure {

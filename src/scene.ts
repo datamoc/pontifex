@@ -1,14 +1,18 @@
 import {
-  Game, Scene2D, Button, Label, Bar, Window, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D,
+  Game, Scene2D, Button, Label, Bar, Window, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt,
 } from '@datamoc/mw_games/two-d';
 import { Camera } from '@datamoc/mw_games/two-d/render';
 import { Settings, UndoHistory, Input } from '@datamoc/mw_games/core';
 import { Texture, FederatedPointerEvent, Rectangle, type Container } from 'pixi.js';
 import {
-  GRID, LEVELS, MATERIALS, MATERIAL_ORDER, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
+  GRID, MATERIALS, MATERIAL_ORDER, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
 } from './data.ts';
 import { BridgeSim, FRAME_DT, SETTLE, structureCost, type Structure } from './physics.ts';
 import { Sfx } from './audio.ts';
+import { LEVELS as BUILTIN_LEVELS } from './levels.ts';
+import { deriveLevel, isSolid, parseSpec, slug, type LevelSpec } from './level.ts';
+import { LevelEditor } from './editor-ui.ts';
+import { newSpec } from './editor.ts';
 import { ropeHit, splitBeam, prune, type RopeHit } from './structure.ts';
 import { drawScene, type Layers } from './render.ts';
 import { buildClouds, buildDecor, makeVehicle, type CarState, type Clouds } from './art.ts';
@@ -19,14 +23,6 @@ const SNAP_R = 14;
 
 const clone = (s: Structure): Structure => JSON.parse(JSON.stringify(s));
 
-function pointInPoly(p: Pt, poly: Pt[]): boolean {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const a = poly[i], b = poly[j];
-    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
-  }
-  return inside;
-}
 function distToSegment(p: Pt, v: Pt, w: Pt): number {
   const l2 = (v.x - w.x) ** 2 + (v.y - w.y) ** 2;
   if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
@@ -44,6 +40,14 @@ export class PontifexScene extends Scene2D {
   // --- état de jeu
   private levelIdx = 0;
   private level!: LevelDef;
+  /** niveaux du jeu puis niveaux personnalisés */
+  private levels: LevelDef[] = [...BUILTIN_LEVELS];
+  private customs: LevelSpec[] = [];
+  private editing = false;
+  /** brouillon en cours d'essai depuis l'éditeur */
+  private testingSpec: LevelSpec | null = null;
+  private editor!: LevelEditor;
+  private lastHint = '';
   private structure!: Structure;
   private history = new UndoHistory<string>({ limit: 100 });
   private tool: Tool = 'road';
@@ -91,7 +95,7 @@ export class PontifexScene extends Scene2D {
   private btnGrid!: Button;
   private btnSound!: Button;
   private btnTest!: Button;
-  private flow: Array<{ items: Container[]; bar: 'top' | 'bot' }> = [];
+  private btnBack!: Button;
   private vw = 0;
   private vh = 0;
   private keyHandler = (e: KeyboardEvent) => this.onKey(e);
@@ -99,6 +103,7 @@ export class PontifexScene extends Scene2D {
 
   create(): void {
     this.loadProgress();
+    this.loadCustoms();
     const saved = this.settings.getCustom('level2', 0);
     this.sfx.enabled = this.settings.getCustom('sound', true) !== false;
     this.snapOn = this.settings.getCustom('grid', true) !== false;
@@ -127,12 +132,16 @@ export class PontifexScene extends Scene2D {
     this.world.on('pointerleave', () => { this.pointerIn = false; });
 
     this.buildHud();
+    this.editor = new LevelEditor(this.editorHost());
+    for (const it of this.editor.items) this.stage.addChild(it);
     this.stage.addChild(this.effects, this.windows);
     // clic droit = effacer : pas de menu contextuel du navigateur par-dessus le jeu
     Game.current.app.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     window.addEventListener('keydown', this.keyHandler);
     Input.onAction.add(this.actionHandler);
-    this.loadLevel(Math.min(Number(saved) || 0, LEVELS.length - 1));
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => { e.preventDefault(); void e.dataTransfer?.files[0]?.text().then((t) => this.importText(t)); });
+    this.loadLevel(Math.min(Number(saved) || 0, BUILTIN_LEVELS.length - 1));
     if (location.hash === '#debug') (window as unknown as Record<string, unknown>).__pontifex = this;
     this.resize(this.vw || window.innerWidth, this.vh || window.innerHeight);
   }
@@ -149,12 +158,21 @@ export class PontifexScene extends Scene2D {
     if (!this.progress.stars) this.progress = { stars: {} };
   }
   private saveProgress(): void { this.settings.setCustom('progress2', JSON.stringify(this.progress)); }
-  private unlocked(idx: number): boolean { return idx === 0 || (this.progress.stars[String(LEVELS[idx - 1].id)] ?? 0) > 0; }
+  private get builtinCount(): number { return BUILTIN_LEVELS.length; }
+  private unlocked(idx: number): boolean { return idx === 0 || idx >= this.builtinCount || (this.progress.stars[String(this.levels[idx - 1].id)] ?? 0) > 0; }
 
   // ------------------------------------------------------------------ niveau
   private loadLevel(idx: number): void {
     this.levelIdx = idx;
-    this.level = LEVELS[idx];
+    this.editing = false;
+    this.testingSpec = null;
+    if (idx < this.builtinCount) this.settings.setCustom('level2', idx);
+    this.applyLevel(this.levels[idx]);
+  }
+
+  /** Installe un niveau : décor, ancrages, véhicule, interface. */
+  private applyLevel(level: LevelDef): void {
+    this.level = level;
     this.sim = null;
     this.windows.closeAll();
     this.structure = { nodes: this.level.anchors.map((a) => ({ x: a.x, y: a.y, fixed: true })), beams: [] };
@@ -162,10 +180,7 @@ export class PontifexScene extends Scene2D {
     this.history.push(JSON.stringify(this.structure));
     this.drag = null;
     this.debris.clear(); this.spray.clear();
-    this.settings.setCustom('level2', idx);
-    for (const id of MATERIAL_ORDER) { const b = this.matButtons.get(id); if (b) b.visible = this.level.materials.includes(id); }
     if (this.tool !== 'delete' && !this.level.materials.includes(this.tool)) this.tool = this.level.materials[0];
-    this.btnLevel?.setText(`▾ ${this.level.label}. ${this.level.name}`);
     const v = this.level.vehicle;
     this.lblHint.setText(`${this.level.hint}  ·  Véhicule : ${v.name}, ${(v.mass / 10).toFixed(1).replace('.', ',')} t`);
     drawScene.static(this.layers, this.level, this.snapOn);
@@ -174,8 +189,20 @@ export class PontifexScene extends Scene2D {
     this.car = makeVehicle(this.level.vehicle);
     this.layers.car.addChild(this.car);
     this.carState = '';
+    this.updateVisibility();
     this.refreshHud();
     this.layoutHud();
+  }
+
+  /** Quels éléments d'interface sont visibles : jeu, essai depuis l'éditeur, ou éditeur. */
+  private updateVisibility(): void {
+    const play = !this.editing;
+    for (const [t, b] of this.matButtons) b.visible = play && (t === 'delete' || this.level.materials.includes(t));
+    for (const b of [this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest]) b.visible = play;
+    for (const o of [this.lblBudget, this.barBudget, this.lblStress, this.barStress]) o.visible = play;
+    this.btnBack.visible = play && this.testingSpec !== null;
+    for (const it of this.editor?.items ?? []) it.visible = this.editing;
+    this.btnLevel?.setText(this.editing ? '▾ Éditeur' : this.testingSpec ? '▾ Essai du brouillon' : `▾ ${this.level.label}. ${this.level.name}`);
   }
 
   // ------------------------------------------------------------------ édition
@@ -188,12 +215,7 @@ export class PontifexScene extends Scene2D {
     this.structure.nodes.forEach((n, i) => { const d = Math.hypot(n.x - p.x, n.y - p.y); if (d < bd) { bd = d; best = i; } });
     return best;
   }
-  private solid(p: Pt): boolean {
-    // à l'intérieur de la roche, avec 2 px de tolérance pour les points posés sur le bord
-    const polys = [this.level.leftCliff, this.level.rightCliff, ...(this.level.island ? [this.level.island] : []), ...(this.level.island2 ? [this.level.island2] : [])];
-    return polys.some((poly) => pointInPoly(p, poly) &&
-      [[2, 0], [-2, 0], [0, 2], [0, -2]].every(([dx, dy]) => pointInPoly({ x: p.x + dx, y: p.y + dy }, poly)));
-  }
+  private solid(p: Pt): boolean { return isSolid(this.level, p); }
   private inWorld(p: Pt): boolean { return p.x >= 0 && p.x <= WORLD_W && p.y >= 20 && p.y <= this.level.waterY + 30; }
   private beamExists(a: number, b: number): boolean {
     return this.structure.beams.some((m) => (m.a === a && m.b === b) || (m.a === b && m.b === a));
@@ -219,6 +241,7 @@ export class PontifexScene extends Scene2D {
     if (this.sim || !this.windows.isEmpty) return;
     const raw = this.toWorld(e);
     this.pointer = raw;
+    if (this.editing) { this.editor.pointer(this.snap(raw), e.button); return; }
     if (e.button === 2 || this.tool === 'delete') { this.deleteAt(raw); return; }
     const p = this.snap(raw);
     const idx = this.nodeAt(p);
@@ -330,18 +353,20 @@ export class PontifexScene extends Scene2D {
     const okBudget = won && left >= this.level.budget * 0.2;
     const okStress = won && sim.maxRatio < 0.75;
     const stars = won ? 1 + Number(okBudget) + Number(okStress) : 0;
-    if (won) {
+    const testing = this.testingSpec;
+    if (won && testing) testing.solution = clone(this.structure);
+    else if (won) {
       const key = String(this.level.id);
       if (stars > (this.progress.stars[key] ?? 0)) { this.progress.stars[key] = stars; this.saveProgress(); }
     }
-    const win = new Window({ width: 360, height: won ? 320 : 250, title: won ? 'Niveau réussi !' : 'Le pont s’est effondré', modal: true, closable: false });
+    const win = new Window({ width: 380, height: won ? 320 : 250, title: won ? (testing ? 'Solution validée !' : 'Niveau réussi !') : 'Le pont s’est effondré', modal: true, closable: false });
     const c = win.content;
     const star = new Label({ text: won ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : '✖', size: 40, color: won ? 0xfbbf24 : 0xf43f5e });
     star.position.set(win.contentWidth / 2 - star.width / 2, 4);
     const mark = (ok: boolean) => (ok ? '✔' : '✖');
     const info = new Label({
       text: won
-        ? `${mark(true)}  Le véhicule a traversé\n${mark(okBudget)}  Au moins 20 % du budget restant (${left} €)\n${mark(okStress)}  Contrainte max sous 75 % (${Math.round(sim.maxRatio * 100)} %)`
+        ? `${mark(true)}  Le véhicule a traversé\n${mark(okBudget)}  Au moins 20 % du budget restant (${left} €)\n${mark(okStress)}  Contrainte max sous 75 % (${Math.round(sim.maxRatio * 100)} %)${testing ? `\n\nCe pont devient la solution de référence (${cost} €).` : ''}`
         : 'Renforce les poutres qui rougissent en premier, ou ajoute des triangles : un triangle ne se déforme pas.',
       size: 13, wrapWidth: win.contentWidth - 16, color: 0xcbd5e1,
     });
@@ -351,19 +376,31 @@ export class PontifexScene extends Scene2D {
     const bw = (win.contentWidth - 24) / 2;
     const retry = new Button({ width: bw, height: 36, text: 'Modifier', onClick: () => { win.close(); this.stopSim(); } });
     retry.position.set(8, y);
+    const custom = this.levelIdx >= this.builtinCount;
+    const lastBuiltin = this.levelIdx >= this.builtinCount - 1;
+    const label = !won ? 'Revoir la chute' : testing ? '↩ Éditeur' : custom ? 'Niveaux' : lastBuiltin ? 'Recommencer' : 'Suivant →';
     const next = new Button({
-      width: bw, height: 36, text: won ? (this.levelIdx < LEVELS.length - 1 ? 'Suivant →' : 'Recommencer') : 'Revoir la chute',
-      onClick: () => { win.close(); if (!won) { this.stopSim(); this.toggleSim(); } else this.loadLevel(this.levelIdx < LEVELS.length - 1 ? this.levelIdx + 1 : 0); },
+      width: bw, height: 36, text: label,
+      onClick: () => {
+        win.close();
+        if (!won) { this.stopSim(); this.toggleSim(); }
+        else if (testing) this.backToEditor();
+        else if (custom) { this.stopSim(); this.showLevels(); }
+        else this.loadLevel(lastBuiltin ? 0 : this.levelIdx + 1);
+      },
     });
     next.position.set(16 + bw, y);
     c.addChild(retry, next);
     this.windows.push(win);
   }
+
   private showLevels(): void {
+    this.windows.closeAll();
     const cols = 4, bw = 172, bh = 56, gap = 8;
-    const rows = Math.ceil(LEVELS.length / cols);
-    const win = new Window({ width: cols * (bw + gap) + gap + 16, height: rows * (bh + gap) + gap + 96, title: 'Choisir un niveau', modal: true, closable: true });
-    LEVELS.forEach((lv, i) => {
+    const rows = Math.ceil(this.builtinCount / cols);
+    const customRows = this.customs.length;
+    const win = new Window({ width: cols * (bw + gap) + gap + 16, height: rows * (bh + gap) + gap + 96 + (customRows + 1) * 42 + 30, title: 'Choisir un niveau', modal: true, closable: true });
+    this.levels.slice(0, this.builtinCount).forEach((lv, i) => {
       const s = this.progress.stars[String(lv.id)] ?? 0;
       const ok = this.unlocked(i);
       const b = new Button({
@@ -375,10 +412,154 @@ export class PontifexScene extends Scene2D {
       b.position.set(gap + (i % cols) * (bw + gap), gap + Math.floor(i / cols) * (bh + gap));
       win.content.addChild(b);
     });
+    // niveaux personnalisés
+    let y = rows * (bh + gap) + gap + 6;
+    const title = new Label({ text: 'Mes niveaux', size: 13, bold: true, color: 0xfbbf24 });
+    title.position.set(gap, y); win.content.addChild(title);
+    y += 24;
+    this.customs.forEach((spec, k) => {
+      const idx = this.builtinCount + k;
+      const stars = this.progress.stars[String(spec.id)] ?? 0;
+      const play = new Button({ width: 330, height: 34, label: { size: 12 }, text: `${spec.name}   ${spec.solution ? '✔ validé' : '✖ non validé'}   ${'★'.repeat(stars)}`, onClick: () => { win.close(); this.loadLevel(idx); } });
+      const edit = new Button({ width: 80, height: 34, label: { size: 12 }, text: '✎ Éditer', onClick: () => { win.close(); this.enterEditor(spec); } });
+      const del = new Button({ width: 90, height: 34, label: { size: 12 }, text: '✖ Suppr.', onClick: () => this.confirm(`Supprimer « ${spec.name} » ?`, () => { this.customs.splice(k, 1); this.saveCustoms(); this.showLevels(); }) });
+      play.position.set(gap, y); edit.position.set(gap + 338, y); del.position.set(gap + 426, y);
+      win.content.addChild(play, edit, del);
+      y += 42;
+    });
+    const nouveau = new Button({ width: 200, height: 34, label: { size: 12 }, text: '＋ Nouveau niveau', onClick: () => { win.close(); this.enterEditor(null); } });
+    const imp = new Button({ width: 220, height: 34, label: { size: 12 }, text: 'Importer (presse-papiers)', onClick: () => {
+      void navigator.clipboard.readText().then((t) => { win.close(); this.importText(t); }).catch(() => this.reject('Presse-papiers inaccessible : dépose plutôt le fichier .json sur la page'));
+    } });
+    nouveau.position.set(gap, y); imp.position.set(gap + 208, y);
+    win.content.addChild(nouveau, imp);
+    const hint = new Label({ text: 'Astuce : dépose un fichier .json de niveau sur la page pour l’importer.', size: 11, color: 0x94a3b8 });
+    hint.position.set(gap, y + 40); win.content.addChild(hint);
     const close = new Button({ width: 120, height: 32, text: 'Fermer', onClick: () => win.close() });
-    close.position.set(win.contentWidth - 128, rows * (bh + gap) + gap + 4);
+    close.position.set(win.contentWidth - 128, win.contentHeight - 40);
     win.content.addChild(close);
     this.windows.push(win);
+  }
+
+  private confirm(message: string, yes: () => void): void {
+    const win = new Window({ width: 340, height: 170, title: 'Confirmer', modal: true, closable: true });
+    const l = new Label({ text: message, size: 13, wrapWidth: win.contentWidth - 16 });
+    l.position.set(8, 10);
+    const ok = new Button({ width: 140, height: 34, text: 'Oui', onClick: () => { win.close(); yes(); } });
+    const no = new Button({ width: 140, height: 34, text: 'Non', onClick: () => win.close() });
+    ok.position.set(8, win.contentHeight - 44); no.position.set(win.contentWidth - 148, win.contentHeight - 44);
+    win.content.addChild(l, ok, no);
+    this.windows.push(win);
+  }
+
+  // ------------------------------------------------------------------ niveaux personnalisés
+  private loadCustoms(): void {
+    this.customs = [];
+    try {
+      const raw = JSON.parse(String(this.settings.getCustom('customs', '[]')));
+      for (const r of Array.isArray(raw) ? raw : []) {
+        const parsed = parseSpec(r);
+        if ('spec' in parsed && Number.isInteger(r.id)) this.customs.push({ ...parsed.spec, id: r.id, label: 'P' });
+      }
+    } catch { /* stockage corrompu : on repart d'une liste vide */ }
+    this.rebuildLevels();
+  }
+  private saveCustoms(): void {
+    this.settings.setCustom('customs', JSON.stringify(this.customs));
+    this.rebuildLevels();
+  }
+  private rebuildLevels(): void {
+    this.levels = [...BUILTIN_LEVELS, ...this.customs.map((c, i) => deriveLevel({ ...c, label: `P${i + 1}` }))];
+  }
+  private nextId(): number { return Math.max(100, ...this.customs.map((c) => c.id)) + 1; }
+
+  private importText(text: string): void {
+    let raw: unknown;
+    try { raw = JSON.parse(text); } catch { this.reject('Ce n’est pas un niveau (JSON illisible)'); return; }
+    const parsed = parseSpec(raw);
+    if ('error' in parsed) { this.reject(parsed.error); return; }
+    this.customs.push({ ...parsed.spec, id: this.nextId() });
+    this.saveCustoms();
+    this.toastMsg = `Niveau « ${parsed.spec.name} » importé`; this.toastT = 2.5;
+    this.showLevels();
+  }
+
+  private editorHost() {
+    return {
+      click: () => this.sfx.onClick(),
+      toast: (m: string) => this.reject(m),
+      preview: (spec: LevelSpec) => this.previewDraft(spec),
+      askText: (title: string, initial: string, max: number, done: (v: string) => void) => {
+        const prompt = new TextPrompt({
+          width: 460, height: 230, title, initialValue: initial, maxLength: max, validate: (v) => (v.trim() ? null : 'Texte requis'),
+          onConfirm: (v) => { prompt.close(); done(v); }, onCancel: () => prompt.close(),
+        });
+        this.windows.push(prompt);
+      },
+      playtest: (spec: LevelSpec) => this.playtest(spec),
+      save: (spec: LevelSpec) => this.saveDraft(spec),
+      exportSpec: (spec: LevelSpec) => this.exportSpec(spec),
+      quit: () => { this.editing = false; this.loadLevel(Math.min(this.levelIdx, this.levels.length - 1)); },
+    };
+  }
+
+  private editingId = 0;
+  private enterEditor(spec: LevelSpec | null): void {
+    this.editingId = spec?.id ?? 0;
+    this.editing = true;
+    this.testingSpec = null;
+    this.windows.closeAll();
+    this.sim = null;
+    this.editor.open(spec ?? newSpec());
+    this.updateVisibility();
+    this.layoutHud();
+  }
+  private backToEditor(): void {
+    const spec = this.testingSpec!;
+    this.editing = true;
+    this.testingSpec = null;
+    this.sim = null;
+    this.editor.open(spec);
+    this.updateVisibility();
+    this.layoutHud();
+  }
+  /** Redessine le niveau en cours d'édition (appelé à chaque modification). */
+  private previewDraft(spec: LevelSpec): void {
+    this.level = deriveLevel({ ...spec, id: 0, label: 'P' });
+    this.structure = { nodes: this.level.anchors.map((a) => ({ x: a.x, y: a.y, fixed: true })), beams: [] };
+    drawScene.static(this.layers, this.level, this.snapOn);
+    buildDecor(this.level, this.layers.decor);
+    this.layers.car.removeChildren().forEach((c) => c.destroy());
+    this.car = makeVehicle(this.level.vehicle);
+    this.layers.car.addChild(this.car);
+    this.carState = '';
+    this.layoutHud();
+  }
+  private playtest(spec: LevelSpec): void {
+    this.testingSpec = spec;
+    this.editing = false;
+    this.applyLevel(deriveLevel({ ...spec, id: 0, label: 'P' }));
+  }
+  private saveDraft(spec: LevelSpec): void {
+    const copy: LevelSpec = JSON.parse(JSON.stringify(spec));
+    const at = this.customs.findIndex((c) => c.id === this.editingId);
+    if (at >= 0) { copy.id = this.editingId; this.customs[at] = copy; }
+    else { copy.id = this.nextId(); this.editingId = copy.id; this.customs.push(copy); }
+    this.saveCustoms();
+    this.toastMsg = spec.solution ? 'Niveau enregistré' : 'Niveau enregistré (solution non validée)';
+    this.toastT = 2.2;
+  }
+  private exportSpec(spec: LevelSpec): void {
+    const json = JSON.stringify({ ...spec, id: undefined, label: undefined }, null, 1);
+    try {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      a.download = `pontifex-${slug(spec.name)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    } catch { /* téléchargement refusé : le presse-papiers suffira */ }
+    void navigator.clipboard?.writeText(json).catch(() => undefined);
+    this.toastMsg = 'Niveau exporté (fichier .json + presse-papiers)'; this.toastT = 2.5;
   }
 
   // ------------------------------------------------------------------ interface
@@ -400,14 +581,11 @@ export class PontifexScene extends Scene2D {
     this.btnSpeed = this.button('1×', () => { this.speed = this.speed === 1 ? 2 : this.speed === 2 ? 0.5 : 1; this.refreshHud(); }, 52);
     this.btnGrid = this.button('', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn); this.refreshHud(); }, 90);
     this.btnSound = this.button('', () => { this.sfx.enabled = !this.sfx.enabled; this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
+    this.btnBack = this.button('↩ Éditeur', () => this.backToEditor(), 110);
     this.btnTest = new Button({ width: 130, height: 40, text: '▶  TESTER', label: { size: 14, bold: true }, onClick: () => { this.sfx.onClick(); this.toggleSim(); } });
     this.stage.addChild(this.topBar, this.botBar);
     for (const o of [this.lblTitle, this.btnLevel, this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblHint, this.lblToast,
-      ...this.matButtons.values(), this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest]) this.stage.addChild(o);
-    this.flow = [
-      { bar: 'top', items: [this.lblTitle, this.btnLevel, this.lblBudget, this.barBudget, this.lblStress, this.barStress] },
-      { bar: 'bot', items: [...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest] },
-    ];
+      ...this.matButtons.values(), this.btnBack, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest]) this.stage.addChild(o);
   }
   private undo(): void { if (!this.sim) this.restore(this.history.undo()); }
   private redo(): void { if (!this.sim) this.restore(this.history.redo()); }
@@ -440,8 +618,9 @@ export class PontifexScene extends Scene2D {
   private labelFor(t: Tool): string {
     if (t === 'delete') return 'Effacer';
     const m = MATERIALS[t];
-    const prev = this.levelIdx > 0 ? LEVELS[this.levelIdx - 1].materials : [];
-    return `${prev.includes(t) || this.levelIdx === 0 ? '' : '✦ '}${m.name}  ${m.cost}€/m`;
+    const i = this.levels.findIndex((l) => l.id === this.level.id);
+    const isNew = i > 0 && i < this.builtinCount && !this.levels[i - 1].materials.includes(t);
+    return `${isNew ? '✦ ' : ''}${m.name}  ${m.cost}€/m`;
   }
   private setStress(r: number): void {
     const pct = Math.min(100, Math.round(r * 100));
@@ -477,11 +656,12 @@ export class PontifexScene extends Scene2D {
     topH = Math.max(topH, hudY + 36);
     this.topH = topH;
     // barre basse
-    const botItems = [...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!).filter((b) => b.visible), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest];
+    const botItems: Container[] = this.editing ? this.editor.items
+      : [...(this.testingSpec ? [this.btnBack] : []), ...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!).filter((b) => b.visible), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest];
     const h = place(botItems, 8, 8);
     const oy = vh - h;
     for (const it of botItems) it.y += oy;
-    if (h <= 56) { this.btnTest.x = vw - this.btnTest.width - 10; }
+    if (h <= 56 && !this.editing) { this.btnTest.x = vw - this.btnTest.width - 10; }
     this.botY = oy;
     this.lblHint.position.set(10, this.topH + 6);
     this.lblHint.style.wordWrap = true;
@@ -490,7 +670,8 @@ export class PontifexScene extends Scene2D {
     this.botBar.clear().rect(0, oy, vw, h).fill({ color: 0x0f172a, alpha: 0.92 }).rect(0, oy, vw, 1).fill(0x1e293b);
     // caméra : le monde 800×550 tient dans l'espace libre
     const availH = oy - this.topH, availW = vw;
-    const view = this.level?.view ?? { x: 0, y: 0, w: WORLD_W, h: WORLD_H };
+    // l'éditeur montre toujours tout le monde : on y pose des pylônes et des îlots hors du cadrage serré
+    const view = (!this.editing && this.level?.view) || { x: 0, y: 0, w: WORLD_W, h: WORLD_H };
     const zoom = Math.min(availW / view.w, availH / view.h);
     this.camera.setViewport(vw, availH, 0, this.topH);
     this.camera.zoom = zoom;
@@ -508,7 +689,7 @@ export class PontifexScene extends Scene2D {
   }
 
   private onKey(e: KeyboardEvent): void {
-    if (e.repeat) return;
+    if (e.repeat || this.editing) return;
     if (e.code === 'Space') { e.preventDefault(); if (this.windows.isEmpty) this.toggleSim(); }
     else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); }
     else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY') { e.preventDefault(); this.redo(); }
@@ -555,7 +736,11 @@ export class PontifexScene extends Scene2D {
     this.clouds?.update(dt);
     this.lblToast.visible = this.toastT > 0;
     if (this.toastT > 0) { this.lblToast.setText(this.toastMsg); this.lblToast.position.set((this.vw - this.lblToast.width) / 2, this.botY - 40); }
-    this.lblHint.visible = !this.sim && this.structure.beams.length === 0;
+    if (this.editing) {
+      const st = this.editor.status();
+      if (st !== this.lastHint) { this.lastHint = st; this.lblHint.setText(st); }
+    }
+    this.lblHint.visible = this.editing || (!this.sim && this.structure.beams.length === 0);
   }
   private endTimer = 0;
 

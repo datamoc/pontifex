@@ -46,7 +46,7 @@ export const drawScene = {
     const cliff = (pts: number[]) => { b.poly(pts).fill(rock).stroke({ width: 3, color: edge }); };
     cliff([X0, lv.deckY, lv.x0, lv.deckY, lv.x0, Y1, X0, Y1]);
     cliff([lv.x1, lv.deckY, X1, lv.deckY, X1, Y1, lv.x1, Y1]);
-    for (const isl of [lv.island, lv.island2]) if (isl) cliff(isl.flatMap((p) => [p.x, p.y]).concat([isl[2].x + 100, Y1, isl[3].x - 100, Y1]));
+    for (const isl of lv.islands) cliff(isl.flatMap((p) => [p.x, p.y]).concat([isl[2].x + 100, Y1, isl[3].x - 100, Y1]));
     // strates
     for (let y = lv.deckY + 40; y < Y1; y += 46) {
       b.moveTo(X0, y).lineTo(lv.x0, y).moveTo(lv.x1, y).lineTo(X1, y).stroke({ width: 1, color: 0x4a3b2e, alpha: 0.6 });
