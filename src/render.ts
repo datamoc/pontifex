@@ -13,6 +13,8 @@ export interface DynamicArgs {
   tool: MaterialId | 'delete';
   hoverNode: number;
   pointer: Pt | null;
+  /** point d'accrochage sur un câble porteur sous le pointeur */
+  ropePoint: Pt | null;
   flash: number;
 }
 
@@ -54,6 +56,12 @@ export const drawScene = {
     b.rect(X0, lv.deckY - 5, lv.x0 - X0, 5).fill(0x334155).rect(lv.x1, lv.deckY - 5, X1 - lv.x1, 5).fill(0x334155);
     for (let x = X0; x < lv.x0 - 20; x += 40) b.rect(x, lv.deckY - 3, 18, 1.5).fill(0xe2e8f0);
     for (let x = lv.x1 + 10; x < X1; x += 40) b.rect(x, lv.deckY - 3, 18, 1.5).fill(0xe2e8f0);
+    // pylônes
+    for (const t of lv.towers ?? []) {
+      b.rect(t.x - 7, t.top, 14, t.base - t.top).fill(0x94a3b8).stroke({ width: 2, color: 0x334155 });
+      for (let y = t.top + 20; y < t.base; y += 40) b.moveTo(t.x - 7, y).lineTo(t.x + 7, y - 14).stroke({ width: 1.5, color: 0x64748b });
+      b.rect(t.x - 12, t.top - 6, 24, 8).fill(0x64748b);
+    }
     // panneau de départ / arrivée
     b.rect(lv.x0 - 60, lv.deckY - 40, 3, 35).fill(0xe2e8f0).rect(lv.x0 - 70, lv.deckY - 48, 24, 12).fill(0x10b981);
     b.rect(lv.x1 + 60, lv.deckY - 40, 3, 35).fill(0xe2e8f0).rect(lv.x1 + 46, lv.deckY - 48, 24, 12).fill(0xf43f5e);
@@ -90,9 +98,10 @@ export const drawScene = {
     for (const m of beams) {
       const def = MATERIALS[m.mat];
       const col = m.ratio >= 0 ? ratioColor(m.ratio) : def.color;
-      const w = def.isRoad ? 9 : m.mat === 'cable' ? 2.5 : 5;
+      const w = def.isRoad ? 9 : m.mat === 'cable' ? 2 : m.mat === 'rope' ? 5 : 5;
       br.moveTo(m.x1, m.y1).lineTo(m.x2, m.y2).stroke({ width: w, color: col, cap: 'round' });
       if (def.isRoad) br.moveTo(m.x1, m.y1).lineTo(m.x2, m.y2).stroke({ width: 2, color: 0x0f172a, alpha: 0.85, cap: 'butt' });
+      else if (m.mat === 'rope') br.moveTo(m.x1, m.y1).lineTo(m.x2, m.y2).stroke({ width: 1.5, color: 0x1f2937, alpha: 0.7, cap: 'butt' });
       else if (m.mat === 'steel') br.moveTo(m.x1, m.y1).lineTo(m.x2, m.y2).stroke({ width: 1.5, color: 0xffffff, alpha: 0.5, cap: 'butt' });
     }
     // --- nœuds
@@ -122,6 +131,7 @@ export const drawScene = {
       lenLabel.setColor(col);
       lenLabel.position.set((from.x + to.x) / 2 + 10, (from.y + to.y) / 2 - 20);
     } else if (lenLabel) lenLabel.visible = false;
+    if (a.ropePoint) fr.circle(a.ropePoint.x, a.ropePoint.y, 8).stroke({ width: 2.5, color: 0xfacc15 }).circle(a.ropePoint.x, a.ropePoint.y, 3).fill(0xfacc15);
     if (a.pointer && !a.preview) fr.circle(a.pointer.x, a.pointer.y, 6).stroke({ width: 1.5, color: a.tool === 'delete' ? 0xf43f5e : 0x38bdf8, alpha: 0.7 });
 
     // --- eau (devant le pont et le véhicule, dans le canyon seulement)

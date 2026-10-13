@@ -5,8 +5,8 @@ import type { Structure } from '../src/physics.ts';
 type Beam = [number, number, MaterialId];
 
 /** Ponts de référence : prouvent que chaque niveau est faisable et servent de garde-fou au réglage. */
-export function reference(levelIdx: number): Structure {
-  const L = LEVELS[levelIdx];
+function legacy(levelIdx: number): Structure {
+  const L = LEVELS[levelIdx + 1];
   if (levelIdx === 0) {
     const y = 440;
     const free: [number, number][] = [[280, 340], [400, 340], [520, 340], [240, y], [340, y], [460, y], [560, y]];
@@ -56,4 +56,34 @@ export function reference(levelIdx: number): Structure {
     [3, 14, 'steel'], [14, 9, 'wood'], [9, 13, 'wood'], [13, 8, 'wood'],
   ];
   return build(L, free, b);
+}
+
+type Free = [number, number][];
+export function reference(i: number): Structure {
+  const L = LEVELS[i];
+  switch (i) {
+    case 0: // chaussée seule : trois tronçons, deux points intermédiaires
+      return build(L, [[360, 340], [440, 340]], [[0, 2, 'road'], [2, 3, 'road'], [3, 1, 'road']]);
+    case 1: return legacy(0);
+    case 2: return legacy(1);
+    case 3: return legacy(2);
+    case 4: return legacy(3);
+    case 5: { // pylône central : tablier + haubans (câbles fins)
+      // ancres 0:(140,340) 1:(660,340) 2:(400,160)
+      const free: Free = [[240, 340], [340, 340], [400, 340], [460, 340], [560, 340]]; // 3..7
+      const b: Beam[] = [[0, 3, 'road'], [3, 4, 'road'], [4, 5, 'road'], [5, 6, 'road'], [6, 7, 'road'], [7, 1, 'road'],
+        [2, 3, 'cable'], [2, 4, 'cable'], [2, 5, 'cable'], [2, 6, 'cable'], [2, 7, 'cable']];
+      return build(L, free, b);
+    }
+    default: { // viaduc suspendu : câble porteur entre les pylônes, suspentes (câbles fins), tablier
+      // ancres 0:(140,340) 1:(660,340) 2:(120,150) 3:(680,150)
+      const xs = [240, 320, 400, 480, 560];
+      const ry = [220, 260, 260, 260, 220];
+      const free: Free = [...xs.map((x) => [x, 340] as [number, number]), ...xs.map((x, k) => [x, ry[k]] as [number, number])]; // deck 4..8, rope 9..13
+      const b: Beam[] = [[0, 4, 'road'], [4, 5, 'road'], [5, 6, 'road'], [6, 7, 'road'], [7, 8, 'road'], [8, 1, 'road'],
+        [2, 9, 'rope'], [9, 10, 'rope'], [10, 11, 'rope'], [11, 12, 'rope'], [12, 13, 'rope'], [13, 3, 'rope'],
+        [4, 9, 'cable'], [5, 10, 'cable'], [6, 11, 'cable'], [7, 12, 'cable'], [8, 13, 'cable']];
+      return build(L, free, b);
+    }
+  }
 }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { build, run, LEVELS } from './helpers.ts';
 import { reference } from './refs.ts';
 import { BridgeSim, structureCost, FRAME_DT } from '../src/physics.ts';
+import { ropeHit, splitBeam, prune } from '../src/structure.ts';
 
 for (let i = 0; i < LEVELS.length; i++) {
   const lv = LEVELS[i];
@@ -13,6 +14,9 @@ for (let i = 0; i < LEVELS.length; i++) {
     assert.equal(r.status, 'won');
     assert.equal(r.breaks, 0);
     assert.ok(r.maxRatio < 0.95, `contrainte max ${r.maxRatio}`);
+  });
+  test(`niveau ${lv.id} : le pont de référence n'utilise que les matériaux autorisés`, () => {
+    for (const b of reference(i).beams) assert.ok(lv.materials.includes(b.mat), `${b.mat} interdit au niveau ${lv.id}`);
   });
   test(`niveau ${lv.id} : sans pont, le véhicule tombe`, () => {
     assert.equal(run(lv, build(lv, [], [])).status, 'failed');
@@ -77,3 +81,39 @@ for (let i = 0; i < LEVELS.length; i++) {
     assert.ok(structureCost(s) <= lv.budget * 0.8, `coût minimal trouvé ${Math.round(structureCost(s))} > ${lv.budget * 0.8}`);
   });
 }
+
+test('progression : un nouveau matériau n\'apparaît qu\'en élargissant la liste précédente', () => {
+  for (let i = 1; i < LEVELS.length; i++) for (const m of LEVELS[i - 1].materials) {
+    // un niveau ne retire jamais un matériau déjà appris, sauf pour mieux cadrer le scénario (4-5 sans câbles)
+    if (!LEVELS[i].materials.includes(m)) assert.fail(`niveau ${LEVELS[i].id} retire ${m}`);
+  }
+});
+
+test('câble porteur : accrocher une suspente coupe le câble en deux sans changer la longueur ni le coût', () => {
+  const lv = LEVELS[6];
+  const s = JSON.parse(JSON.stringify(reference(6)));
+  const before = structureCost(s);
+  const rope = s.beams.findIndex((b: { mat: string }) => b.mat === 'rope');
+  const a = s.nodes[s.beams[rope].a], b = s.nodes[s.beams[rope].b];
+  const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  const hit = ropeHit(s, { x: mid.x + 3, y: mid.y + 2 });
+  assert.ok(hit, 'le câble doit être touché');
+  const n = splitBeam(s, hit!.beam, hit!.pos);
+  assert.equal(s.beams.filter((x: { a: number; b: number }) => x.a === n || x.b === n).length, 2);
+  assert.ok(Math.abs(structureCost(s) - before) < 1e-6);
+  assert.equal(run(lv, prune(s)).status, 'won');
+});
+
+test('câble porteur : pas d\'accrochage près d\'un nœud existant ni sur autre chose qu\'un câble porteur', () => {
+  const s = reference(6);
+  const rope = s.beams.find((b) => b.mat === 'rope')!;
+  const a = s.nodes[rope.a];
+  assert.equal(ropeHit(s, { x: a.x + 2, y: a.y + 2 }), null);
+  assert.equal(ropeHit(reference(1), { x: 400, y: 340 }), null);
+});
+
+test('niveau 7 : sans le câble porteur, le tablier suspendu ne tient pas', () => {
+  const s = reference(6);
+  const noRope = { nodes: s.nodes, beams: s.beams.filter((b) => b.mat !== 'rope') };
+  assert.notEqual(run(LEVELS[6], noRope).status, 'won');
+});

@@ -5,8 +5,15 @@ qui s'ouvre en double-clic, hors ligne.
 
 **Jouer** : ouvrir `pontifex.html` (= `dist/standalone.html`). Glisser d'un point à un autre pour poser une poutre ;
 points d'ancrage orange fixes ; clic droit ou outil « Effacer » pour retirer ; **Tester** (ou Espace) lance la voiture.
-Raccourcis : `1`–`4` matériaux, `X` effacer, `G` grille, `Ctrl+Z` / `Ctrl+Y` annuler/rétablir, `Échap` ferme une fenêtre.
+Raccourcis : `1`–`5` matériaux, `X` effacer, `G` grille, `Ctrl+Z` / `Ctrl+Y` annuler/rétablir, `Échap` ferme une fenêtre.
 Étoiles : ★ traverser · ★ garder ≥ 20 % du budget · ★ contrainte max < 75 %.
+
+## Progression et matériaux
+
+Les matériaux arrivent progressivement (✦ = nouveau) : 1 chaussée seule entre 2 points · 2 + bois · 3 + acier ·
+6 + **câble fin** (traction seule : haubans, suspentes) · 7 + **câble porteur** (câble épais tendu entre pylônes).
+Un câble fin s'accroche **n'importe où sur un câble porteur** : le câble porteur est alors coupé en deux et un nœud est créé.
+Les niveaux sont de simples données (`src/data.ts`), prêts pour un futur éditeur de scénarios.
 
 ## Développer
 

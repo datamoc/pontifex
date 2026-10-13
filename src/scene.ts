@@ -9,6 +9,7 @@ import {
 } from './data.ts';
 import { BridgeSim, FRAME_DT, SETTLE, structureCost, type Structure } from './physics.ts';
 import { Sfx } from './audio.ts';
+import { ropeHit, splitBeam, prune, type RopeHit } from './structure.ts';
 import { drawScene, type Layers } from './render.ts';
 import { buildClouds, buildDecor, makeVehicle, type CarState, type Clouds } from './art.ts';
 import type { AnimatedSprite } from '@datamoc/mw_games/two-d';
@@ -53,7 +54,7 @@ export class PontifexScene extends Scene2D {
   private overBudgetFlash = 0;
 
   // --- interaction
-  private drag: { from: Pt; fromIdx: number } | null = null;
+  private drag: { from: Pt; fromIdx: number; fromRope: RopeHit | null } | null = null;
   private pointer: Pt = { x: 0, y: 0 };
   private pointerIn = false;
 
@@ -98,7 +99,7 @@ export class PontifexScene extends Scene2D {
 
   create(): void {
     this.loadProgress();
-    const saved = this.settings.getCustom('level', 0);
+    const saved = this.settings.getCustom('level2', 0);
     this.sfx.enabled = this.settings.getCustom('sound', true) !== false;
     this.snapOn = this.settings.getCustom('grid', true) !== false;
 
@@ -144,10 +145,10 @@ export class PontifexScene extends Scene2D {
 
   // ------------------------------------------------------------------ progression
   private loadProgress(): void {
-    try { this.progress = JSON.parse(String(this.settings.getCustom('progress', '{"stars":{}}'))); } catch { this.progress = { stars: {} }; }
+    try { this.progress = JSON.parse(String(this.settings.getCustom('progress2', '{"stars":{}}'))); } catch { this.progress = { stars: {} }; }
     if (!this.progress.stars) this.progress = { stars: {} };
   }
-  private saveProgress(): void { this.settings.setCustom('progress', JSON.stringify(this.progress)); }
+  private saveProgress(): void { this.settings.setCustom('progress2', JSON.stringify(this.progress)); }
   private unlocked(idx: number): boolean { return idx === 0 || (this.progress.stars[String(LEVELS[idx - 1].id)] ?? 0) > 0; }
 
   // ------------------------------------------------------------------ niveau
@@ -161,7 +162,9 @@ export class PontifexScene extends Scene2D {
     this.history.push(JSON.stringify(this.structure));
     this.drag = null;
     this.debris.clear(); this.spray.clear();
-    this.settings.setCustom('level', idx);
+    this.settings.setCustom('level2', idx);
+    for (const id of MATERIAL_ORDER) { const b = this.matButtons.get(id); if (b) b.visible = this.level.materials.includes(id); }
+    if (this.tool !== 'delete' && !this.level.materials.includes(this.tool)) this.tool = this.level.materials[0];
     this.btnLevel?.setText(`▾ ${this.level.id}. ${this.level.name}`);
     const v = this.level.vehicle;
     this.lblHint.setText(`${this.level.hint}  ·  Véhicule : ${v.name}, ${(v.mass / 10).toFixed(1).replace('.', ',')} t`);
@@ -200,14 +203,7 @@ export class PontifexScene extends Scene2D {
     this.history.push(JSON.stringify(this.structure));
     this.refreshHud();
   }
-  /** Retire les nœuds libres sans poutre (et renumérote). */
-  private prune(): void {
-    const used = new Set<number>();
-    for (const b of this.structure.beams) { used.add(b.a); used.add(b.b); }
-    const map = new Map<number, number>();
-    const nodes = this.structure.nodes.filter((n, i) => { const keep = n.fixed || used.has(i); if (keep) map.set(i, map.size); return keep; });
-    this.structure = { nodes, beams: this.structure.beams.map((b) => ({ ...b, a: map.get(b.a)!, b: map.get(b.b)! })) };
-  }
+  private prune(): void { this.structure = prune(this.structure); }
   private restore(json: string | null): void {
     if (json === null) return;
     this.structure = JSON.parse(json);
@@ -226,9 +222,11 @@ export class PontifexScene extends Scene2D {
     if (e.button === 2 || this.tool === 'delete') { this.deleteAt(raw); return; }
     const p = this.snap(raw);
     const idx = this.nodeAt(p);
-    const from = idx >= 0 ? { x: this.structure.nodes[idx].x, y: this.structure.nodes[idx].y } : p;
-    if (idx < 0 && (this.solid(p) || !this.inWorld(p))) return;
-    this.drag = { from, fromIdx: idx };
+    // un câble fin peut s'accrocher n'importe où sur un câble porteur
+    const rope = idx < 0 && this.tool === 'cable' ? ropeHit(this.structure, raw) : null;
+    const from = idx >= 0 ? { x: this.structure.nodes[idx].x, y: this.structure.nodes[idx].y } : rope ? rope.pos : p;
+    if (idx < 0 && !rope && (this.solid(p) || !this.inWorld(p))) return;
+    this.drag = { from, fromIdx: idx, fromRope: rope };
   }
   private onMove(e: FederatedPointerEvent): void {
     this.pointer = this.toWorld(e);
@@ -238,14 +236,17 @@ export class PontifexScene extends Scene2D {
     const d = this.drag;
     this.drag = null;
     if (!d || this.sim) return;
-    const pEnd = this.snap(this.toWorld(e));
+    const raw = this.toWorld(e);
+    const pEnd = this.snap(raw);
     const endIdx = this.nodeAt(pEnd);
-    const to = endIdx >= 0 ? { x: this.structure.nodes[endIdx].x, y: this.structure.nodes[endIdx].y } : pEnd;
+    const endRope = endIdx < 0 && this.tool === 'cable' ? ropeHit(this.structure, raw) : null;
+    const to = endIdx >= 0 ? { x: this.structure.nodes[endIdx].x, y: this.structure.nodes[endIdx].y } : endRope ? endRope.pos : pEnd;
     const mat = MATERIALS[this.tool as MaterialId];
     const len = Math.hypot(to.x - d.from.x, to.y - d.from.y);
     if (len < 10) return;
-    if (len > mat.maxLen) { this.reject('Poutre trop longue pour ce matériau'); return; }
-    if (endIdx < 0 && (this.solid(to) || !this.inWorld(to))) return;
+    if (len > mat.maxLen) { this.reject('Trop long pour ce matériau'); return; }
+    if (endIdx < 0 && !endRope && (this.solid(to) || !this.inWorld(to))) return;
+    if (d.fromRope && endRope) { this.reject('Une suspente relie le câble porteur au tablier'); return; }
     const mid = { x: (to.x + d.from.x) / 2, y: (to.y + d.from.y) / 2 };
     if (this.solid(mid)) return;
     const cost = (len / 10) * mat.cost;
@@ -253,11 +254,15 @@ export class PontifexScene extends Scene2D {
     let a = d.fromIdx, b = endIdx;
     if (a >= 0 && a === b) return;
     if (a >= 0 && b >= 0 && this.beamExists(a, b)) return;
-    if (a < 0) { this.structure.nodes.push({ x: d.from.x, y: d.from.y, fixed: false }); a = this.structure.nodes.length - 1; }
-    if (b < 0) { this.structure.nodes.push({ x: to.x, y: to.y, fixed: false }); b = this.structure.nodes.length - 1; }
+    if (a < 0) a = d.fromRope ? splitBeam(this.structure, d.fromRope.beam, d.fromRope.pos) : this.addNode(d.from);
+    if (b < 0) b = endRope ? splitBeam(this.structure, endRope.beam, endRope.pos) : this.addNode(to);
     this.structure.beams.push({ a, b, mat: mat.id });
     this.sfx.onBuild();
     this.commit();
+  }
+  private addNode(p: Pt): number {
+    this.structure.nodes.push({ x: p.x, y: p.y, fixed: false });
+    return this.structure.nodes.length - 1;
   }
   private deleteAt(p: Pt): void {
     let best = -1, bd = 9;
@@ -355,7 +360,7 @@ export class PontifexScene extends Scene2D {
     this.windows.push(win);
   }
   private showLevels(): void {
-    const cols = 3, bw = 160, bh = 56, gap = 8;
+    const cols = 4, bw = 172, bh = 56, gap = 8;
     const rows = Math.ceil(LEVELS.length / cols);
     const win = new Window({ width: cols * (bw + gap) + gap + 16, height: rows * (bh + gap) + gap + 96, title: 'Choisir un niveau', modal: true, closable: true });
     LEVELS.forEach((lv, i) => {
@@ -384,7 +389,7 @@ export class PontifexScene extends Scene2D {
     this.btnLevel = this.button('', () => this.showLevels(), 190);
     for (const id of MATERIAL_ORDER) {
       const m = MATERIALS[id];
-      const b = this.button(`${m.name}  ${m.cost}€/m`, () => { this.tool = id; this.refreshHud(); }, 128);
+      const b = this.button('', () => { this.tool = id; this.refreshHud(); }, 150);
       this.matButtons.set(id, b);
     }
     this.btnDelete = this.button('Effacer', () => { this.tool = 'delete'; this.refreshHud(); }, 80);
@@ -435,7 +440,8 @@ export class PontifexScene extends Scene2D {
   private labelFor(t: Tool): string {
     if (t === 'delete') return 'Effacer';
     const m = MATERIALS[t];
-    return `${m.name}  ${m.cost}€/m`;
+    const prev = this.levelIdx > 0 ? LEVELS[this.levelIdx - 1].materials : [];
+    return `${prev.includes(t) || this.levelIdx === 0 ? '' : '✦ '}${m.name}  ${m.cost}€/m`;
   }
   private setStress(r: number): void {
     const pct = Math.min(100, Math.round(r * 100));
@@ -471,7 +477,7 @@ export class PontifexScene extends Scene2D {
     topH = Math.max(topH, hudY + 36);
     this.topH = topH;
     // barre basse
-    const botItems = [...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest];
+    const botItems = [...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!).filter((b) => b.visible), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest];
     const h = place(botItems, 8, 8);
     const oy = vh - h;
     for (const it of botItems) it.y += oy;
@@ -507,7 +513,10 @@ export class PontifexScene extends Scene2D {
     else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY') { e.preventDefault(); this.redo(); }
     else if (e.code === 'Delete' || e.code === 'KeyX') { this.tool = 'delete'; this.refreshHud(); }
     else if (e.code === 'KeyG') { this.btnGrid.onClick.dispatch(); }
-    else if (e.code >= 'Digit1' && e.code <= 'Digit4') { this.tool = MATERIAL_ORDER[Number(e.code.slice(5)) - 1]; this.refreshHud(); }
+    else if (e.code >= 'Digit1' && e.code <= 'Digit5') {
+      const m = MATERIAL_ORDER[Number(e.code.slice(5)) - 1];
+      if (this.level.materials.includes(m)) { this.tool = m; this.refreshHud(); }
+    }
   }
 
   // ------------------------------------------------------------------ boucle
@@ -539,6 +548,7 @@ export class PontifexScene extends Scene2D {
       level: this.level, structure: this.structure, sim: this.sim, time: this.time, preview,
       tool: this.tool, hoverNode: !this.sim && this.pointerIn ? this.nodeAt(this.snap(this.pointer)) : -1,
       pointer: this.pointerIn && !this.sim ? this.snap(this.pointer) : null, flash: this.overBudgetFlash,
+      ropePoint: !this.sim && this.pointerIn && this.tool === 'cable' && this.nodeAt(this.snap(this.pointer)) < 0 ? (ropeHit(this.structure, this.pointer)?.pos ?? null) : null,
     });
     this.updateCar(dt);
     this.clouds?.update(dt);
