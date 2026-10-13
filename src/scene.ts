@@ -78,7 +78,6 @@ export class PontifexScene extends Scene2D {
   private topBar = new Shape2D();
   private botBar = new Shape2D();
   private lblTitle = new Label({ text: 'PONTIFEX', size: 18, bold: true, color: 0xfbbf24 });
-  private badgeSpace = new Shape2D().rect(0, 0, 196, 38).fill({ color: 0x0f172a, alpha: 0 });
   private btnLevel!: Button;
   private lblBudget = new Label({ text: '', size: 13 });
   private barBudget = new Bar({ width: 150, height: 10, color: 0x10b981, background: 0x1e293b, max: 1 });
@@ -632,23 +631,25 @@ export class PontifexScene extends Scene2D {
   private layoutHud(): void {
     const { vw, vh } = this;
     if (!vw) return;
-    const place = (items: Container[], gap: number, pad: number) => {
-      let x = pad, y = pad, rowH = 0, rows = 1;
+    const place = (items: Container[], gap: number, pad: number, firstRowRight = 0) => {
+      let x = pad, y = pad, rowH = firstRowRight ? 38 : 0;
       for (const it of items) {
         const w = it.width, h = it.height;
-        if (x + w > vw - pad && x > pad) { x = pad; y += rowH + 6; rowH = 0; rows++; }
+        const right = vw - pad - (y === pad ? firstRowRight : 0);
+        if (x + w > right && x > pad) { x = pad; y += rowH + 6; rowH = 0; }
         it.position.set(x, y);
         x += w + gap; rowH = Math.max(rowH, h);
       }
       return y + rowH + pad;
     };
     // barre haute : titre, niveau, jauges (label au-dessus de la barre)
-    const topItems = [this.badgeSpace, this.lblTitle, this.btnLevel];
-    let topH = place(topItems, 12, 10);
+    const topItems = [this.lblTitle, this.btnLevel];
+    let topH = place(topItems, 12, 10, 208);
     let x = this.btnLevel.x + this.btnLevel.width + 24;
     const gy = 8;
-    if (x + 150 + 24 + 120 > vw - 10) { x = 10; }
-    const hudY = x === 10 ? topH : gy;
+    const right = vw - 10 - (this.btnLevel.y === 10 ? 208 : 0);
+    if (x + 330 > right) { x = 10; }
+    const hudY = x === 10 ? topH : Math.max(gy, this.btnLevel.y);
     this.lblBudget.position.set(x, hudY); this.barBudget.position.set(x, hudY + 20);
     const x2 = x + 210;
     this.lblStress.position.set(x2, hudY); this.barStress.position.set(x2, hudY + 20);
