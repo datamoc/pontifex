@@ -33,6 +33,7 @@ npm run build       # vite build → dist/standalone.html (+ dist/index.html, ga
 npm test            # moteur physique, sans navigateur (node --test via tsx)
 npm run e2e         # Chrome réel depuis file:// : construction à la souris, 4 niveaux, échec, aucune requête réseau
 npm run check       # typecheck + test + build + e2e
+node e2e/visual-check.mjs   # après build : roues qui tournent + effets de crash, en captures
 ```
 `#debug` à la fin de l'URL expose la scène en `window.__pontifex` (utilisé par `e2e/`).
 Test Windows : `e2e/win-smoke.mjs` (Node + Chrome Windows).
