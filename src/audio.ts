@@ -1,8 +1,7 @@
-import { Sound, synthesizeTone, type ToneOptions } from '@datamoc/mw_games/audio';
+import { Sound, synthesizeSound, type ToneOptions } from '@datamoc/mw_games/audio';
 
 /** Petits effets synthétisés : aucun fichier audio à embarquer. */
-// `new Sound(dataUri)` est refusé par le registre d'assets de MWG : on passe par `create` (voir MWG-FEEDBACK.md)
-const make = (o: ToneOptions, pool = 4) => new Sound(synthesizeTone(o), { poolSize: pool, create: (uri) => new Audio(uri) });
+const make = (o: ToneOptions, pool = 4) => synthesizeSound(o, { poolSize: pool });
 
 export class Sfx {
   enabled = true;

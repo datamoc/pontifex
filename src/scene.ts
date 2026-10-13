@@ -2,7 +2,7 @@ import {
   Game, Scene2D, Button, Label, Bar, Window, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt,
 } from '@datamoc/mw_games/two-d';
 import { Camera } from '@datamoc/mw_games/two-d/render';
-import { Settings, UndoHistory, Input } from '@datamoc/mw_games/core';
+import { Settings, UndoHistory, Input, FixedStepper } from '@datamoc/mw_games/core';
 import { Texture, FederatedPointerEvent, Rectangle, type Container } from 'pixi.js';
 import {
   GRID, MATERIALS, MATERIAL_ORDER, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
@@ -52,7 +52,7 @@ export class PontifexScene extends Scene2D {
   private tool: Tool = 'road';
   private snapOn = true;
   private sim: BridgeSim | null = null;
-  private acc = 0;
+  private stepper = new FixedStepper(FRAME_DT, 12);
   private speed = 1;
   private overBudgetFlash = 0;
 
@@ -311,7 +311,7 @@ export class PontifexScene extends Scene2D {
     if (this.sim) { this.stopSim(); return; }
     if (this.structure.beams.length === 0) { this.reject('Construis d’abord un pont !'); return; }
     this.sim = new BridgeSim(this.level, clone(this.structure));
-    this.acc = 0;
+    this.stepper.reset();
     this.drag = null;
     this.debris.clear(); this.spray.clear();
     this.refreshHud();
@@ -326,16 +326,14 @@ export class PontifexScene extends Scene2D {
     for (const ev of sim.events) {
       if (ev.type === 'break') {
         this.sfx.onBreak();
-        this.debris.position.set(ev.x, ev.y);
-        this.debris.burst(14);
+        this.debris.burst(14, { x: ev.x, y: ev.y, tint: MATERIALS[sim.links[ev.beam].mat].color });
         this.camera.shake(3, 0.25);
       } else if (ev.type === 'crash') {
         this.sfx.onBreak();
         this.camera.shake(4, 0.3);
       } else if (ev.type === 'splash') {
         this.sfx.onSplash();
-        this.spray.position.set(ev.x, this.level.waterY);
-        this.spray.burst(40);
+        this.spray.burst(40, { x: ev.x, y: this.level.waterY });
         this.camera.shake(5, 0.35);
       } else if (ev.type === 'win') {
         this.sfx.onWin();
@@ -398,7 +396,7 @@ export class PontifexScene extends Scene2D {
     const cols = 4, bw = 172, bh = 56, gap = 8;
     const rows = Math.ceil(this.builtinCount / cols);
     const customRows = this.customs.length;
-    const win = new Window({ width: cols * (bw + gap) + gap + 16, height: rows * (bh + gap) + gap + 96 + (customRows + 1) * 42 + 30, title: 'Choisir un niveau', modal: true, closable: true });
+    const win = new Window({ width: cols * (bw + gap) + gap + 16, height: rows * (bh + gap) + gap + 96 + (customRows + 1) * 42 + 30, title: 'Choisir un niveau', modal: true, closable: true, closeButton: true });
     this.levels.slice(0, this.builtinCount).forEach((lv, i) => {
       const s = this.progress.stars[String(lv.id)] ?? 0;
       const ok = this.unlocked(i);
@@ -441,7 +439,7 @@ export class PontifexScene extends Scene2D {
   }
 
   private confirm(message: string, yes: () => void): void {
-    const win = new Window({ width: 340, height: 170, title: 'Confirmer', modal: true, closable: true });
+    const win = new Window({ width: 340, height: 170, title: 'Confirmer', modal: true, closable: true, closeButton: true });
     const l = new Label({ text: message, size: 13, wrapWidth: win.contentWidth - 16 });
     l.position.set(8, 10);
     const ok = new Button({ width: 140, height: 34, text: 'Oui', onClick: () => { win.close(); yes(); } });
@@ -603,7 +601,8 @@ export class PontifexScene extends Scene2D {
     this.barBudget.setColor(over ? 0xf43f5e : cost > this.level.budget * 0.8 ? 0xf59e0b : 0x10b981);
     for (const [t, b] of this.matButtons) {
       const sel = t === this.tool;
-      b.setText(sel ? `● ${this.labelFor(t)}` : this.labelFor(t));
+      b.setText(this.labelFor(t));
+      b.setSelected(sel);
     }
     this.btnUndo.setDisabled(!!this.sim || !this.history.canUndo);
     this.btnRedo.setDisabled(!!this.sim || !this.history.canRedo);
@@ -663,17 +662,15 @@ export class PontifexScene extends Scene2D {
     if (h <= 56 && !this.editing) { this.btnTest.x = vw - this.btnTest.width - 10; }
     this.botY = oy;
     this.lblHint.position.set(10, this.topH + 6);
-    this.lblHint.style.wordWrap = true;
-    this.lblHint.style.wordWrapWidth = Math.max(160, vw - 20);
+    this.lblHint.setWrapWidth(Math.max(160, vw - 20));
     this.topBar.clear().rect(0, 0, vw, this.topH).fill({ color: 0x0f172a, alpha: 0.92 }).rect(0, this.topH - 1, vw, 1).fill(0x1e293b);
     this.botBar.clear().rect(0, oy, vw, h).fill({ color: 0x0f172a, alpha: 0.92 }).rect(0, oy, vw, 1).fill(0x1e293b);
     // caméra : le monde 800×550 tient dans l'espace libre
-    const availH = oy - this.topH, availW = vw;
+    const availH = oy - this.topH;
     // l'éditeur montre toujours tout le monde : on y pose des pylônes et des îlots hors du cadrage serré
     const view = (!this.editing && this.level?.view) || { x: 0, y: 0, w: WORLD_W, h: WORLD_H };
-    const zoom = Math.min(availW / view.w, availH / view.h);
     this.camera.setViewport(vw, availH, 0, this.topH);
-    this.camera.zoom = zoom;
+    this.camera.fit(view.w, view.h);
     this.camera.snapTo(view.x + view.w / 2, view.y + view.h / 2);
     this.camera.update(0);
   }
@@ -704,13 +701,12 @@ export class PontifexScene extends Scene2D {
   override update(dt: number): void {
     this.time += dt;
     if (this.sim) {
-      this.acc += dt * this.speed;
-      let n = 0;
-      while (this.acc >= FRAME_DT && this.sim.status === 'running' && n++ < 12) {
-        this.sim.step();
-        this.acc -= FRAME_DT;
+      const sim = this.sim;
+      this.stepper.advance(dt * this.speed, () => {
+        if (sim.status !== 'running') return;
+        sim.step();
         this.handleEvents();
-      }
+      });
       this.setStress(this.sim.curRatio);
       if (this.sim.status !== 'running' && this.windows.isEmpty) {
         // laisse un instant pour voir la chute

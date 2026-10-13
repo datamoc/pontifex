@@ -118,11 +118,7 @@ export const drawScene = {
       const len = Math.hypot(to.x - from.x, to.y - from.y);
       const ok = len <= mat.maxLen;
       const col = ok ? 0x38bdf8 : 0xf43f5e;
-      const n = Math.max(1, Math.floor(len / 12));
-      for (let i = 0; i < n; i += 2) {
-        const t0 = i / n, t1 = Math.min(1, (i + 1) / n);
-        fr.moveTo(from.x + (to.x - from.x) * t0, from.y + (to.y - from.y) * t0).lineTo(from.x + (to.x - from.x) * t1, from.y + (to.y - from.y) * t1);
-      }
+      fr.dashedLine(from.x, from.y, to.x, to.y, 12, 12);
       fr.stroke({ width: mat.isRoad ? 8 : 4, color: col, alpha: 0.8, cap: 'round' });
       fr.circle(to.x, to.y, 5).fill({ color: col, alpha: 0.9 });
       if (!lenLabel) { lenLabel = new Label({ text: '', size: 12, color: 0xffffff }); layers.fx.addChild(lenLabel); }

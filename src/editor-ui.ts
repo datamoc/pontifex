@@ -74,7 +74,7 @@ export class LevelEditor {
   /** Met à jour les libellés et redessine le niveau. */
   refresh(): void {
     const d = this.draft;
-    for (const [t, btn] of this.tools) btn.setText((t === this.tool ? '● ' : '') + ({ anchor: 'Ancre', tower: 'Pylône', island: 'Îlot' })[t]);
+    for (const [t, btn] of this.tools) btn.setSelected(t === this.tool);
     this.btnBudget.setText(`${d.budget} €`);
     this.btnCar.setText(`${CARS[d.car].name} ${(CARS[d.car].mass / 10).toFixed(1).replace('.', ',')} t`);
     for (const [m, btn] of this.matBtns) btn.setText(`${MATERIALS[m as keyof typeof MATERIALS].name} ${d.materials.includes(m as never) ? '✔' : '✖'}`);

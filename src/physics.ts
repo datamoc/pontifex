@@ -1,5 +1,6 @@
 // Moteur de pont : XPBD (position-based dynamics étendu), pas fixe, déterministe.
 // Aucune dépendance au rendu ni au navigateur : testable avec `node --test`.
+import { XpbdWorld, type XpbdNode, type XpbdLink } from '@datamoc/mw_games/physics/xpbd';
 import { MATERIALS, type LevelDef, type MaterialId } from './data.ts';
 
 export interface StructNode { x: number; y: number; fixed: boolean }
@@ -14,13 +15,10 @@ export type SimEvent =
   | { type: 'splash'; x: number }
   | { type: 'win' };
 
-interface Body { x: number; y: number; x0: number; y0: number; vx: number; vy: number; w: number; fixed: boolean; fx: number; fy: number }
-interface Link { a: number; b: number; mat: MaterialId; rest: number; broken: boolean; lambda: number; ratio: number; force: number; forceAcc: number; src: number }
+type Link = XpbdLink & { mat: MaterialId; src: number };
 
 export const GRAVITY = 520;
 export const FRAME_DT = 1 / 60;
-const SUBSTEPS = 16;
-const ITER = 2;
 export const WHEEL_R = 5;
 /** durée pendant laquelle la structure s'installe sous son propre poids, avant que le véhicule parte */
 export const SETTLE = 1.2;
@@ -38,7 +36,8 @@ export function structureCost(s: Structure): number {
 
 export class BridgeSim {
   readonly level: LevelDef;
-  bodies: Body[] = [];
+  private world = new XpbdWorld({ gravity: GRAVITY, step: FRAME_DT });
+  bodies: XpbdNode[] = this.world.nodes;
   links: Link[] = [];
   status: SimStatus = 'running';
   time = 0;
@@ -56,16 +55,18 @@ export class BridgeSim {
 
   constructor(level: LevelDef, s: Structure) {
     this.level = level;
-    this.bodies = s.nodes.map((n) => ({ x: n.x, y: n.y, x0: n.x, y0: n.y, vx: 0, vy: 0, w: 0, fixed: n.fixed, fx: 0, fy: 0 }));
-    const mass = new Array(s.nodes.length).fill(0.5);
+    for (const n of s.nodes) this.world.addNode({ ...n, mass: 0.5 });
     s.beams.forEach((b, i) => {
       const m = MATERIALS[b.mat];
       const rest = beamLength(s, b);
-      this.links.push({ a: b.a, b: b.b, mat: b.mat, rest, broken: false, lambda: 0, ratio: 0, force: 0, forceAcc: 0, src: i });
-      mass[b.a] += (rest * m.density) / 2;
-      mass[b.b] += (rest * m.density) / 2;
+      const index = this.world.addLink({ a: b.a, b: b.b, rest, mass: rest * m.density,
+        stiffness: m.stiffness, strength: m.strength, tensionStrength: m.tensionStrength, tensionOnly: m.tensionOnly });
+      const link = Object.assign(this.world.links[index], { mat: b.mat, src: i });
+      this.links.push(link);
     });
-    this.bodies.forEach((p, i) => { p.w = p.fixed ? 0 : 1 / mass[i]; });
+    this.world.onBreak.add(({ link, x, y }) => {
+      this.events.push({ type: 'break', beam: this.links[link].src, x, y });
+    });
     this.carX = level.x0 - level.vehicle.width;
     this.carY = level.deckY - WHEEL_R;
   }
@@ -95,33 +96,15 @@ export class BridgeSim {
   /** Avance d'un pas de FRAME_DT. */
   step(): void {
     if (this.status !== 'running') return;
-    const dt = FRAME_DT / SUBSTEPS;
     this.time += FRAME_DT;
-    for (const p of this.bodies) { p.fx = 0; p.fy = 0; }
-    for (const l of this.links) l.forceAcc = 0;
     if (this.time <= SETTLE) { /* mise en équilibre : le véhicule attend */ }
     else if (!this.crashed) this.driveVehicle();
     else this.fallVehicle();
 
-    for (let s = 0; s < SUBSTEPS; s++) this.substep(dt);
-
-    // efforts : moyenne sur les sous-pas, lissage, rupture
-    for (const l of this.links) l.force = l.forceAcc / SUBSTEPS;
-    const k = 1 - Math.exp(-FRAME_DT / 0.06);
-    let cur = 0;
-    for (const l of this.links) {
-      if (l.broken) continue;
-      const m = MATERIALS[l.mat];
-      // l.force > 0 : traction
-      const inst = l.force > 0 ? l.force / (m.tensionStrength ?? m.strength) : -l.force / m.strength;
-      l.ratio += (inst - l.ratio) * k;
-      cur = Math.max(cur, l.ratio);
-      if (l.ratio > 1 && this.time > SETTLE * 0.5) {
-        l.broken = true;
-        const p = this.bodies[l.a], q = this.bodies[l.b];
-        this.events.push({ type: 'break', beam: l.src, x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 });
-      }
-    }
+    this.world.damping = this.time < SETTLE ? 14 : 2.5;
+    this.world.breaking = this.time > SETTLE * 0.5;
+    this.world.step();
+    const cur = this.world.peakRatio;
     this.curRatio = cur;
     if (this.time > SETTLE && !this.crashed) this.maxRatio = Math.max(this.maxRatio, cur);
 
@@ -152,9 +135,8 @@ export class BridgeSim {
           this.wheelSupported[i] = true;
           // la masse de la roue se répartit sur les deux nœuds de la poutre
           const f = (v.mass / 2) * GRAVITY;
-          const p = this.bodies[c.link.a], q = this.bodies[c.link.b];
-          p.fy += f * (1 - c.t);
-          q.fy += f * c.t;
+          this.world.applyForce(c.link.a, 0, f * (1 - c.t));
+          this.world.applyForce(c.link.b, 0, f * c.t);
         } else {
           y = this.wheelY[i] || this.level.deckY;
           this.wheelSupported[i] = false;
@@ -185,39 +167,4 @@ export class BridgeSim {
     }
   }
 
-  private substep(dt: number): void {
-    const damp = Math.exp(-(this.time < SETTLE ? 14 : 2.5) * dt);
-    for (const p of this.bodies) {
-      if (p.fixed) continue;
-      p.vx = (p.vx + p.fx * p.w * dt) * damp;
-      p.vy = (p.vy + (p.fy * p.w + GRAVITY) * dt) * damp;
-      p.x0 = p.x; p.y0 = p.y;
-      p.x += p.vx * dt; p.y += p.vy * dt;
-    }
-    for (const l of this.links) l.lambda = 0;
-    for (let it = 0; it < ITER; it++) {
-      for (const l of this.links) {
-        if (l.broken) continue;
-        const p = this.bodies[l.a], q = this.bodies[l.b];
-        const w = p.w + q.w;
-        if (w === 0) continue;
-        const dx = q.x - p.x, dy = q.y - p.y;
-        const len = Math.hypot(dx, dy) || 1e-9;
-        const m = MATERIALS[l.mat];
-        const c = len - l.rest;
-        if (m.tensionOnly && c < 0 && l.lambda >= 0) continue;
-        const alpha = l.rest / m.stiffness / (dt * dt);
-        const dl = (-c - alpha * l.lambda) / (w + alpha);
-        l.lambda += dl;
-        const nx = dx / len, ny = dy / len;
-        p.x -= p.w * dl * nx; p.y -= p.w * dl * ny;
-        q.x += q.w * dl * nx; q.y += q.w * dl * ny;
-      }
-    }
-    for (const p of this.bodies) {
-      if (p.fixed) continue;
-      p.vx = (p.x - p.x0) / dt; p.vy = (p.y - p.y0) / dt;
-    }
-    for (const l of this.links) l.forceAcc += -l.lambda / (dt * dt);
-  }
 }

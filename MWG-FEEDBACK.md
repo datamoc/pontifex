@@ -2,6 +2,17 @@
 
 Format : besoin → ce que MWG offre → contournement → suggestion.
 
+## Suivi après mise à jour vers 0.37.0 (14 octobre 2026)
+
+Les constats ci-dessous restent l'historique de la version 0.36.0. La version 0.37.0 répond à plusieurs demandes :
+
+- **Adopté dans Pontifex** : `synthesizeSound` (6), `FixedStepper` (7), `XpbdWorld` sans dépendance Matter.js (8), `Button.setSelected` (10), fermeture visible des fenêtres (12), `Label.setWrapWidth` (13), `Camera.fit` (15), `ParticleEmitter.burst` avec position et teinte par matériau (19), `Shape2D.dashedLine` (20).
+- **Corrigé ou ajouté dans MWG** : suppression du top-level await des outils (2), suppression du bruit `EMPTY_IMPORT_META` (3), générateur `mwg-init` (4), version du README (5), `DropdownView` (9), `flowLayout` (11), `Input.attachPointer` (16), exports `StoredValue` et `defaultStorage` (17), glisser dans `BrowserDriver` (25), avertissement de découpage et `SpriteSheet.strip` (27), génération des crédits depuis `assets/credits.json` (29).
+- **Conservé dans Pontifex** : les interactions Pixi, les sauvegardes existantes via `Settings`, la disposition de la barre d'outils et le pilote Puppeteer. Ces mécanismes fonctionnent avec 0.37.0 ; leur remplacement demanderait une migration supplémentaire.
+- **Nom court (1)** : l'alias `@datamoc/mwg` est préparé dans MWG, mais sa publication reste indiquée comme une étape séparée dans le changelog. Pontifex utilise toujours `@datamoc/mw_games`.
+
+La simulation conserve les paramètres d'origine (masse des nœuds, densité des poutres, rigidité, résistances, amortissement et délai avant rupture). Le véhicule, les niveaux et les conditions de victoire restent gérés par Pontifex.
+
 ## Installation / outillage
 
 1. **Nom du paquet** — la demande parlait de `@datamoc/mwg`, introuvable sur npm ; le vrai nom est `@datamoc/mw_games`

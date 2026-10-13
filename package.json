@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@datamoc/mw_games": "^0.36.1",
+    "@datamoc/mw_games": "^0.37.0",
     "pixi.js": "^8.22.0"
   },
   "devDependencies": {
