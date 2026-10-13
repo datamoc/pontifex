@@ -1,6 +1,4 @@
 node_modules
 dist
 e2e/out
-# images CraftPix : non redistribuables, voir assets/README.md
-assets/*
-!assets/README.md
+preview/

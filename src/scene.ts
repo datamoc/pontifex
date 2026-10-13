@@ -7,7 +7,7 @@ import { Texture, FederatedPointerEvent, Rectangle, type Container } from 'pixi.
 import {
   GRID, MATERIALS, MATERIAL_ORDER, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
 } from './data.ts';
-import { BridgeSim, FRAME_DT, SETTLE, structureCost, type Structure } from './physics.ts';
+import { BridgeSim, FRAME_DT, SETTLE, WHEEL_R, structureCost, type Structure } from './physics.ts';
 import { Sfx } from './audio.ts';
 import { LEVELS as BUILTIN_LEVELS } from './levels.ts';
 import { deriveLevel, isSolid, parseSpec, slug, type LevelSpec } from './level.ts';
@@ -15,8 +15,7 @@ import { LevelEditor } from './editor-ui.ts';
 import { newSpec } from './editor.ts';
 import { ropeHit, splitBeam, prune, type RopeHit } from './structure.ts';
 import { drawScene, type Layers } from './render.ts';
-import { buildClouds, buildDecor, makeVehicle, type CarState, type Clouds } from './art.ts';
-import type { AnimatedSprite } from '@datamoc/mw_games/two-d';
+import { buildClouds, buildDecor, makeVehicle, type CarState, type Clouds, type Vehicle } from './art.ts';
 
 type Tool = MaterialId | 'delete';
 const SNAP_R = 14;
@@ -67,7 +66,7 @@ export class PontifexScene extends Scene2D {
   private world!: Container;
   private layers!: Layers;
   private clouds: Clouds | null = null;
-  private car: AnimatedSprite | null = null;
+  private car: Vehicle | null = null;
   private carState: CarState | '' = '';
   private debris!: ParticleEmitter;
   private spray!: ParticleEmitter;
@@ -747,7 +746,7 @@ export class PontifexScene extends Scene2D {
   private setCar(state: CarState): void {
     if (!this.car || this.carState === state) return;
     this.carState = state;
-    this.car.play(state, true);
+    this.car.setState(state);
   }
   private updateCar(dt: number): void {
     const car = this.car;
@@ -755,11 +754,11 @@ export class PontifexScene extends Scene2D {
     const lv = this.level, sim = this.sim;
     if (!sim) {
       this.setCar('idle');
-      car.position.set(lv.x0 - lv.vehicle.width, lv.deckY - 5 + 5);
+      car.position.set(lv.x0 - lv.vehicle.width, lv.deckY - WHEEL_R);
       car.rotation = 0;
     } else {
       this.setCar(sim.crashed ? 'destroyed' : sim.time <= SETTLE ? 'idle' : 'ride');
-      car.position.set(sim.carX, sim.carY + 5);
+      car.position.set(sim.carX, sim.carY);
       car.rotation = sim.angle;
     }
     car.update(dt * (sim ? this.speed : 1));

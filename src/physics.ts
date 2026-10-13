@@ -21,7 +21,7 @@ export const GRAVITY = 520;
 export const FRAME_DT = 1 / 60;
 const SUBSTEPS = 16;
 const ITER = 2;
-const WHEEL_R = 5;
+export const WHEEL_R = 5;
 /** durée pendant laquelle la structure s'installe sous son propre poids, avant que le véhicule parte */
 export const SETTLE = 1.2;
 

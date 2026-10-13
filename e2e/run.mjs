@@ -10,9 +10,11 @@ import path from 'node:path';
 
 const out = path.resolve('e2e/out');
 mkdirSync(out, { recursive: true });
-execFileSync('npx', ['tsx', 'e2e/dump-refs.ts', `${out}/refs.json`], { stdio: 'inherit' });
+// `node --import tsx` plutôt que `npx tsx` : npx.cmd n'existe pas comme exécutable sous Windows
+execFileSync(process.execPath, ['--import', 'tsx', 'e2e/dump-refs.ts', `${out}/refs.json`], { stdio: 'inherit' });
 const refs = JSON.parse(readFileSync(`${out}/refs.json`, 'utf8'));
-const chrome = process.env.CHROME ?? '/usr/bin/google-chrome';
+const chrome = process.env.CHROME
+  ?? (process.platform === 'win32' ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' : '/usr/bin/google-chrome');
 const url = 'file://' + path.resolve('dist/standalone.html') + '#debug';
 
 const browser = await puppeteer.launch({ executablePath: chrome, headless: 'new', defaultViewport: { width: 1280, height: 720 },

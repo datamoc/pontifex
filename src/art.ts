@@ -1,49 +1,188 @@
-// Graphismes CraftPix (voir README) : chargés par le pipeline d'assets de MWG, donc compilés dans le HTML.
-import { load, texture } from '@datamoc/mw_games/assets';
-import { SpriteSheet, AnimatedSprite, Sprite2D, type Node2D } from '@datamoc/mw_games/two-d';
+// Graphismes 100 % SVG (voir assets/) : mwgPage compile les fichiers dans la page, et leur
+// texte source passe par sanitizeSvg / splitSvgGroups (@datamoc/mw_games/assets) pour
+// fabriquer les textures — un véhicule est découpé en ses groupes <g> (roues, capot, moteur)
+// et devient ainsi animable, sans planche de sprites ni image bitmap dans le dépôt.
+import { get, getBinary, load, loadBinary, sanitizeSvg, splitSvgGroups, svgDataUri, texture } from '@datamoc/mw_games/assets';
+import { Assets } from 'pixi.js';
+import { Node2D, Sprite2D } from '@datamoc/mw_games/two-d';
 import { Random } from '@datamoc/mw_games/core';
 import type { LevelDef, VehicleDef } from './data.ts';
 
-const CARS = ['citadine_ride', 'citadine_destroyed', 'jeep1_ride', 'jeep1_idle', 'jeep1_destroyed', 'jeep2_ride', 'jeep2_idle', 'jeep2_destroyed'];
-const TREES = ['fir_tree_1', 'fir_tree_5', 'birch_1', 'birch_5', 'middle_lane_tree2', 'middle_lane_tree5'];
-const BUSHES = ['bush1', 'bush4', 'bush8'];
-const ROCKS = ['rock1', 'rock2', 'rock3'];
-const CLOUDS = ['cloud1', 'cloud3', 'cloud5'];
-
-const paths = [
-  ...CARS.map((n) => `cars/${n}.png`),
-  ...[...TREES, ...BUSHES, ...ROCKS].map((n) => `decor/${n}.png`),
-  ...CLOUDS.map((n) => `clouds/${n}.png`),
+/** rasterisation des SVG à 2× leur taille d'origine : la caméra cadre chaque niveau, le trait reste net */
+const RES = 2;
+/** véhicules : découpés en groupes à l'import, pour animer roues et capot */
+const VEHICLES = ['car.svg', 'jeep.svg', 'truck.svg'];
+/** décor et effets : chargés tels quels */
+const SCENERY = [
+  'tree_round.svg', 'tree_fir.svg', 'bush.svg', 'rock1.svg', 'rock2.svg', 'rock3.svg',
+  'cloud1.svg', 'cloud2.svg', 'explosion.svg', 'flame.svg',
 ];
 
-export const loadArt = (): Promise<void> => load(paths);
+const partAlias = (file: string, group: string): string => `${file}/${group}`;
 
-/** Par voiture : taille d'une image de la planche, distance entre les roues et marge sous les roues (px d'origine). */
-const SHEET = {
-  citadine: { frame: 192, wheelbase: 83, foot: 3 },
-  jeep1: { frame: 192, wheelbase: 81, foot: 3 },
-  jeep2: { frame: 256, wheelbase: 123, foot: 9 },
-} as const;
+export interface WheelArt { group: string; at: [number, number] }
+export interface ArtDef {
+  file: string;
+  width: number;
+  height: number;
+  /** ancrage décoratif (bas du dessin = sol) */
+  anchor: [number, number];
+  /** véhicules seulement : empattement dessiné, point d'attelage, rayon des roues */
+  wheelbase?: number;
+  pivot?: [number, number];
+  wheelRadius?: number;
+  wheels?: WheelArt[];
+  hood?: { pivot: [number, number]; openAngle: number };
+}
+
+let art: Record<string, ArtDef> | null = null;
+/** groupes de chaque véhicule, dans l'ordre du dessin (l'ordre donne la profondeur) */
+const groupsOf = new Map<string, string[]>();
+
+const artOf = (name: string): ArtDef => {
+  const a = art?.[name];
+  if (!a) throw new Error(`assets : "${name}" absent de assets/manifest.json`);
+  return a;
+};
+
+export type VehicleArt = ArtDef & Required<Pick<ArtDef, 'wheelbase' | 'pivot' | 'wheelRadius' | 'wheels'>>;
+const vehicleArtOf = (name: string): VehicleArt => {
+  const a = artOf(name);
+  if (a.pivot === undefined || a.wheelbase === undefined || a.wheelRadius === undefined || !a.wheels)
+    throw new Error(`assets/manifest.json : le véhicule "${name}" manque de pivot, d'empattement ou de roues`);
+  return a as VehicleArt;
+};
+
+export async function loadArt(): Promise<void> {
+  await load(['manifest.json', ...SCENERY], { resolution: RES });
+  // le texte des véhicules (et non leur texture) : ce sont ses groupes qu'on recompose
+  await loadBinary(VEHICLES);
+  art = get<Record<string, ArtDef>>('manifest.json');
+  const parts: string[] = [];
+  for (const file of VEHICLES) {
+    const source = sanitizeSvg(new TextDecoder().decode(getBinary(file)));
+    const groups = splitSvgGroups(source);
+    groupsOf.set(file, Object.keys(groups));
+    for (const [group, src] of Object.entries(groups)) {
+      Assets.add({ alias: partAlias(file, group), src: svgDataUri(src), format: 'svg', data: { resolution: RES } });
+      parts.push(partAlias(file, group));
+    }
+  }
+  await Assets.load(parts);
+}
 
 export type CarState = 'idle' | 'ride' | 'destroyed';
 
-export function makeVehicle(def: VehicleDef): AnimatedSprite {
-  const dim = SHEET[def.sprite];
-  const sheet = (name: string) => SpriteSheet.grid(`cars/${name}.png`, dim.frame, dim.frame);
-  const ride = sheet(`${def.sprite}_ride`);
-  const s = new AnimatedSprite();
-  s.add('ride', ride.range(0, ride.count - 1), { fps: 14, loop: true });
-  // la citadine n'a pas de planche « idle » : on fige la première image de roulage
-  if (def.sprite === 'citadine') s.add('idle', [ride.get(0)], { fps: 1 });
-  else { const idle = sheet(`${def.sprite}_idle`); s.add('idle', idle.range(0, idle.count - 1), { fps: 6, loop: true }); }
-  const dead = sheet(`${def.sprite}_destroyed`);
-  s.add('destroyed', dead.range(0, dead.count - 1), { fps: 16, loop: false });
-  s.anchor.set(0.5, 1 - dim.foot / dim.frame);
-  const k = (0.6 * def.width) / dim.wheelbase;
-  s.scale.set(k);
-  s.play('idle');
-  return s;
+const SPRITE_OF: Record<VehicleDef['sprite'], string> = { citadine: 'car', jeep1: 'jeep', jeep2: 'truck' };
+
+/**
+ * Un véhicule recomposé depuis les groupes de son SVG : le point d'attelage (milieu de
+ * l'empattement, hauteur des essieux) est à l'origine, donc `position = (sim.carX, sim.carY)`
+ * et `rotation = sim.angle` suffent à le poser sur la chaussée.
+ */
+export class Vehicle extends Node2D {
+  private readonly def: VehicleDef;
+  private readonly art: VehicleArt;
+  /** échelle du dessin : l'empattement du SVG devient l'empattement de la physique */
+  private readonly k: number;
+  private readonly wheels: Sprite2D[] = [];
+  private readonly hood: Sprite2D | null = null;
+  private readonly flame: Sprite2D;
+  private readonly flameScale: number;
+  private readonly blast: Sprite2D;
+  private readonly blastScale: number;
+  private state: CarState = 'idle';
+  private t = 0;
+  private hoodT = 0;
+
+  constructor(def: VehicleDef) {
+    super();
+    this.def = def;
+    const a = vehicleArtOf(SPRITE_OF[def.sprite]);
+    this.art = a;
+    this.k = (0.6 * def.width) / a.wheelbase;
+
+    const wheelGroups = new Set(a.wheels.map((w) => w.group));
+    for (const w of a.wheels) {
+      const sp = new Sprite2D(texture(partAlias(a.file, w.group)));
+      // dessin à sa place dans le SVG, pivot au moyeu : la roue tourne sur elle-même
+      sp.anchor.set(0);
+      sp.pivot.set(w.at[0], w.at[1]);
+      sp.position.set(w.at[0], w.at[1]);
+      this.wheels.push(sp);
+      this.addChild(sp);
+    }
+    for (const group of groupsOf.get(a.file) ?? []) {
+      if (wheelGroups.has(group)) continue;
+      const sp = new Sprite2D(texture(partAlias(a.file, group)));
+      sp.anchor.set(0);
+      if (group === 'hood' && a.hood) {
+        sp.pivot.set(a.hood.pivot[0], a.hood.pivot[1]);
+        sp.position.set(a.hood.pivot[0], a.hood.pivot[1]);
+        this.hood = sp;
+      }
+      this.addChild(sp);
+    }
+
+    const at = a.hood?.pivot ?? [a.width * 0.5, a.height * 0.5];
+    this.flameScale = (a.height * 0.5) / 70; // flame.svg fait 70 px de haut
+    this.flame = new Sprite2D(texture('flame.svg'));
+    this.flame.anchor.set(0.5, 1);
+    this.flame.position.set(at[0] + 3, at[1] - 1);
+    this.flame.scale.set(this.flameScale);
+    this.flame.visible = false;
+    this.blastScale = (a.height * 1.5) / 140; // explosion.svg fait 140 px de côté
+    this.blast = new Sprite2D(texture('explosion.svg'));
+    this.blast.anchor.set(0.5, 0.5);
+    this.blast.position.set(at[0] + 6, at[1]);
+    this.blast.scale.set(this.blastScale * 0.4);
+    this.blast.visible = false;
+    this.addChild(this.flame, this.blast);
+
+    this.pivot.set(a.pivot[0], a.pivot[1]);
+    this.scale.set(this.k);
+  }
+
+  setState(state: CarState): void {
+    if (this.state === state) return;
+    this.state = state;
+    this.t = 0;
+    this.flame.visible = state === 'destroyed';
+    this.blast.visible = state === 'destroyed';
+    if (state === 'destroyed') { this.blast.alpha = 1; this.blast.scale.set(this.blastScale * 0.4); }
+  }
+
+  update(dt: number): void {
+    this.t += dt;
+    if (this.state === 'ride') {
+      // roulement sans glissement : longueur d'arc parcourue / rayon de la roue
+      const roll = (this.def.speed * dt) / (this.art.wheelRadius * this.k);
+      for (const w of this.wheels) w.rotation += roll;
+    }
+    const target = this.state === 'destroyed' ? 1 : 0;
+    this.hoodT += (target - this.hoodT) * Math.min(1, dt * 12);
+    if (this.hood && this.art.hood) this.hood.rotation = ((this.art.hood.openAngle * Math.PI) / 180) * this.hoodT;
+    if (this.flame.visible) {
+      this.flame.scale.set(this.flameScale * (1 + Math.sin(this.t * 17) * 0.08), this.flameScale * (1 + Math.sin(this.t * 24) * 0.15));
+      this.flame.x = (this.art.hood?.pivot[0] ?? this.art.width / 2) + 3 + Math.sin(this.t * 9) * 0.8;
+    }
+    if (this.blast.visible) {
+      const p = Math.min(1, this.t / 0.45);
+      this.blast.scale.set(this.blastScale * (0.35 + p * 1.5));
+      this.blast.alpha = 1 - p * p;
+      if (p >= 1) this.blast.visible = false;
+    }
+  }
 }
+
+export function makeVehicle(def: VehicleDef): Vehicle {
+  return new Vehicle(def);
+}
+
+const TREES = ['tree_round', 'tree_fir'];
+const BUSHES = ['bush'];
+const ROCKS = ['rock1', 'rock2', 'rock3'];
+const CLOUDS = ['cloud1', 'cloud2'];
 
 /** Arbres, buissons et rochers posés sur les deux rives (placement déterministe par niveau). */
 export function buildDecor(level: LevelDef, node: Node2D): void {
@@ -51,7 +190,7 @@ export function buildDecor(level: LevelDef, node: Node2D): void {
   const gen = new Random.Generator(level.id * 7919 + 13);
   const pick = <T>(a: readonly T[]): T => a[gen.int(a.length)];
   const put = (name: string, x: number, y: number, scale: number, flip = false) => {
-    const sp = new Sprite2D(texture(`decor/${name}.png`));
+    const sp = new Sprite2D(texture(`${name}.svg`));
     sp.anchor.set(0.5, 1);
     sp.position.set(x, y);
     sp.scale.set(flip ? -scale : scale, scale);
@@ -59,9 +198,9 @@ export function buildDecor(level: LevelDef, node: Node2D): void {
   };
   const side = (from: number, to: number, y: number) => {
     // arrière-plan : arbres ; premier plan : buissons et rochers
-    for (let x = from; x < to; x += 40 + gen.float() * 50) put(pick(TREES), x, y - 7, 0.26 + gen.float() * 0.2, gen.float() < 0.5);
-    for (let x = from + 30; x < to; x += 55 + gen.float() * 60) put(pick(BUSHES), x, y - 4, 0.22 + gen.float() * 0.14, gen.float() < 0.5);
-    for (let x = from + 50; x < to; x += 220 + gen.float() * 150) put(pick(ROCKS), x, y - 3, 0.14 + gen.float() * 0.1);
+    for (let x = from; x < to; x += 40 + gen.float() * 50) put(pick(TREES), x, y - 7, 0.34 + gen.float() * 0.2, gen.float() < 0.5);
+    for (let x = from + 30; x < to; x += 55 + gen.float() * 60) put(pick(BUSHES), x, y - 4, 0.5 + gen.float() * 0.3, gen.float() < 0.5);
+    for (let x = from + 50; x < to; x += 220 + gen.float() * 150) put(pick(ROCKS), x, y - 3, 0.4 + gen.float() * 0.3);
   };
   // on laisse libre l'approche immédiate du pont (panneaux, véhicule)
   side(-650, level.x0 - 95, level.deckY);
@@ -74,7 +213,7 @@ export function buildClouds(node: Node2D, seed: number): Clouds {
   const gen = new Random.Generator(seed);
   const items: { sp: Sprite2D; v: number }[] = [];
   for (let i = 0; i < 9; i++) {
-    const sp = new Sprite2D(texture(`clouds/${CLOUDS[i % CLOUDS.length]}.png`));
+    const sp = new Sprite2D(texture(`${CLOUDS[i % CLOUDS.length]}.svg`));
     const sc = 0.3 + gen.float() * 0.35;
     sp.scale.set(sc);
     sp.alpha = 0.55 + gen.float() * 0.4;

@@ -1,7 +1,9 @@
 # Pontifex — constructeur de ponts
 
-Jeu de construction de ponts 2D, fait avec **MWG** (`@datamoc/mw_games`, rendu PixiJS) : un seul fichier HTML,
-qui s'ouvre en double-clic, hors ligne.
+Jeu de construction de ponts 2D, fait avec **MWG** (`@datamoc/mw_games` **0.36.1**, rendu PixiJS) : un seul
+fichier HTML, qui s'ouvre en double-clic, hors ligne. **Tous les graphismes sont des SVG** faits pour le jeu
+(aucun asset externe) : ils sont compilés dans la page, les véhicules sont recomposés depuis les groupes de
+leur dessin (roues qui tournent, capot qui s'ouvre à l'écrasement), voir `assets/README.md`.
 
 **Jouer** : ouvrir `pontifex.html` (= `dist/standalone.html`). Glisser d'un point à un autre pour poser une poutre ;
 points d'ancrage orange fixes ; clic droit ou outil « Effacer » pour retirer ; **Tester** (ou Espace) lance la voiture.
@@ -26,7 +28,6 @@ glisser un `.json` sur la page, ou *Importer (presse-papiers)*, l'ajoute. Un fic
 ## Développer
 
 ```
-# d'abord : récupérer les images, voir assets/README.md
 npm install
 npm run build       # vite build → dist/standalone.html (+ dist/index.html, game.js, assets/ : version multi-fichiers)
 npm test            # moteur physique, sans navigateur (node --test via tsx)
@@ -45,12 +46,12 @@ Test Windows : `e2e/win-smoke.mjs` (Node + Chrome Windows).
 | `src/level.ts`, `src/levels.ts` | format de niveau (`LevelSpec`), validation des imports, niveaux du jeu |
 | `src/editor.ts`, `src/editor-ui.ts` | éditeur de niveaux : opérations pures testées, puis interface |
 | `src/scene.ts` | scène MWG : éditeur, simulation, interface (`Button`, `Bar`, `Window`, `Label`…) |
-| `src/render.ts`, `src/art.ts` | dessin vectoriel (`Shape2D`), décor et véhicules animés (`SpriteSheet`, `AnimatedSprite`) |
+| `src/render.ts`, `src/art.ts` | dessin vectoriel (`Shape2D`) ; décor et véhicules en SVG (`loadBinary` + `sanitizeSvg` + `splitSvgGroups`, textures rasterisées à 2×) |
 | `src/audio.ts` | effets sonores synthétisés (aucun fichier audio) |
 | `test/` | tests du moteur + ponts de référence de chaque niveau (faisabilité des 3 étoiles incluse) |
 | `MWG-FEEDBACK.md` | **manques et pistes d'amélioration constatés sur MWG** |
 
 ## Crédits
 
-Graphismes (voitures, arbres, rochers, buissons, nuages) : packs gratuits **CraftPix.net**
-(<https://craftpix.net/file-licenses/>), embarqués dans le HTML compilé (usage dans un jeu autorisé) ; les fichiers d'art ne sont volontairement pas dans le dépôt (§2.2.1 : pas de redistribution de l'art), voir `assets/README.md`.
+Graphismes : **SVG dessinés pour le jeu**, dans `assets/` (licences et découpage : `assets/README.md`).
+Rien n'est emprunté à un pack tiers ; le jeu et ses assets sont donc entièrement redistribuables.
