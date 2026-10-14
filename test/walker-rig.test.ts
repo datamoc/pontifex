@@ -24,12 +24,16 @@ test('marche : les cuisses oscillent, les genoux ne fléchissent que vers l’ar
   assert.deepEqual(Skeleton.samplePose(WALK_CLIP, 0), Skeleton.samplePose(WALK_CLIP, 1));
 });
 
-test('référence baked : les frames _f fléchissent aussi le genou vers l’arrière', () => {
-  for (const frame of [2, 6]) {
-    const source = readFileSync(new URL(`../assets/common/walker_man_short_hair_trousers_f${frame}.svg`, import.meta.url), 'utf8');
-    const shin = source.match(/<g[^>]*id="shin-near"[^>]*>/)?.[0] ?? '';
-    const angle = Number(shin.match(/rotate\((-?[\d.]+)/)?.[1]);
-    assert.ok(Number.isFinite(angle) && angle > 0, `frame f${frame} : tibia ${angle}° (attendu > 0)`);
+test('marche : le pied revient derrière le genou pendant la flexion', () => {
+  for (const name of WALKERS) {
+    const skeleton = createWalkerSkeleton(artOf(name));
+    for (const [side, time] of [['near', 0.25], ['far', 0.75]] as const) {
+      const pose = Skeleton.samplePose(WALK_CLIP, time);
+      const bones = new Map(Skeleton.resolve(skeleton, pose).map((bone) => [bone.name, bone]));
+      const shin = bones.get(`shin-${side}`)!;
+      assert.ok(shin.tipX < shin.x, `${name} : le pied ${side} doit être derrière le genou`);
+      assert.ok(shin.tipY > shin.y, `${name} : le pied ${side} doit rester sous le genou`);
+    }
   }
 });
 

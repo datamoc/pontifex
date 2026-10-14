@@ -25,6 +25,8 @@ dessinés en vol se déplacent dans le ciel. Les oiseaux avec des pattes visible
 Piétons et cyclistes utilisent les squelettes MWG (`skeleton` et `SkeletalSprite`) : les SVG sont
 découpés en membres, animés en temps réel par le jeu. La marche suit la vitesse du personnage ;
 les jambes du cycliste suivent ses pédales par cinématique inverse, sans images précalculées.
+Les 96 anciennes images de marche et les 8 images de pédalage restent dans les sources,
+mais le build les exclut de la page publiée et de son manifeste runtime.
 
 ## Progression et matériaux
 
