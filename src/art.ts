@@ -1,3 +1,5 @@
+import { loadCyclistSkeleton } from './skeletal-cyclist.ts';
+import { loadWalkerSkeletons } from './skeletal-walkers.ts';
 import { loadResidentAnimations } from './resident-animation.ts';
 import { RESIDENT_FILES } from './population.ts';
 // Graphismes 100 % SVG (voir assets/) : mwgPage compile les fichiers dans la page, et leur
@@ -77,6 +79,8 @@ export async function loadArt(): Promise<void> {
   }
   await Assets.load(parts);
   await loadResidentAnimations();
+  await loadWalkerSkeletons();
+  await loadCyclistSkeleton();
 }
 
 export type CarState = 'idle' | 'ride' | 'destroyed';

@@ -27,6 +27,36 @@ page.on('request', (r) => { if (!/^(file|data|blob):/.test(r.url())) problems.pu
 await page.goto(url);
 await page.waitForFunction('window.__pontifex', { timeout: 15000 });
 
+// Chaque biome doit conserver des personnages articulés, avec les genoux liés aux cuisses.
+for (let biome = 0; biome < 9; biome++) {
+  await page.evaluate((biome) => {
+    const scene = window.__pontifex;
+    const random = Math.random;
+    try {
+      Math.random = () => (biome + 0.5) / 9;
+      scene.loadLevel(3);
+    } finally { Math.random = random; }
+    const rigs = scene.layers.decor.children.flatMap((resident) => resident.children)
+      .filter((rig) => rig.label === 'skeletal-walker' || rig.label === 'skeletal-cyclist');
+    if (!rigs.some((rig) => rig.label === 'skeletal-walker')) throw new Error('Piétons sans squelette');
+    if (!rigs.some((rig) => rig.label === 'skeletal-cyclist')) throw new Error('Cyclistes sans squelette');
+    const before = rigs.map((rig) => rig.part('leg-near').rotation);
+    scene.population.update(0.093);
+    for (const [index, rig] of rigs.entries()) {
+      const thigh = rig.part('leg-near');
+      const shin = rig.part('shin-near');
+      if (thigh.rotation === before[index]) throw new Error('Jambe immobile');
+      const length = rig.label === 'skeletal-walker' ? 17 : 19;
+      const tipX = thigh.x + Math.cos(thigh.rotation) * length;
+      const tipY = thigh.y + Math.sin(thigh.rotation) * length;
+      if (Math.hypot(shin.x - tipX, shin.y - tipY) > 1e-7) throw new Error('Genou détaché');
+    }
+  }, biome);
+}
+console.log('✔ piétons et cyclistes articulés dans les neuf biomes');
+await page.evaluate(() => window.__pontifex.loadLevel(0));
+
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const sc = (fn, ...a) => page.evaluate(fn, ...a);
 const w2s = (x, y) => sc((x, y) => { const p = window.__pontifex.world.toGlobal({ x, y }); return [p.x, p.y]; }, x, y);

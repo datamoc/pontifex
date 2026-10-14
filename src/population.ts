@@ -1,29 +1,26 @@
-import { makeAnimatedResident } from './resident-animation.ts';
+import { makeSkeletalCyclist } from './skeletal-cyclist.ts';
+import { CYCLIST } from './cyclist-rig.ts';
+import { WALKERS } from './walker-rig.ts';
+import { makeSkeletalWalker } from './skeletal-walkers.ts';
+import { makeFlyingBird } from './resident-animation.ts';
 import { get, texture } from '@datamoc/mw_games/assets';
 import { Node2D, Sprite2D } from '@datamoc/mw_games/two-d';
 import { Random } from '@datamoc/mw_games/core';
 import type { Biome } from './biomes.ts';
 import type { LevelDef } from './data.ts';
 
-const WALKERS = [
-  'common/walker_man_short_hair_trousers',
-  'common/walker_woman_ponytail_trousers',
-  'common/walker_man_bald_shorts',
-  'common/walker_woman_long_hair_midi_skirt',
-];
-const CYCLIST = 'common/cyclist';
 const CYCLIST_CHANCE = 0.2;
 const CYCLIST_HEIGHT = 36;
-const WALK_FRAME_COUNT = 8;
-const WALK_FRAMES_PER_SECOND = 8;
 const PEDESTRIAN_HEIGHT = 32;
 const ANIMAL_HEIGHT = 20;
 const BIRD_HEIGHT = 14;
 const FLIGHT_CLEARANCE = 100;
 const BRIDGE_MARGIN = 45;
 
-export const RESIDENT_FILES = [...WALKERS, CYCLIST].flatMap((name) =>
-  Array.from({ length: WALK_FRAME_COUNT }, (_, frame) => `${name}_f${frame}.svg`));
+export const RESIDENT_FILES = [
+  ...WALKERS.map((name) => `${name}.svg`),
+  `${CYCLIST}.svg`,
+];
 
 export interface Resident {
   name: string;
@@ -91,41 +88,36 @@ export function buildPopulation(level: LevelDef, biome: Biome, node: Node2D, wil
   const manifest = get<Record<string, { height: number; anchor: [number, number] }>>('manifest.json');
   const residents = populationLayout(level, biome).map((resident) => {
     const isWildlife = resident.kind === 'animal' || resident.kind === 'bird';
-    const names = isWildlife
-      ? [resident.name]
-      : Array.from({ length: WALK_FRAME_COUNT }, (_, frame) => `${resident.name}_f${frame}`);
-    const frames = names.map((name) => texture(`${name}.svg`));
-    const artwork = manifest[names[0]];
-    const animated = resident.kind === 'cyclist' || resident.kind === 'bird'
-      ? makeAnimatedResident(resident.name, resident.kind === 'cyclist')
-      : null;
+    const artwork = manifest[resident.name];
+    let animated = null;
+    if (resident.kind === 'pedestrian') animated = makeSkeletalWalker(resident.name);
+    if (resident.kind === 'cyclist') animated = makeSkeletalCyclist();
+    if (resident.kind === 'bird') animated = makeFlyingBird(resident.name);
     const height = { pedestrian: PEDESTRIAN_HEIGHT, cyclist: CYCLIST_HEIGHT, animal: ANIMAL_HEIGHT, bird: BIRD_HEIGHT }[resident.kind];
     const scale = height / artwork.height;
     let sprite: Node2D;
-    let updateFrame: (time: number) => void;
+    let updateAnimation: (time: number) => void;
     if (animated) {
       sprite = animated.node;
-      updateFrame = (time) => animated.update(time + resident.start, resident.speed, scale);
+      updateAnimation = (time) => animated.update(time + resident.start, resident.speed, scale);
     } else {
-      const body = new Sprite2D(frames[0]);
+      const body = new Sprite2D(texture(`${resident.name}.svg`));
       body.anchor.set(...artwork.anchor);
       sprite = body;
-      updateFrame = (time) => {
-        body.texture = frames[Math.floor(time * WALK_FRAMES_PER_SECOND + resident.start) % frames.length];
-      };
+      updateAnimation = () => {};
     }
     (isWildlife ? wildlife : node).addChild(sprite);
-    return { resident, sprite, scale, updateFrame };
+    return { resident, sprite, scale, updateAnimation };
   });
   let time = 0;
   const population: Population = {
     update(dt) {
       time += dt;
-      for (const { resident, sprite, scale, updateFrame } of residents) {
+      for (const { resident, sprite, scale, updateAnimation } of residents) {
         const { x, direction } = residentPosition(resident, time);
         sprite.position.set(x, resident.y);
         sprite.scale.set(direction * scale, scale);
-        updateFrame(time);
+        updateAnimation(time);
       }
     },
   };

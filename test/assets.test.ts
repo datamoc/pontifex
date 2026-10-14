@@ -1,3 +1,6 @@
+import * as Skeleton from '@datamoc/mw_games/skeleton';
+import { WALKERS, WALK_CLIP, createWalkerSkeleton } from '../src/walker-rig.ts';
+import { CYCLIST, createCyclistSkeleton, cyclistPose } from '../src/cyclist-rig.ts';
 import { RESIDENT_FILES, populationLayout, residentPosition } from '../src/population.ts';
 import { BIOMES, BIOME_FILES } from '../src/biomes.ts';
 import { decorLayout } from '../src/art.ts';
@@ -97,6 +100,44 @@ test('population : assets complets et promenades limitées à chaque rive', () =
         const { x } = residentPosition(resident, time);
         assert.ok(x >= resident.left && x <= resident.right);
       }
+    }
+  }
+});
+
+
+test('piétons : os parents et articulations suivent la marche interpolée', () => {
+  for (const name of WALKERS) {
+    const art = manifest[name];
+    const skeleton = createWalkerSkeleton(art);
+    const rest = new Map(Skeleton.resolve(skeleton).map((bone) => [bone.name, bone]));
+    assert.equal(rest.get('leg-near')!.x, art.pivots['leg-near'][0]);
+    assert.equal(rest.get('arm-near')!.y, art.pivots['arm-near'][1]);
+    for (const time of [0, 0.1, 0.25, 0.6, 0.9]) {
+      const pose = Skeleton.samplePose(WALK_CLIP, time);
+      const bones = new Map(Skeleton.resolve(skeleton, pose).map((bone) => [bone.name, bone]));
+      for (const side of ['near', 'far']) {
+        for (const [parent, child] of [[`leg-${side}`, `shin-${side}`], [`arm-${side}`, `forearm-${side}`]]) {
+          assert.equal(bones.get(child)!.x, bones.get(parent)!.tipX);
+          assert.equal(bones.get(child)!.y, bones.get(parent)!.tipY);
+        }
+      }
+    }
+    assert.deepEqual(Skeleton.samplePose(WALK_CLIP, 0), Skeleton.samplePose(WALK_CLIP, 1));
+    assert.notDeepEqual(Skeleton.samplePose(WALK_CLIP, 0.01), Skeleton.samplePose(WALK_CLIP, 0.02));
+  }
+});
+
+test('cycliste : les pieds restent sur les pédales sur un tour complet', () => {
+  const art = manifest[CYCLIST];
+  const skeleton = createCyclistSkeleton(art);
+  for (let step = 0; step <= 32; step++) {
+    const wheelAngle = step * Math.PI / 8;
+    const bones = new Map(Skeleton.resolve(skeleton, cyclistPose(art, wheelAngle)).map((bone) => [bone.name, bone]));
+    for (const [side, offset] of [['near', 0], ['far', Math.PI]] as const) {
+      const phase = art.rig.legs.baseAngle * Math.PI / 180 + wheelAngle * 0.5 + offset;
+      const foot = bones.get(`shin-${side}`)!;
+      assert.ok(Math.abs(foot.tipX - (art.rig.legs.bb[0] + Math.cos(phase) * art.rig.legs.crank)) < 1e-8);
+      assert.ok(Math.abs(foot.tipY - (art.rig.legs.bb[1] + Math.sin(phase) * art.rig.legs.crank)) < 1e-8);
     }
   }
 });

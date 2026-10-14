@@ -22,6 +22,9 @@ les trois plans de paysage suivent ce biome. L'ambiance reste stable pendant les
 Six passants se promènent sur les rives. Les animaux restent fixes derrière le décor ; seuls les oiseaux
 dessinés en vol se déplacent dans le ciel. Les oiseaux avec des pattes visibles restent posés. Chaque passant a
 20 % de chances d'être un cycliste, avec une animation de pédalage et une vitesse plus élevée.
+Piétons et cyclistes utilisent les squelettes MWG (`skeleton` et `SkeletalSprite`) : les SVG sont
+découpés en membres, animés en temps réel par le jeu. La marche suit la vitesse du personnage ;
+les jambes du cycliste suivent ses pédales par cinématique inverse, sans images précalculées.
 
 ## Progression et matériaux
 
