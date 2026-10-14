@@ -1,3 +1,4 @@
+import { wingTipDrop, wingVertexY } from '../src/resident-animation.ts';
 import * as Skeleton from '@datamoc/mw_games/skeleton';
 import { WALKERS, WALK_CLIP, createWalkerSkeleton } from '../src/walker-rig.ts';
 import { CYCLIST, createCyclistSkeleton, cyclistPose } from '../src/cyclist-rig.ts';
@@ -138,6 +139,21 @@ test('cycliste : les pieds restent sur les pédales sur un tour complet', () => 
       const foot = bones.get(`shin-${side}`)!;
       assert.ok(Math.abs(foot.tipX - (art.rig.legs.bb[0] + Math.cos(phase) * art.rig.legs.crank)) < 1e-8);
       assert.ok(Math.abs(foot.tipY - (art.rig.legs.bb[1] + Math.sin(phase) * art.rig.legs.crank)) < 1e-8);
+    }
+  }
+});
+
+
+test('oiseaux : la pointe descend de 20 unités puis remonte, sans déplacer l’attache', () => {
+  const period = 1 / 3;
+  assert.equal(wingTipDrop(0), 0);
+  assert.equal(wingTipDrop(period / 2), 20);
+  assert.equal(wingTipDrop(period), 0);
+  assert.ok(Math.abs(wingTipDrop(period / 4) - 10) < 1e-9);
+  for (const tipY of [1, 3]) {
+    assert.equal(wingVertexY(tipY, tipY, 20), tipY + 20);
+    for (const attachmentY of [13, 15]) {
+      assert.equal(wingVertexY(attachmentY, tipY, 20), attachmentY);
     }
   }
 });

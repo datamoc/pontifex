@@ -1,9 +1,21 @@
 import { get, getBinary, loadBinary, sanitizeSvg, svgDataUri, texture } from '@datamoc/mw_games/assets';
-import { Assets } from 'pixi.js';
+import { Assets, MeshPlane } from 'pixi.js';
 import { Node2D, Sprite2D } from '@datamoc/mw_games/two-d';
 import { BIOMES } from './biomes.ts';
 
 const FLAP_FREQUENCY = 3;
+const WING_TIP_TRAVEL = 20;
+const WING_ATTACHMENT_Y = 13;
+const WING_TIP_Y: Record<string, number> = { 'wing-back': 3, wing: 1 };
+
+export function wingTipDrop(time: number): number {
+  return WING_TIP_TRAVEL * (1 - Math.cos(time * Math.PI * 2 * FLAP_FREQUENCY)) / 2;
+}
+
+export function wingVertexY(y: number, tipY: number, drop: number): number {
+  const weight = Math.max(0, Math.min(1, (WING_ATTACHMENT_Y - y) / (WING_ATTACHMENT_Y - tipY)));
+  return y + weight * drop;
+}
 const animationAlias = (name: string, part: string): string => `${name}/animated-${part}`;
 
 interface BirdArt {
@@ -51,23 +63,28 @@ export function makeFlyingBird(name: string): AnimatedResident {
   node.pivot.set(artwork.width * artwork.anchor[0], artwork.height * artwork.anchor[1]);
   const body = new Sprite2D(texture(animationAlias(name, 'body')));
   body.anchor.set(0);
-  const members: Sprite2D[] = [];
-  for (const part of ['wing-back', 'wing']) {
-    const sprite = new Sprite2D(texture(animationAlias(name, part)));
-    sprite.label = part;
-    sprite.anchor.set(0);
-    const pivot = artwork.pivots[part] ?? artwork.pivots.wing;
-    sprite.pivot.set(...pivot);
-    sprite.position.set(...pivot);
-    members.push(sprite);
-  }
-  node.addChild(members[0], body, members[1]);
+  const wings = ['wing-back', 'wing'].map((part) => {
+    const plane = new MeshPlane({
+      texture: texture(animationAlias(name, part)), verticesX: 2, verticesY: artwork.height + 1,
+    });
+    plane.label = part;
+    // Une ligne par unité SVG : la pointe se déplace exactement de 20 unités,
+    // tandis que les points d'attache et les coordonnées horizontales restent fixes.
+    const original = new Float32Array(plane.geometry.positions);
+    return { plane, original, tipY: WING_TIP_Y[part] };
+  });
+  node.addChild(wings[0].plane, body, wings[1].plane);
   return {
     node,
     update(time) {
-      const phase = time * Math.PI * 2 * FLAP_FREQUENCY;
-      members[0].rotation = Math.sin(phase + 0.4) * 0.75;
-      members[1].rotation = Math.sin(phase) * 0.95;
+      const drop = wingTipDrop(time);
+      for (const { plane, original, tipY } of wings) {
+        const positions = plane.geometry.positions;
+        for (let index = 1; index < positions.length; index += 2) {
+          positions[index] = wingVertexY(original[index], tipY, drop);
+        }
+        plane.geometry.getAttribute('aPosition').buffer.update();
+      }
     },
   };
 }
