@@ -1,3 +1,4 @@
+import { loadResidentAnimations } from './resident-animation.ts';
 import { RESIDENT_FILES } from './population.ts';
 // Graphismes 100 % SVG (voir assets/) : mwgPage compile les fichiers dans la page, et leur
 // texte source passe par sanitizeSvg / splitSvgGroups (@datamoc/mw_games/assets) pour
@@ -75,6 +76,7 @@ export async function loadArt(): Promise<void> {
     }
   }
   await Assets.load(parts);
+  await loadResidentAnimations();
 }
 
 export type CarState = 'idle' | 'ride' | 'destroyed';

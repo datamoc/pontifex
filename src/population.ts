@@ -1,3 +1,4 @@
+import { makeAnimatedResident } from './resident-animation.ts';
 import { get, texture } from '@datamoc/mw_games/assets';
 import { Node2D, Sprite2D } from '@datamoc/mw_games/two-d';
 import { Random } from '@datamoc/mw_games/core';
@@ -95,22 +96,36 @@ export function buildPopulation(level: LevelDef, biome: Biome, node: Node2D, wil
       : Array.from({ length: WALK_FRAME_COUNT }, (_, frame) => `${resident.name}_f${frame}`);
     const frames = names.map((name) => texture(`${name}.svg`));
     const artwork = manifest[names[0]];
-    const sprite = new Sprite2D(frames[0]);
-    sprite.anchor.set(...artwork.anchor);
+    const animated = resident.kind === 'cyclist' || resident.kind === 'bird'
+      ? makeAnimatedResident(resident.name, resident.kind === 'cyclist')
+      : null;
     const height = { pedestrian: PEDESTRIAN_HEIGHT, cyclist: CYCLIST_HEIGHT, animal: ANIMAL_HEIGHT, bird: BIRD_HEIGHT }[resident.kind];
     const scale = height / artwork.height;
+    let sprite: Node2D;
+    let updateFrame: (time: number) => void;
+    if (animated) {
+      sprite = animated.node;
+      updateFrame = (time) => animated.update(time + resident.start, resident.speed, scale);
+    } else {
+      const body = new Sprite2D(frames[0]);
+      body.anchor.set(...artwork.anchor);
+      sprite = body;
+      updateFrame = (time) => {
+        body.texture = frames[Math.floor(time * WALK_FRAMES_PER_SECOND + resident.start) % frames.length];
+      };
+    }
     (isWildlife ? wildlife : node).addChild(sprite);
-    return { resident, sprite, frames, scale };
+    return { resident, sprite, scale, updateFrame };
   });
   let time = 0;
   const population: Population = {
     update(dt) {
       time += dt;
-      for (const { resident, sprite, frames, scale } of residents) {
+      for (const { resident, sprite, scale, updateFrame } of residents) {
         const { x, direction } = residentPosition(resident, time);
         sprite.position.set(x, resident.y);
         sprite.scale.set(direction * scale, scale);
-        sprite.texture = frames[Math.floor(time * WALK_FRAMES_PER_SECOND + resident.start) % frames.length];
+        updateFrame(time);
       }
     },
   };
