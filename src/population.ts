@@ -16,7 +16,9 @@ const CYCLIST_HEIGHT = 36;
 const WALK_FRAME_COUNT = 8;
 const WALK_FRAMES_PER_SECOND = 8;
 const PEDESTRIAN_HEIGHT = 32;
-const ANIMAL_HEIGHT = 25;
+const ANIMAL_HEIGHT = 20;
+const BIRD_HEIGHT = 14;
+const FLIGHT_CLEARANCE = 100;
 const BRIDGE_MARGIN = 45;
 
 export const RESIDENT_FILES = [...WALKERS, CYCLIST].flatMap((name) =>
@@ -24,7 +26,7 @@ export const RESIDENT_FILES = [...WALKERS, CYCLIST].flatMap((name) =>
 
 export interface Resident {
   name: string;
-  kind: 'pedestrian' | 'cyclist' | 'animal';
+  kind: 'pedestrian' | 'cyclist' | 'animal' | 'bird';
   left: number;
   right: number;
   start: number;
@@ -44,7 +46,7 @@ export function populationLayout(level: LevelDef, biome: Biome): Resident[] {
     for (let index = 0; index < 5; index++) {
       let kind: Resident['kind'] = 'animal';
       let names = biome.animals;
-      let speed = 3 + random.float() * 4;
+      let speed = 0;
       if (index < 3) {
         kind = 'pedestrian';
         names = WALKERS;
@@ -55,6 +57,7 @@ export function populationLayout(level: LevelDef, biome: Biome): Resident[] {
           speed = 22 + random.float() * 10;
         }
       }
+      if (names.length === 0) continue;
       residents.push({
         name: names[random.int(names.length)], kind, ...bank,
         start: random.float() * (bank.right - bank.left) * 2,
@@ -62,6 +65,14 @@ export function populationLayout(level: LevelDef, biome: Biome): Resident[] {
         y: level.deckY - 5,
       });
     }
+  }
+  for (let index = 0; index < biome.flyingBirds.length * 2; index++) {
+    residents.push({
+      name: biome.flyingBirds[index % biome.flyingBirds.length], kind: 'bird',
+      left: -200, right: 1000, start: random.float() * 2400,
+      speed: 12 + random.float() * 10,
+      y: Math.max(30, level.deckY - FLIGHT_CLEARANCE - random.float() * 100),
+    });
   }
   return residents;
 }
@@ -75,19 +86,20 @@ export function residentPosition(resident: Resident, time: number): { x: number;
 
 export interface Population { update(dt: number): void }
 
-export function buildPopulation(level: LevelDef, biome: Biome, node: Node2D): Population {
+export function buildPopulation(level: LevelDef, biome: Biome, node: Node2D, wildlife: Node2D): Population {
   const manifest = get<Record<string, { height: number; anchor: [number, number] }>>('manifest.json');
   const residents = populationLayout(level, biome).map((resident) => {
-    const names = resident.kind === 'animal'
+    const isWildlife = resident.kind === 'animal' || resident.kind === 'bird';
+    const names = isWildlife
       ? [resident.name]
       : Array.from({ length: WALK_FRAME_COUNT }, (_, frame) => `${resident.name}_f${frame}`);
     const frames = names.map((name) => texture(`${name}.svg`));
     const artwork = manifest[names[0]];
     const sprite = new Sprite2D(frames[0]);
     sprite.anchor.set(...artwork.anchor);
-    const height = { pedestrian: PEDESTRIAN_HEIGHT, cyclist: CYCLIST_HEIGHT, animal: ANIMAL_HEIGHT }[resident.kind];
+    const height = { pedestrian: PEDESTRIAN_HEIGHT, cyclist: CYCLIST_HEIGHT, animal: ANIMAL_HEIGHT, bird: BIRD_HEIGHT }[resident.kind];
     const scale = height / artwork.height;
-    node.addChild(sprite);
+    (isWildlife ? wildlife : node).addChild(sprite);
     return { resident, sprite, frames, scale };
   });
   let time = 0;

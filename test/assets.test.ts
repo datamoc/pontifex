@@ -78,10 +78,21 @@ test('population : assets complets et promenades limitées à chaque rive', () =
   }
   for (const biome of BIOMES) for (const level of LEVELS) {
     const residents = populationLayout(level, biome);
-    assert.equal(residents.filter((resident) => resident.kind !== 'animal').length, 6);
-    assert.equal(residents.filter((resident) => resident.kind === 'animal').length, 4);
+    assert.equal(residents.filter((resident) => resident.kind === 'pedestrian' || resident.kind === 'cyclist').length, 6);
+    assert.equal(residents.filter((resident) => resident.kind === 'animal').length, biome.animals.length ? 4 : 0);
     for (const resident of residents) {
-      assert.ok(resident.right < level.x0 || resident.left > level.x1);
+      if (resident.kind === 'bird') {
+        assert.ok(biome.flyingBirds.includes(resident.name));
+        assert.ok(resident.y <= level.deckY - 100);
+        const source = readFileSync(new URL(`../assets/${resident.name}.svg`, import.meta.url), 'utf8');
+        assert.ok(source.includes('id="wing"'), `${resident.name} doit être dessiné en vol`);
+      } else {
+        assert.ok(resident.right < level.x0 || resident.left > level.x1);
+      }
+      if (resident.kind === 'animal') {
+        assert.deepEqual(residentPosition(resident, 0), residentPosition(resident, 10000));
+        assert.equal(resident.speed, 0);
+      }
       for (const time of [0, 10, 100, 10000]) {
         const { x } = residentPosition(resident, time);
         assert.ok(x >= resident.left && x <= resident.right);

@@ -116,8 +116,8 @@ export class PontifexScene extends Scene2D {
     this.world = this.camera.world;
     this.stage.addChild(this.world);
     const L = (n: string) => { const s = new Shape2D(); s.label = n; return s; };
-    this.layers = { sky: L('sky'), clouds: new Node2D(), landscape: new Node2D(), back: L('back'), decor: new Node2D(), grid: L('grid'), bridge: L('bridge'), car: new Node2D(), front: L('front'), fx: new Node2D() };
-    this.world.addChild(this.layers.sky, this.layers.clouds, this.layers.landscape, this.layers.back, this.layers.decor, this.layers.grid, this.layers.bridge, this.layers.car, this.layers.front, this.layers.fx);
+    this.layers = { sky: L('sky'), clouds: new Node2D(), landscape: new Node2D(), back: L('back'), wildlife: new Node2D(), decor: new Node2D(), grid: L('grid'), bridge: L('bridge'), car: new Node2D(), front: L('front'), fx: new Node2D() };
+    this.world.addChild(this.layers.sky, this.layers.clouds, this.layers.landscape, this.layers.back, this.layers.wildlife, this.layers.decor, this.layers.grid, this.layers.bridge, this.layers.car, this.layers.front, this.layers.fx);
     this.clouds = buildClouds(this.layers.clouds, 4242);
 
     const mk = (tint: [number, number], g: number, life: [number, number], speed: [number, number]) => new ParticleEmitter({
@@ -193,7 +193,8 @@ export class PontifexScene extends Scene2D {
     drawScene.static(this.layers, this.level, this.snapOn, this.biome);
     buildLandscape(this.level, this.layers.landscape, this.biome);
     buildDecor(this.level, this.layers.decor, this.biome);
-    this.population = buildPopulation(this.level, this.biome, this.layers.decor);
+    this.layers.wildlife.removeChildren().forEach((child) => child.destroy());
+    this.population = buildPopulation(this.level, this.biome, this.layers.decor, this.layers.wildlife);
     this.layers.car.removeChildren().forEach((c) => c.destroy());
     this.car = makeVehicle(this.level.vehicle);
     this.layers.car.addChild(this.car);
@@ -574,7 +575,8 @@ export class PontifexScene extends Scene2D {
     drawScene.static(this.layers, this.level, this.snapOn, this.biome);
     buildLandscape(this.level, this.layers.landscape, this.biome);
     buildDecor(this.level, this.layers.decor, this.biome);
-    this.population = buildPopulation(this.level, this.biome, this.layers.decor);
+    this.layers.wildlife.removeChildren().forEach((child) => child.destroy());
+    this.population = buildPopulation(this.level, this.biome, this.layers.decor, this.layers.wildlife);
     this.layers.car.removeChildren().forEach((c) => c.destroy());
     this.car = makeVehicle(this.level.vehicle);
     this.layers.car.addChild(this.car);

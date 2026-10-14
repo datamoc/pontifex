@@ -19,7 +19,8 @@ Raccourcis : `1`–`5` matériaux, `X` effacer, `G` grille, `Ctrl+Z` / `Ctrl+Y` 
 
 Chaque scénario tire au hasard une ambiance parmi neuf biomes. Le ciel, le terrain, les objets et
 les trois plans de paysage suivent ce biome. L'ambiance reste stable pendant les essais du pont.
-Six passants et quatre animaux adaptés au biome se promènent sur les rives. Chaque passant a
+Six passants se promènent sur les rives. Les animaux restent fixes derrière le décor ; seuls les oiseaux
+dessinés en vol se déplacent dans le ciel. Les oiseaux avec des pattes visibles restent posés. Chaque passant a
 20 % de chances d'être un cycliste, avec une animation de pédalage et une vitesse plus élevée.
 
 ## Progression et matériaux

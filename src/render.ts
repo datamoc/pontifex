@@ -3,7 +3,7 @@ import { Shape2D, Label, Gradient, type Node2D } from '@datamoc/mw_games/two-d';
 import { GRID, MATERIALS, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt } from './data.ts';
 import type { BridgeSim, Structure } from './physics.ts';
 
-export interface Layers { sky: Shape2D; clouds: Node2D; landscape: Node2D; back: Shape2D; decor: Node2D; grid: Shape2D; bridge: Shape2D; car: Node2D; front: Shape2D; fx: Node2D }
+export interface Layers { sky: Shape2D; clouds: Node2D; landscape: Node2D; back: Shape2D; wildlife: Node2D; decor: Node2D; grid: Shape2D; bridge: Shape2D; car: Node2D; front: Shape2D; fx: Node2D }
 
 export interface DynamicArgs {
   level: LevelDef;
