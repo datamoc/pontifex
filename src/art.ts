@@ -199,14 +199,17 @@ export interface DecorItem { name: string; x: number; y: number; scale: number; 
  */
 export function decorLayout(level: LevelDef, biome?: Biome): DecorItem[] {
   const ground = level.deckY - 5; // haut de la chaussée sur les rives
+  // Les biomes ont une base au sol : les enfoncer masque notamment les blocs de glace.
+  const vegetationY = ground + (biome ? 0 : 3);
+  const rocksY = ground + (biome ? 0 : 4);
   const gen = new Random.Generator(level.id * 7919 + 13);
   const pick = <T>(a: readonly T[]): T => a[gen.int(a.length)];
   const items: DecorItem[] = [];
   const side = (from: number, to: number) => {
     // Plusieurs tailles et espacements évitent un alignement uniforme du décor.
-    for (let x = from; x < to; x += 40 + gen.float() * 50) items.push({ name: pick(biome?.scenery ?? TREES), x, y: ground + 3, scale: 0.34 + gen.float() * 0.2, flip: gen.float() < 0.5 });
-    for (let x = from + 30; x < to; x += 55 + gen.float() * 60) items.push({ name: pick(biome?.scenery ?? BUSHES), x, y: ground + 3, scale: 0.5 + gen.float() * 0.3, flip: gen.float() < 0.5 });
-    for (let x = from + 50; x < to; x += 220 + gen.float() * 150) items.push({ name: pick(biome?.scenery ?? ROCKS), x, y: ground + 4, scale: 0.4 + gen.float() * 0.3, flip: false });
+    for (let x = from; x < to; x += 40 + gen.float() * 50) items.push({ name: pick(biome?.scenery ?? TREES), x, y: vegetationY, scale: 0.34 + gen.float() * 0.2, flip: gen.float() < 0.5 });
+    for (let x = from + 30; x < to; x += 55 + gen.float() * 60) items.push({ name: pick(biome?.scenery ?? BUSHES), x, y: vegetationY, scale: 0.5 + gen.float() * 0.3, flip: gen.float() < 0.5 });
+    for (let x = from + 50; x < to; x += 220 + gen.float() * 150) items.push({ name: pick(biome?.scenery ?? ROCKS), x, y: rocksY, scale: 0.4 + gen.float() * 0.3, flip: false });
   };
   side(-650, level.x0 - 95);
   side(level.x1 + 95, 1450);
