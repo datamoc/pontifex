@@ -4,18 +4,27 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tsx --test test/physics.test.ts test/editor.test.ts",
+    "test": "tsx --test test/physics.test.ts test/editor.test.ts test/content.test.ts",
     "build": "vite build",
     "typecheck": "tsc -p .",
     "e2e": "node e2e/run.mjs",
-    "check": "npm run typecheck && npm test && npm run build && npm run e2e"
+    "check": "npm run typecheck && npm test && npm run build && npm run e2e",
+    "content": "tsx tools/build-content.ts",
+    "gen:biomes": "tsx src/gen/biomes/index.ts",
+    "gen:pontifex": "npm run gen:biomes",
+    "prebuild": "npm run content",
+    "pretest": "npm run content",
+    "pretypecheck": "npm run content",
+    "dev": "npm run content && vite",
+    "level:convert": "tsx tools/convert-level.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@datamoc/mw_games": "^0.37.0",
-    "pixi.js": "^8.22.0"
+    "@datamoc/mw_games": "^0.38.0",
+    "pixi.js": "^8.22.0",
+    "svg.js": "^2.7.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

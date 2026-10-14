@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Effets SVG - Fumée et Escarbilles</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #1e293b;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .effect {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #2563eb;
+    }
+    svg {
+      margin: 10px 0;
+    }
+    
+    /* Animation pour la fumée */
+    @keyframes smoke-rise {
+      0% {
+        transform: translateY(0) scale(0.8);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-50px) scale(1.2);
+        opacity: 0;
+      }
+    }
+    
+    /* Animation pour les escarbilles */
+    @keyframes spark-fly {
+      0% {
+        transform: translate(0, 0) scale(0.5);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(1.5);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Demo Effets SVG - Fumée et Escarbilles</h1>
+  <p>Cliquez sur les boutons pour déclencher les effets.</p>
+
+  <div class="container">
+    
+    <!-- Effet de fumée -->
+    <div class="effect">
+      <h2>Fumée</h2>
+      <svg width="160" height="120" viewBox="0 0 160 120">
+        <use id="smoke1" xlink:href="assets/svg/sprites.svg#smoke-cloud" x="0" y="60" filter="url(#smoke)" opacity="0"/>
+      </svg>
+      <button onclick="triggerSmoke()">Déclencher la fumée</button>
+    </div>
+    
+    <!-- Effet d'escarbilles -->
+    <div class="effect">
+      <h2>Escarbilles</h2>
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <use id="explosion" xlink:href="assets/svg/sprites.svg#explosion" x="0" y="0" opacity="1"/>
+        <g id="sparks-container"></g>
+      </svg>
+      <button onclick="triggerSparks()">Déclencher les escarbilles</button>
+    </div>
+    
+  </div>
+
+  <script>
+    // Déclencher l'effet de fumée
+    function triggerSmoke() {
+      const smoke = document.getElementById("smoke1");
+      smoke.style.opacity = "0.8";
+      smoke.style.animation = "smoke-rise 2s ease-out forwards";
+      
+      // Réinitialiser l'animation après 2 secondes
+      setTimeout(() => {
+        smoke.style.opacity = "0";
+        smoke.style.animation = "none";
+      }, 2000);
+    }
+    
+    // Déclencher l'effet d'escarbilles
+    function triggerSparks() {
+      const container = document.getElementById("sparks-container");
+      container.innerHTML = ""; // Réinitialiser
+      
+      // Créer plusieurs escarbilles
+      for (let i = 0; i < 20; i++) {
+        const spark = document.createElementNS("http://www.w3.org/2000/svg", "use");
+        spark.setAttribute("xlink:href", "assets/svg/sprites.svg#sparks-particle");
+        spark.setAttribute("x", "70");
+        spark.setAttribute("y", "70");
+        spark.setAttribute("opacity", "1");
+        
+        // Position aléatoire
+        const tx = Math.random() * 100 - 50;
+        const ty = Math.random() * 100 - 50;
+        spark.style.setProperty("--tx", `${tx}px`);
+        spark.style.setProperty("--ty", `${ty}px`);
+        spark.style.animation = `spark-fly 1s ease-out forwards`;
+        
+        container.appendChild(spark);
+      }
+    }
+  </script>
+</body>
+</html>

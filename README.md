@@ -19,7 +19,7 @@ Raccourcis : `1`–`5` matériaux, `X` effacer, `G` grille, `Ctrl+Z` / `Ctrl+Y` 
 Les matériaux arrivent progressivement (✦ = nouveau) : 1 chaussée seule, une poutre entre 2 points (6 cases) · 1bis + bois, 10 cases, la chaussée tendue casse vite · 2 + bois · 3 + acier ·
 6 + **câble fin** (traction seule : haubans, suspentes) · 7 + **câble porteur** (câble épais tendu entre pylônes).
 Un câble fin s'accroche **n'importe où sur un câble porteur** : le câble porteur est alors coupé en deux et un nœud est créé.
-Les niveaux sont de simples données (`src/data.ts`), prêts pour un futur éditeur de scénarios.
+Les niveaux intégrés sont écrits en MWL dans `content/levels.mwl`, puis compilés en données TypeScript.
 
 ## Éditeur de niveaux
 
@@ -29,10 +29,50 @@ boutons pour l'écart des rives, la hauteur de la route et de l'eau, le budget, 
 **Enregistrer** garde le niveau dans le navigateur ; **Exporter** donne un fichier `.json` (aussi copié dans le presse-papiers) ;
 glisser un `.json` sur la page, ou *Importer (presse-papiers)*, l'ajoute. Un fichier importé est toujours validé (`src/level.ts`).
 
+## Contenu MWL et échanges JSON
+
+`content/levels.mwl` décrit les huit niveaux avec le tag propre à Pontifex `bridge_level` et ses enfants
+`anchor`, `tower`, `island`, `view`. Les noms et indices portent le marqueur de traduction `_("…")`.
+`content/catalog.mwl` contient les tables typées des matériaux et véhicules ; chaque niveau référence leurs identifiants.
+Les identifiants des niveaux servent aux étoiles sauvegardées : conserver leur valeur et l'ordre des niveaux.
+
+`npm run content` compile et valide ces fichiers avec l'API publique MWL, vérifie les références et les règles de
+niveau, puis produit `src/generated/content.ts` et `content/i18n.fr.json`. Ces sorties sont versionnées ; les modifier
+via les sources MWL. La compilation précède automatiquement le build, les tests et le contrôle TypeScript.
+Le catalogue français prépare la traduction ; le jeu affiche toujours les textes français.
+
+MWL sert ici à l'écriture du contenu, sans imposer son runtime de scénarios à la physique du jeu.
+Les niveaux créés par les joueurs restent importés et exportés en JSON, avec la validation `parseSpec` commune
+aux niveaux MWL. Les sauvegardes restent également en JSON. L'import/export MWL dans l'éditeur a été évalué :
+il demanderait un parseur et un sérialiseur dans le navigateur.
+Pour les échanges actuels d'un seul niveau, cela n'apporte pas encore de bénéfice suffisant ; il reste une extension possible.
+
+### Intégrer une création de joueur
+
+Le développeur peut convertir un fichier exporté par l'éditeur en MWL :
+
+```sh
+npm run level:convert -- pontifex-mon-pont.json --id 9 --label 8 --output content/zz-mon-pont.mwl
+npm run content
+npm run typecheck
+```
+
+Choisir un identifiant positif inutilisé et le conserver ensuite : il sert aux étoiles sauvegardées.
+`--label` est facultatif (par défaut, l'identifiant). `--output` est facultatif : sans lui, le script écrit le
+MWL sur la sortie standard (pour une redirection directe, utiliser `npx tsx tools/convert-level.ts …`).
+Le convertisseur refuse d'écraser un fichier existant et valide le niveau avant d'écrire.
+Le préfixe `zz-` place le fichier après les niveaux actuels dans l'ordre alphabétique de compilation.
+Les noms et consignes deviennent traduisibles ; le cadrage et la solution de référence, si présents,
+sont conservés. Les solutions utilisent les tags `bridge_solution`, `bridge_node`, `bridge_beam`.
+Cette conversion valide les données ; elle ne certifie pas que le pont réussit la simulation.
+Pour agrandir la campagne, ajouter aussi un pont de référence et les tests de faisabilité correspondants dans `test/`.
+
 ## Développer
 
 ```
 npm install
+npm run content     # MWL → données TypeScript + catalogue de traduction
+npm run dev         # compile le contenu puis lance Vite (relancer content après une modification MWL)
 npm run build       # vite build → dist/standalone.html (+ dist/index.html, game.js, assets/ : version multi-fichiers)
 npm test            # moteur physique, sans navigateur (node --test via tsx)
 npm run e2e         # Chrome réel depuis file:// : construction à la souris, 4 niveaux, échec, aucune requête réseau
@@ -47,7 +87,8 @@ Test Windows : `e2e/win-smoke.mjs` (Node + Chrome Windows).
 | fichier | rôle |
 | --- | --- |
 | `src/physics.ts` | simulation de pont utilisant `XpbdWorld` de MWG, à pas fixe, déterministe, sans rendu (efforts en force, rupture, câbles en traction seule) |
-| `src/data.ts` | matériaux, voitures (la masse suit la taille du véhicule) |
+| `content/*.mwl`, `tools/build-content.ts` | niveaux intégrés, tables de matériaux et véhicules, validation et génération |
+| `src/data.ts`, `src/generated/content.ts` | types et données compilées (la masse suit la taille du véhicule) |
 | `src/level.ts`, `src/levels.ts` | format de niveau (`LevelSpec`), validation des imports, niveaux du jeu |
 | `src/editor.ts`, `src/editor-ui.ts` | éditeur de niveaux : opérations pures testées, puis interface |
 | `src/scene.ts` | scène MWG : éditeur, simulation, interface (`Button`, `Bar`, `Window`, `Label`…) |

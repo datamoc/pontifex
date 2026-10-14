@@ -87,3 +87,80 @@ La simulation conserve les paramètres d'origine (masse des nœuds, densité des
 30. **Passage au 100 % SVG (0.36.1)** : `loadBinary` (le texte du fichier) → `sanitizeSvg` → `splitSvgGroups` → `svgDataUri` + `Assets.add({ alias, src, format: 'svg', data: { resolution } })` fait un véhicule recomposable (roues au moyeu, capot sur son pivot) sans planche de sprites. Les trois quarts de la chaîne sont dans la façade, le dernier pas se fait à la main chez Pixi. → `loadSvgParts(path, { resolution })` qui enchaîne les quatre et renvoie `Record<groupe, Texture>` ; `splitSvgGroups` est parfait en l'état (viewBox conservé, **ordre des groupes conservé** — c'est l'ordre d'empilement du dessin, précieux et non documenté).
 31. `load(paths, { resolution })` est exactement ce qu'il faut pour du vectoriel (2× pour rester net sous une caméra qui cadre), mais l'option n'est écrite que dans `loader.d.ts`, pas dans le README — comme `Sound.play(gain, pitch)` (item 21). Une ligne dans « Loading assets » suffirait.
 32. **Aucune surprise sur 14 dessins** : `sanitizeSvg` n'a rien refusé, les textures SVG sont nettes à 2×, et le coût est négligeable (21 Ko de source → `standalone.html` de 298 Ko au total). En revanche `compile-resources` embarque **tout** fichier à extension connue, sans exclusion possible : un simple apercu PNG de 175 Ko rangé dans le dossier d'assets a fait gonfler la page à 517 Ko jusqu'à ce qu'on le déplace hors du dossier. → une option `include`/`exclude` dans `mwgPage({ assets })`, ou au moins un log des fichiers embarqués.
+
+## Proposition : scènes, interface et biomes décrits en MWL
+
+33. **Étendre l'écriture déclarative au-delà des niveaux** (14 octobre 2026).
+    Pontifex compile maintenant les niveaux, matériaux et véhicules depuis MWL. En revanche,
+    `PontifexScene.buildHud`, `layoutHud`, les fenêtres de résultats/sélection/confirmation et
+    `LevelEditor` construisent encore l'interface en TypeScript ; `render.ts` fixe les couleurs du décor.
+    L'ajout de biomes multiplierait ces choix de présentation dans le code.
+
+    **Existant vérifié dans MWG 0.37.0** : schémas MWL extensibles, compilation et extraction i18n ;
+    widgets `Button`, `Label`, `Bar`, `Window` ; `setTheme`, `themeChanged` et restylage des widgets ;
+    ancrages et helpers de layout. La fonctionnalité demandée est leur composition depuis MWL,
+    avec validation à la compilation, et non un second moteur de widgets ou de simulation.
+
+    **Fonctionnalités proposées à MWG** :
+
+    - Un vocabulaire optionnel pour les scènes et arbres d'interface : couches du monde,
+      caméra, interface à l'écran, fenêtres, conteneurs, boutons, libellés, barres et composants réutilisables.
+      Les définitions compilées instancient les widgets existants et exposent leurs identifiants typés.
+    - Des layouts déclaratifs utilisant les helpers actuels : ancrages, lignes avec retour,
+      colonnes et grilles. Les collections dynamiques (matériaux, niveaux personnalisés) doivent
+      utiliser des modèles répétés avec une clé stable, et garder le focus lors des mises à jour.
+    - Des références à des actions et valeurs déclarées par le jeu : texte, valeur/max d'une barre,
+      sélection, visibilité et désactivation. Le compilateur vérifie ces noms contre un manifeste
+      TypeScript ; aucun corps JavaScript arbitraire dans le contenu. Le contrôleur produit l'état
+      d'interface formaté et implémente les actions, les dialogues de saisie et la simulation.
+    - Des thèmes MWL avec des tokens sémantiques (`panel`, `text`, `accent`, `success`, `warning`,
+      `danger`) et des variantes de composants. Les couleurs explicites actuelles de Pontifex
+      doivent devenir des références à ces tokens pour suivre un changement de biome.
+    - Des variantes de scène et d'interface sélectionnables par contexte. Pontifex décrit ses biomes
+      dans son propre schéma : palette du ciel/roche/eau, références de décor, thème UI et variantes
+      de composants. MWG fournit la résolution générique des thèmes et variantes, sans imposer
+      une notion de biome à tous les jeux. Ordre explicite : base, biome, variante de composant,
+      état du composant ; les indicateurs de danger et sélection restent identifiables.
+    - Un cycle de vie commun : montage, mise à jour, redimensionnement et destruction qui détache
+      événements et abonnements. Une variante de biome ne doit ni réinitialiser le pont ni dupliquer
+      les callbacks. Le registre de composants accepte des adaptateurs propres au jeu pour le rendu
+      procédural, les SVG recomposés et les effets.
+    - Une compilation intégrée au build : diagnostics fichier/ligne, références d'assets/thèmes/
+      composants/actions, catalogue i18n et sortie déterministe. Le HTML autonome consomme les
+      définitions compilées sans parseur MWL ni requête réseau au démarrage.
+
+    **Exemple de forme envisagée — proposition, pas une API disponible** :
+
+    ```json5
+    [
+      { tag: 'biome', id: 'alpine', theme: 'alpine-ui', scene_variant: 'alpine-world' },
+      { tag: 'ui_component', id: 'play-controls', children: [
+        { tag: 'ui_row', wrap: true, gap: 8, children: [
+          { tag: 'ui_button', id: 'test', text: _("▶ Tester"), action: 'toggleSimulation',
+            disabled_binding: 'cannotTest', style: 'primary' },
+          { tag: 'ui_bar', id: 'budget', value_binding: 'bridgeCost', max_binding: 'budget',
+            color_binding: 'budgetStatusColor' },
+        ] },
+      ] },
+      { tag: 'scene_definition', id: 'bridge-game', controller: 'pontifex', children: [
+        { tag: 'scene_layer', id: 'world', space: 'world', adapter: 'bridgeWorld' },
+        { tag: 'ui_mount', id: 'hud', component: 'play-controls', anchor: 'bottom' },
+      ] },
+    ]
+    ```
+
+    **Ordre d'adoption proposé dans Pontifex** : d'abord les tokens et le biome par défaut
+    (valeurs visuelles actuelles), puis le HUD et la barre de l'éditeur, ensuite les fenêtres et
+    enfin la composition des couches de scène. Le rendu animé/procédural et les règles du pont
+    restent des adaptateurs TypeScript référencés par la description. Chaque niveau porte un
+    identifiant de biome ; les anciens niveaux JSON sans ce champ prennent le biome par défaut.
+    Import/export, édition et sauvegarde doivent conserver cet identifiant et refuser les références inconnues.
+
+    **Critères d'acceptation** : HUD et éditeur utilisables en fenêtre étroite ; textes et listes
+    dynamiques mis à jour ; clavier/focus et comportement modal conservés ; changement de biome
+    pendant l'édition sans perte de structure ; palette, décor et variantes UI appliqués ensemble ;
+    destruction sans abonnement résiduel ; erreurs de référence détectées au build ; tests physiques
+    inchangés et parcours navigateur existant conservé. MWL reste une option du framework.
+
+    Ce point prépare une demande à MWG. Il ne constitue ni une implémentation de ces tags dans
+    Pontifex, ni une demande publiée auprès des mainteneurs.

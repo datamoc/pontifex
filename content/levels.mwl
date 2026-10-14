@@ -1,0 +1,319 @@
+[
+  {
+    "tag": "bridge_level",
+    "id": 1,
+    "label": "1",
+    "name": _("Premiers pas"),
+    "hint": _("Relie les deux points orange avec une poutre de chaussée : glisse de l’un à l’autre."),
+    "budget": 150,
+    "car": "citadine",
+    "x0": 340,
+    "x1": 460,
+    "deckY": 340,
+    "waterY": 470,
+    "materials": "road",
+    "children": [
+      {
+        "tag": "anchor",
+        "x": 340,
+        "y": 340
+      },
+      {
+        "tag": "anchor",
+        "x": 460,
+        "y": 340
+      },
+      {
+        "tag": "view",
+        "x": 190,
+        "y": 190,
+        "w": 420,
+        "h": 290
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 8,
+    "label": "1bis",
+    "name": _("Le Petit Gué"),
+    "hint": _("Nouveau : le bois. La chaussée tendue casse vite : soutiens-la par en dessous avec un triangle."),
+    "budget": 400,
+    "car": "citadine",
+    "x0": 300,
+    "x1": 500,
+    "deckY": 340,
+    "waterY": 470,
+    "materials": "road,wood",
+    "children": [
+      {
+        "tag": "anchor",
+        "x": 300,
+        "y": 340
+      },
+      {
+        "tag": "anchor",
+        "x": 500,
+        "y": 340
+      },
+      {
+        "tag": "view",
+        "x": 150,
+        "y": 190,
+        "w": 500,
+        "h": 290
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 2,
+    "label": "2",
+    "name": _("La Ravine"),
+    "hint": _("Le bois est léger et bon marché : un triangle ne se déforme pas."),
+    "budget": 800,
+    "car": "citadine",
+    "x0": 180,
+    "x1": 620,
+    "deckY": 340,
+    "waterY": 480,
+    "materials": "road,wood",
+    "children": [
+      {
+        "tag": "anchor",
+        "x": 180,
+        "y": 340
+      },
+      {
+        "tag": "anchor",
+        "x": 620,
+        "y": 340
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 3,
+    "label": "3",
+    "name": _("Le Fleuve profond"),
+    "hint": _("L’acier coûte cher mais encaisse : réserve-le aux appuis."),
+    "budget": 1250,
+    "car": "jeep1",
+    "x0": 140,
+    "x1": 660,
+    "deckY": 320,
+    "waterY": 490,
+    "materials": "road,wood,steel",
+    "children": [
+      {
+        "tag": "anchor",
+        "x": 140,
+        "y": 320
+      },
+      {
+        "tag": "anchor",
+        "x": 140,
+        "y": 420
+      },
+      {
+        "tag": "anchor",
+        "x": 660,
+        "y": 320
+      },
+      {
+        "tag": "anchor",
+        "x": 660,
+        "y": 420
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 4,
+    "label": "4",
+    "name": _("Le Canyon périlleux"),
+    "hint": _("Un îlot au milieu : appuie-toi dessus."),
+    "budget": 1800,
+    "car": "jeep2",
+    "x0": 120,
+    "x1": 680,
+    "deckY": 280,
+    "waterY": 510,
+    "materials": "road,wood,steel",
+    "children": [
+      {
+        "tag": "anchor",
+        "x": 120,
+        "y": 280
+      },
+      {
+        "tag": "anchor",
+        "x": 120,
+        "y": 440
+      },
+      {
+        "tag": "anchor",
+        "x": 400,
+        "y": 480
+      },
+      {
+        "tag": "anchor",
+        "x": 680,
+        "y": 280
+      },
+      {
+        "tag": "anchor",
+        "x": 680,
+        "y": 440
+      },
+      {
+        "tag": "island",
+        "x": 400,
+        "top": 480
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 5,
+    "label": "5",
+    "name": _("Les Deux Îlots"),
+    "hint": _("Deux piliers naturels : répartis la charge entre eux."),
+    "budget": 2300,
+    "car": "jeep2",
+    "x0": 100,
+    "x1": 700,
+    "deckY": 300,
+    "waterY": 520,
+    "materials": "road,wood,steel",
+    "children": [
+      {
+        "tag": "anchor",
+        "x": 100,
+        "y": 300
+      },
+      {
+        "tag": "anchor",
+        "x": 100,
+        "y": 420
+      },
+      {
+        "tag": "anchor",
+        "x": 300,
+        "y": 480
+      },
+      {
+        "tag": "anchor",
+        "x": 500,
+        "y": 480
+      },
+      {
+        "tag": "anchor",
+        "x": 700,
+        "y": 300
+      },
+      {
+        "tag": "anchor",
+        "x": 700,
+        "y": 420
+      },
+      {
+        "tag": "island",
+        "x": 300,
+        "top": 480
+      },
+      {
+        "tag": "island",
+        "x": 500,
+        "top": 480
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 6,
+    "label": "6",
+    "name": _("Le Pylône"),
+    "hint": _("Nouveau : le câble fin ne travaille qu’en traction. Suspends le tablier au sommet du pylône."),
+    "budget": 1000,
+    "car": "jeep1",
+    "x0": 140,
+    "x1": 660,
+    "deckY": 340,
+    "waterY": 510,
+    "materials": "road,wood,steel,cable",
+    "children": [
+      {
+        "tag": "anchor",
+        "x": 140,
+        "y": 340
+      },
+      {
+        "tag": "anchor",
+        "x": 660,
+        "y": 340
+      },
+      {
+        "tag": "anchor",
+        "x": 400,
+        "y": 160
+      },
+      {
+        "tag": "tower",
+        "x": 400,
+        "top": 160
+      },
+      {
+        "tag": "island",
+        "x": 400,
+        "top": 480
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 7,
+    "label": "7",
+    "name": _("Le Grand Viaduc"),
+    "hint": _("Nouveau : le câble porteur. Tends-le entre les pylônes en le laissant s’affaisser, puis accroche-y des câbles fins (n’importe où sur le câble)."),
+    "budget": 1300,
+    "car": "jeep2",
+    "x0": 140,
+    "x1": 660,
+    "deckY": 340,
+    "waterY": 500,
+    "materials": "road,wood,steel,rope,cable",
+    "children": [
+      {
+        "tag": "anchor",
+        "x": 140,
+        "y": 340
+      },
+      {
+        "tag": "anchor",
+        "x": 660,
+        "y": 340
+      },
+      {
+        "tag": "anchor",
+        "x": 120,
+        "y": 150
+      },
+      {
+        "tag": "anchor",
+        "x": 680,
+        "y": 150
+      },
+      {
+        "tag": "tower",
+        "x": 120,
+        "top": 150
+      },
+      {
+        "tag": "tower",
+        "x": 680,
+        "top": 150
+      }
+    ]
+  }
+]

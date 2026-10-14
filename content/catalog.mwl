@@ -1,0 +1,121 @@
+[
+  {
+    "tag": "table",
+    "id": "materials",
+    "columns": "id:string|name:string|cost:number|maxLen:number|color:number|stiffness:number|strength:number|tensionStrength:number|density:number|isRoad:boolean|tensionOnly:boolean|key:string",
+    "children": [
+      {
+        "tag": "row",
+        "id": "road",
+        "name": _("Chaussée"),
+        "cost": 6,
+        "maxLen": 120,
+        "color": 16096779,
+        "stiffness": 1600000,
+        "strength": 35000,
+        "tensionStrength": 14000,
+        "density": 0.02,
+        "isRoad": true,
+        "tensionOnly": false,
+        "key": "1"
+      },
+      {
+        "tag": "row",
+        "id": "wood",
+        "name": _("Bois"),
+        "cost": 3,
+        "maxLen": 130,
+        "color": 12730636,
+        "stiffness": 700000,
+        "strength": 22000,
+        "tensionStrength": 22000,
+        "density": 0.008,
+        "isRoad": false,
+        "tensionOnly": false,
+        "key": "2"
+      },
+      {
+        "tag": "row",
+        "id": "steel",
+        "name": _("Acier"),
+        "cost": 10,
+        "maxLen": 160,
+        "color": 9741240,
+        "stiffness": 3000000,
+        "strength": 58000,
+        "tensionStrength": 58000,
+        "density": 0.02,
+        "isRoad": false,
+        "tensionOnly": false,
+        "key": "3"
+      },
+      {
+        "tag": "row",
+        "id": "rope",
+        "name": _("Câble porteur"),
+        "cost": 7,
+        "maxLen": 300,
+        "color": 15067115,
+        "stiffness": 4000000,
+        "strength": 60000,
+        "tensionStrength": 60000,
+        "density": 0.012,
+        "isRoad": false,
+        "tensionOnly": true,
+        "key": "4"
+      },
+      {
+        "tag": "row",
+        "id": "cable",
+        "name": _("Câble fin"),
+        "cost": 4,
+        "maxLen": 250,
+        "color": 2282478,
+        "stiffness": 800000,
+        "strength": 16000,
+        "tensionStrength": 16000,
+        "density": 0.003,
+        "isRoad": false,
+        "tensionOnly": true,
+        "key": "5"
+      }
+    ]
+  },
+  {
+    "tag": "table",
+    "id": "vehicles",
+    "columns": "id:string|name:string|sprite:string|mass:number|speed:number|width:number|height:number",
+    "children": [
+      {
+        "tag": "row",
+        "id": "citadine",
+        "name": _("Citadine"),
+        "sprite": "citadine",
+        "mass": 9,
+        "speed": 70,
+        "width": 62,
+        "height": 24
+      },
+      {
+        "tag": "row",
+        "id": "jeep1",
+        "name": _("Jeep"),
+        "sprite": "jeep1",
+        "mass": 15,
+        "speed": 64,
+        "width": 70,
+        "height": 28
+      },
+      {
+        "tag": "row",
+        "id": "jeep2",
+        "name": _("Jeep 4x4"),
+        "sprite": "jeep2",
+        "mass": 21,
+        "speed": 56,
+        "width": 78,
+        "height": 32
+      }
+    ]
+  }
+]

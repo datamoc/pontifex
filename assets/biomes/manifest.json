@@ -1,0 +1,2298 @@
+{
+  "common/car": {
+    "file": "common/car.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        50
+      ],
+      "wheel-front": [
+        100,
+        50
+      ],
+      "hood": [
+        80,
+        20
+      ]
+    },
+    "tints": {
+      "paint": "#f59e0b"
+    }
+  },
+  "common/jeep": {
+    "file": "common/jeep.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        50
+      ],
+      "wheel-front": [
+        100,
+        50
+      ],
+      "hood": [
+        80,
+        20
+      ]
+    },
+    "tints": {
+      "paint": "#f59e0b"
+    }
+  },
+  "common/truck": {
+    "file": "common/truck.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 150,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        30,
+        70
+      ],
+      "wheel-front": [
+        120,
+        70
+      ]
+    },
+    "tints": {
+      "paint": "#f59e0b",
+      "cargo": "#374151"
+    }
+  },
+  "common/cloud": {
+    "file": "common/cloud.svg",
+    "biome": "common",
+    "category": "cloud",
+    "width": 100,
+    "height": 60,
+    "anchor": [
+      0,
+      0
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/tree": {
+    "file": "common/tree.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a",
+      "trunk": "#92400e"
+    }
+  },
+  "common/bush": {
+    "file": "common/bush.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a"
+    }
+  },
+  "common/rock": {
+    "file": "common/rock.svg",
+    "biome": "common",
+    "category": "rock",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/explosion": {
+    "file": "common/explosion.svg",
+    "biome": "common",
+    "category": "effect",
+    "width": 60,
+    "height": 60,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/flame": {
+    "file": "common/flame.svg",
+    "biome": "common",
+    "category": "effect",
+    "width": 30,
+    "height": 50,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_city/haussmann": {
+    "file": "euro_city/haussmann.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 80,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#f3f4f6",
+      "roof": "#374151",
+      "door": "#92400e"
+    }
+  },
+  "euro_city/half_timbered_house": {
+    "file": "euro_city/half_timbered_house.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 60,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#fef3c7",
+      "roof": "#92400e",
+      "door": "#92400e"
+    }
+  },
+  "euro_city/canal_house": {
+    "file": "euro_city/canal_house.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 60,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#d1d5db",
+      "roof": "#374151",
+      "door": "#92400e"
+    }
+  },
+  "euro_city/cathedral": {
+    "file": "euro_city/cathedral.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 100,
+    "height": 120,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#e5e7eb",
+      "roof": "#374151"
+    }
+  },
+  "euro_city/tram": {
+    "file": "euro_city/tram.svg",
+    "biome": "euro_city",
+    "category": "vehicle",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        50
+      ],
+      "wheel-front": [
+        100,
+        50
+      ]
+    },
+    "tints": {
+      "paint": "#dc2626"
+    }
+  },
+  "euro_city/double_decker": {
+    "file": "euro_city/double_decker.svg",
+    "biome": "euro_city",
+    "category": "vehicle",
+    "width": 120,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        70
+      ],
+      "wheel-front": [
+        100,
+        70
+      ]
+    },
+    "tints": {
+      "paint": "#dc2626"
+    }
+  },
+  "euro_city/vintage_car": {
+    "file": "euro_city/vintage_car.svg",
+    "biome": "euro_city",
+    "category": "vehicle",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        50
+      ],
+      "wheel-front": [
+        100,
+        50
+      ]
+    },
+    "tints": {
+      "paint": "#f59e0b"
+    }
+  },
+  "euro_city/barge": {
+    "file": "euro_city/barge.svg",
+    "biome": "euro_city",
+    "category": "boat",
+    "width": 100,
+    "height": 40,
+    "anchor": [
+      0.5,
+      0.75
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#374151"
+    }
+  },
+  "euro_city/lamp": {
+    "file": "euro_city/lamp.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 20,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_city/fountain": {
+    "file": "euro_city/fountain.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 40,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_city/kiosk": {
+    "file": "euro_city/kiosk.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 40,
+    "height": 50,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_city/bg_far": {
+    "file": "euro_city/bg_far.svg",
+    "biome": "euro_city",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_city/bg_mid": {
+    "file": "euro_city/bg_mid.svg",
+    "biome": "euro_city",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_city/bg_near": {
+    "file": "euro_city/bg_near.svg",
+    "biome": "euro_city",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "cyberpunk/neon_tower": {
+    "file": "cyberpunk/neon_tower.svg",
+    "biome": "cyberpunk",
+    "category": "building",
+    "width": 60,
+    "height": 120,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#1f2937"
+    }
+  },
+  "cyberpunk/megacorp_tower": {
+    "file": "cyberpunk/megacorp_tower.svg",
+    "biome": "cyberpunk",
+    "category": "building",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#111827"
+    }
+  },
+  "cyberpunk/container_stack": {
+    "file": "cyberpunk/container_stack.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#374151"
+    }
+  },
+  "cyberpunk/tech_pagoda": {
+    "file": "cyberpunk/tech_pagoda.svg",
+    "biome": "cyberpunk",
+    "category": "building",
+    "width": 60,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#1f2937",
+      "roof": "#dc2626"
+    }
+  },
+  "cyberpunk/billboard": {
+    "file": "cyberpunk/billboard.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 80,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "cyberpunk/hover_car": {
+    "file": "cyberpunk/hover_car.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 100,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#dc2626"
+    }
+  },
+  "cyberpunk/maglev": {
+    "file": "cyberpunk/maglev.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 120,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#374151"
+    }
+  },
+  "cyberpunk/drone": {
+    "file": "cyberpunk/drone.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 40,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#374151"
+    }
+  },
+  "cyberpunk/armored_truck": {
+    "file": "cyberpunk/armored_truck.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#374151"
+    }
+  },
+  "cyberpunk/bus": {
+    "file": "cyberpunk/bus.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#dc2626"
+    }
+  },
+  "cyberpunk/rain": {
+    "file": "cyberpunk/rain.svg",
+    "biome": "cyberpunk",
+    "category": "overlay",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "cyberpunk/bg_far": {
+    "file": "cyberpunk/bg_far.svg",
+    "biome": "cyberpunk",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "cyberpunk/bg_mid": {
+    "file": "cyberpunk/bg_mid.svg",
+    "biome": "cyberpunk",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "cyberpunk/bg_near": {
+    "file": "cyberpunk/bg_near.svg",
+    "biome": "cyberpunk",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_country/farm": {
+    "file": "euro_country/farm.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 80,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#fef3c7",
+      "roof": "#92400e"
+    }
+  },
+  "euro_country/cottage": {
+    "file": "euro_country/cottage.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 60,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#f3f4f6",
+      "roof": "#92400e"
+    }
+  },
+  "euro_country/church": {
+    "file": "euro_country/church.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 80,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#e5e7eb",
+      "roof": "#374151"
+    }
+  },
+  "euro_country/barn": {
+    "file": "euro_country/barn.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 100,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#dc2626",
+      "roof": "#374151"
+    }
+  },
+  "euro_country/windmill": {
+    "file": "euro_country/windmill.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 60,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "sails": [
+        30,
+        30
+      ]
+    },
+    "tints": {
+      "wall": "#f3f4f6",
+      "roof": "#374151"
+    }
+  },
+  "euro_country/castle": {
+    "file": "euro_country/castle.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 120,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#9ca3af",
+      "roof": "#374151"
+    }
+  },
+  "euro_country/oak": {
+    "file": "euro_country/oak.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a",
+      "trunk": "#92400e"
+    }
+  },
+  "euro_country/poplar": {
+    "file": "euro_country/poplar.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 20,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a",
+      "trunk": "#92400e"
+    }
+  },
+  "euro_country/hedge": {
+    "file": "euro_country/hedge.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 60,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a"
+    }
+  },
+  "euro_country/vines": {
+    "file": "euro_country/vines.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 20,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a"
+    }
+  },
+  "euro_country/lavender": {
+    "file": "euro_country/lavender.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 30,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#8b5cf6"
+    }
+  },
+  "euro_country/wheat": {
+    "file": "euro_country/wheat.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#d97706"
+    }
+  },
+  "euro_country/tractor": {
+    "file": "euro_country/tractor.svg",
+    "biome": "euro_country",
+    "category": "vehicle",
+    "width": 100,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        50
+      ],
+      "wheel-front": [
+        80,
+        50
+      ]
+    },
+    "tints": {
+      "paint": "#dc2626"
+    }
+  },
+  "euro_country/sheep": {
+    "file": "euro_country/sheep.svg",
+    "biome": "euro_country",
+    "category": "fauna",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_country/cow": {
+    "file": "euro_country/cow.svg",
+    "biome": "euro_country",
+    "category": "fauna",
+    "width": 50,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_country/stork": {
+    "file": "euro_country/stork.svg",
+    "biome": "euro_country",
+    "category": "fauna",
+    "width": 30,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_country/bg_far": {
+    "file": "euro_country/bg_far.svg",
+    "biome": "euro_country",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_country/bg_mid": {
+    "file": "euro_country/bg_mid.svg",
+    "biome": "euro_country",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "euro_country/bg_near": {
+    "file": "euro_country/bg_near.svg",
+    "biome": "euro_country",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/chalet": {
+    "file": "mountain/chalet.svg",
+    "biome": "mountain",
+    "category": "building",
+    "width": 80,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#f3f4f6",
+      "roof": "#374151"
+    }
+  },
+  "mountain/hut": {
+    "file": "mountain/hut.svg",
+    "biome": "mountain",
+    "category": "building",
+    "width": 60,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#92400e",
+      "roof": "#374151"
+    }
+  },
+  "mountain/cable_car_station": {
+    "file": "mountain/cable_car_station.svg",
+    "biome": "mountain",
+    "category": "building",
+    "width": 80,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#f3f4f6",
+      "roof": "#374151"
+    }
+  },
+  "mountain/ski_lift_pylon": {
+    "file": "mountain/ski_lift_pylon.svg",
+    "biome": "mountain",
+    "category": "prop",
+    "width": 20,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/spruce": {
+    "file": "mountain/spruce.svg",
+    "biome": "mountain",
+    "category": "vegetation",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#059669",
+      "trunk": "#92400e"
+    }
+  },
+  "mountain/larch": {
+    "file": "mountain/larch.svg",
+    "biome": "mountain",
+    "category": "vegetation",
+    "width": 30,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#d97706",
+      "trunk": "#92400e"
+    }
+  },
+  "mountain/boulder": {
+    "file": "mountain/boulder.svg",
+    "biome": "mountain",
+    "category": "rock",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/scree": {
+    "file": "mountain/scree.svg",
+    "biome": "mountain",
+    "category": "terrain",
+    "width": 60,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/glacier": {
+    "file": "mountain/glacier.svg",
+    "biome": "mountain",
+    "category": "terrain",
+    "width": 80,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/waterfall": {
+    "file": "mountain/waterfall.svg",
+    "biome": "mountain",
+    "category": "terrain",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/cable_car": {
+    "file": "mountain/cable_car.svg",
+    "biome": "mountain",
+    "category": "vehicle",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      0
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/snowplow": {
+    "file": "mountain/snowplow.svg",
+    "biome": "mountain",
+    "category": "vehicle",
+    "width": 100,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        50
+      ],
+      "wheel-front": [
+        80,
+        50
+      ]
+    },
+    "tints": {
+      "paint": "#dc2626"
+    }
+  },
+  "mountain/rack_train": {
+    "file": "mountain/rack_train.svg",
+    "biome": "mountain",
+    "category": "vehicle",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        50
+      ],
+      "wheel-front": [
+        100,
+        50
+      ]
+    },
+    "tints": {
+      "paint": "#374151"
+    }
+  },
+  "mountain/ibex": {
+    "file": "mountain/ibex.svg",
+    "biome": "mountain",
+    "category": "fauna",
+    "width": 50,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/eagle": {
+    "file": "mountain/eagle.svg",
+    "biome": "mountain",
+    "category": "fauna",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "wing": [
+        20,
+        15
+      ]
+    },
+    "tints": {}
+  },
+  "mountain/marmot": {
+    "file": "mountain/marmot.svg",
+    "biome": "mountain",
+    "category": "fauna",
+    "width": 30,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/bg_far": {
+    "file": "mountain/bg_far.svg",
+    "biome": "mountain",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/bg_mid": {
+    "file": "mountain/bg_mid.svg",
+    "biome": "mountain",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "mountain/bg_near": {
+    "file": "mountain/bg_near.svg",
+    "biome": "mountain",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/adobe": {
+    "file": "desert/adobe.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 80,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#d4a574"
+    }
+  },
+  "desert/mosque": {
+    "file": "desert/mosque.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 80,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#f3f4f6",
+      "roof": "#374151"
+    }
+  },
+  "desert/derrick": {
+    "file": "desert/derrick.svg",
+    "biome": "desert",
+    "category": "prop",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/caravanserai": {
+    "file": "desert/caravanserai.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 100,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#d4a574"
+    }
+  },
+  "desert/temple_ruin": {
+    "file": "desert/temple_ruin.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 100,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#92400e"
+    }
+  },
+  "desert/radar": {
+    "file": "desert/radar.svg",
+    "biome": "desert",
+    "category": "prop",
+    "width": 60,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/saguaro": {
+    "file": "desert/saguaro.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 20,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a"
+    }
+  },
+  "desert/prickly_pear": {
+    "file": "desert/prickly_pear.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 30,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a"
+    }
+  },
+  "desert/date_palm": {
+    "file": "desert/date_palm.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a",
+      "trunk": "#92400e"
+    }
+  },
+  "desert/agave": {
+    "file": "desert/agave.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 40,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#059669"
+    }
+  },
+  "desert/mesa": {
+    "file": "desert/mesa.svg",
+    "biome": "desert",
+    "category": "terrain",
+    "width": 100,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/rock_arch": {
+    "file": "desert/rock_arch.svg",
+    "biome": "desert",
+    "category": "terrain",
+    "width": 60,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/dune": {
+    "file": "desert/dune.svg",
+    "biome": "desert",
+    "category": "terrain",
+    "width": 100,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/camel_caravan": {
+    "file": "desert/camel_caravan.svg",
+    "biome": "desert",
+    "category": "vehicle",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/pickup": {
+    "file": "desert/pickup.svg",
+    "biome": "desert",
+    "category": "vehicle",
+    "width": 100,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        20,
+        50
+      ],
+      "wheel-front": [
+        80,
+        50
+      ]
+    },
+    "tints": {
+      "paint": "#f59e0b"
+    }
+  },
+  "desert/vulture": {
+    "file": "desert/vulture.svg",
+    "biome": "desert",
+    "category": "fauna",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "wing": [
+        20,
+        15
+      ]
+    },
+    "tints": {}
+  },
+  "desert/lizard": {
+    "file": "desert/lizard.svg",
+    "biome": "desert",
+    "category": "fauna",
+    "width": 30,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/scorpion": {
+    "file": "desert/scorpion.svg",
+    "biome": "desert",
+    "category": "fauna",
+    "width": 40,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/bg_far": {
+    "file": "desert/bg_far.svg",
+    "biome": "desert",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/bg_mid": {
+    "file": "desert/bg_mid.svg",
+    "biome": "desert",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "desert/bg_near": {
+    "file": "desert/bg_near.svg",
+    "biome": "desert",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/igloo": {
+    "file": "arctic/igloo.svg",
+    "biome": "arctic",
+    "category": "building",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/ice_blocks": {
+    "file": "arctic/ice_blocks.svg",
+    "biome": "arctic",
+    "category": "prop",
+    "width": 40,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/iceberg": {
+    "file": "arctic/iceberg.svg",
+    "biome": "arctic",
+    "category": "terrain",
+    "width": 80,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/penguin": {
+    "file": "arctic/penguin.svg",
+    "biome": "arctic",
+    "category": "fauna",
+    "width": 30,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/icebreaker": {
+    "file": "arctic/icebreaker.svg",
+    "biome": "arctic",
+    "category": "boat",
+    "width": 100,
+    "height": 40,
+    "anchor": [
+      0.5,
+      0.75
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/aurora": {
+    "file": "arctic/aurora.svg",
+    "biome": "arctic",
+    "category": "overlay",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/bg_far": {
+    "file": "arctic/bg_far.svg",
+    "biome": "arctic",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/bg_mid": {
+    "file": "arctic/bg_mid.svg",
+    "biome": "arctic",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "arctic/bg_near": {
+    "file": "arctic/bg_near.svg",
+    "biome": "arctic",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "tropical/palm_hut": {
+    "file": "tropical/palm_hut.svg",
+    "biome": "tropical",
+    "category": "building",
+    "width": 60,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#92400e",
+      "roof": "#059669"
+    }
+  },
+  "tropical/fern": {
+    "file": "tropical/fern.svg",
+    "biome": "tropical",
+    "category": "vegetation",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#059669"
+    }
+  },
+  "tropical/liana": {
+    "file": "tropical/liana.svg",
+    "biome": "tropical",
+    "category": "vegetation",
+    "width": 20,
+    "height": 100,
+    "anchor": [
+      0.5,
+      0
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "tropical/bamboo": {
+    "file": "tropical/bamboo.svg",
+    "biome": "tropical",
+    "category": "vegetation",
+    "width": 20,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#059669"
+    }
+  },
+  "tropical/bamboo_bridge": {
+    "file": "tropical/bamboo_bridge.svg",
+    "biome": "tropical",
+    "category": "prop",
+    "width": 80,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "tropical/coconut_palm": {
+    "file": "tropical/coconut_palm.svg",
+    "biome": "tropical",
+    "category": "vegetation",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#059669",
+      "trunk": "#92400e"
+    }
+  },
+  "tropical/toucan": {
+    "file": "tropical/toucan.svg",
+    "biome": "tropical",
+    "category": "fauna",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "tropical/bg_far": {
+    "file": "tropical/bg_far.svg",
+    "biome": "tropical",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "tropical/bg_mid": {
+    "file": "tropical/bg_mid.svg",
+    "biome": "tropical",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "tropical/bg_near": {
+    "file": "tropical/bg_near.svg",
+    "biome": "tropical",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "harbour/port_crane": {
+    "file": "harbour/port_crane.svg",
+    "biome": "harbour",
+    "category": "prop",
+    "width": 60,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "harbour/containers": {
+    "file": "harbour/containers.svg",
+    "biome": "harbour",
+    "category": "prop",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#dc2626"
+    }
+  },
+  "harbour/cargo_ship": {
+    "file": "harbour/cargo_ship.svg",
+    "biome": "harbour",
+    "category": "boat",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      0.75
+    ],
+    "pivots": {},
+    "tints": {
+      "paint": "#374151"
+    }
+  },
+  "harbour/factory": {
+    "file": "harbour/factory.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 100,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#6b7280",
+      "roof": "#374151"
+    }
+  },
+  "harbour/warehouse": {
+    "file": "harbour/warehouse.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 120,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "wall": "#6b7280",
+      "roof": "#374151"
+    }
+  },
+  "harbour/cooling_tower": {
+    "file": "harbour/cooling_tower.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 60,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "harbour/silo": {
+    "file": "harbour/silo.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "harbour/pier": {
+    "file": "harbour/pier.svg",
+    "biome": "harbour",
+    "category": "prop",
+    "width": 100,
+    "height": 20,
+    "anchor": [
+      0.5,
+      0
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "harbour/boat": {
+    "file": "harbour/boat.svg",
+    "biome": "harbour",
+    "category": "boat",
+    "width": 60,
+    "height": 30,
+    "anchor": [
+      0.5,
+      0.75
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "harbour/bg_far": {
+    "file": "harbour/bg_far.svg",
+    "biome": "harbour",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "harbour/bg_mid": {
+    "file": "harbour/bg_mid.svg",
+    "biome": "harbour",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "harbour/bg_near": {
+    "file": "harbour/bg_near.svg",
+    "biome": "harbour",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "volcanic/lava_pool": {
+    "file": "volcanic/lava_pool.svg",
+    "biome": "volcanic",
+    "category": "terrain",
+    "width": 80,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "volcanic/vent": {
+    "file": "volcanic/vent.svg",
+    "biome": "volcanic",
+    "category": "terrain",
+    "width": 40,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "volcanic/basalt_columns": {
+    "file": "volcanic/basalt_columns.svg",
+    "biome": "volcanic",
+    "category": "terrain",
+    "width": 60,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "volcanic/lava_rock": {
+    "file": "volcanic/lava_rock.svg",
+    "biome": "volcanic",
+    "category": "rock",
+    "width": 40,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "volcanic/volcano": {
+    "file": "volcanic/volcano.svg",
+    "biome": "volcanic",
+    "category": "terrain",
+    "width": 100,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "volcanic/bg_far": {
+    "file": "volcanic/bg_far.svg",
+    "biome": "volcanic",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "volcanic/bg_mid": {
+    "file": "volcanic/bg_mid.svg",
+    "biome": "volcanic",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "volcanic/bg_near": {
+    "file": "volcanic/bg_near.svg",
+    "biome": "volcanic",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/walker_man_short_hair_trousers": {
+    "file": "common/walker_man_short_hair_trousers.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "skin": "#c28466",
+      "hair": "#374151",
+      "cloth-top": "#dc2626",
+      "cloth-bottom": "#374151",
+      "shoe": "#000000"
+    }
+  },
+  "common/wind_turbine": {
+    "file": "common/wind_turbine.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 130,
+    "height": 178,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "rotor": [
+        65,
+        62
+      ]
+    },
+    "tints": {}
+  },
+  "common/pillar_stone": {
+    "file": "common/pillar_stone.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/pillar_concrete": {
+    "file": "common/pillar_concrete.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/pillar_steel": {
+    "file": "common/pillar_steel.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/pillar_eroded": {
+    "file": "common/pillar_eroded.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/pillar_cable_stay": {
+    "file": "common/pillar_cable_stay.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/pillar_suspension": {
+    "file": "common/pillar_suspension.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/abutment": {
+    "file": "common/abutment.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/tunnel": {
+    "file": "common/tunnel.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 80,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/road_sign": {
+    "file": "common/road_sign.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 20,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/power_pylon": {
+    "file": "common/power_pylon.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {}
+  },
+  "common/pigeon": {
+    "file": "common/pigeon.svg",
+    "biome": "common",
+    "category": "fauna",
+    "width": 20,
+    "height": 20,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "wing": [
+        10,
+        10
+      ]
+    },
+    "tints": {}
+  },
+  "common/tree_summer": {
+    "file": "common/tree_summer.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a",
+      "trunk": "#92400e"
+    }
+  },
+  "common/tree_autumn": {
+    "file": "common/tree_autumn.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#d97706",
+      "trunk": "#92400e"
+    }
+  },
+  "common/tree_blossom": {
+    "file": "common/tree_blossom.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#fbbf24",
+      "trunk": "#92400e"
+    }
+  },
+  "common/tree_snow": {
+    "file": "common/tree_snow.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 40,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#e5e7eb",
+      "trunk": "#92400e"
+    }
+  },
+  "common/birch": {
+    "file": "common/birch.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 20,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#16a34a",
+      "trunk": "#f3f4f6"
+    }
+  },
+  "common/cypress": {
+    "file": "common/cypress.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 20,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {},
+    "tints": {
+      "foliage": "#059669",
+      "trunk": "#92400e"
+    }
+  }
+}
