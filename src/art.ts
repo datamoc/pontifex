@@ -1,3 +1,4 @@
+import { RESIDENT_FILES } from './population.ts';
 // Graphismes 100 % SVG (voir assets/) : mwgPage compile les fichiers dans la page, et leur
 // texte source passe par sanitizeSvg / splitSvgGroups (@datamoc/mw_games/assets) pour
 // fabriquer les textures — un véhicule est découpé en ses groupes <g> (roues, capot, moteur)
@@ -7,16 +8,21 @@ import { Assets } from 'pixi.js';
 import { Node2D, Sprite2D } from '@datamoc/mw_games/two-d';
 import { Random } from '@datamoc/mw_games/core';
 import type { LevelDef, VehicleDef } from './data.ts';
+import { BIOME_FILES, type Biome } from './biomes.ts';
 
 /** rasterisation des SVG à 2× leur taille d'origine : la caméra cadre chaque niveau, le trait reste net */
 const RES = 2;
+/** dossier des assets runtime dans assets/ (les SVG ont déménagé sous common/ avec les biomes) */
+const DIR = 'common';
+const MAX_DECOR_HEIGHT = 130;
+const MAX_DECOR_WIDTH = 140;
 /** véhicules : découpés en groupes à l'import, pour animer roues et capot */
-const VEHICLES = ['car.svg', 'jeep.svg', 'truck.svg'];
+const VEHICLES = ['car.svg', 'jeep.svg', 'truck.svg'].map((f) => `${DIR}/${f}`);
 /** décor et effets : chargés tels quels */
 const SCENERY = [
   'tree_round.svg', 'tree_fir.svg', 'bush.svg', 'rock1.svg', 'rock2.svg', 'rock3.svg',
   'cloud1.svg', 'cloud2.svg', 'explosion.svg', 'flame.svg',
-];
+].map((f) => `${DIR}/${f}`);
 
 const partAlias = (file: string, group: string): string => `${file}/${group}`;
 
@@ -54,7 +60,7 @@ const vehicleArtOf = (name: string): VehicleArt => {
 };
 
 export async function loadArt(): Promise<void> {
-  await load(['manifest.json', ...SCENERY], { resolution: RES });
+  await load(['manifest.json', ...SCENERY, ...BIOME_FILES, ...RESIDENT_FILES], { resolution: RES });
   // le texte des véhicules (et non leur texture) : ce sont ses groupes qu'on recompose
   await loadBinary(VEHICLES);
   art = get<Record<string, ArtDef>>('manifest.json');
@@ -126,13 +132,13 @@ export class Vehicle extends Node2D {
 
     const at = a.hood?.pivot ?? [a.width * 0.5, a.height * 0.5];
     this.flameScale = (a.height * 0.5) / 70; // flame.svg fait 70 px de haut
-    this.flame = new Sprite2D(texture('flame.svg'));
+    this.flame = new Sprite2D(texture(`${DIR}/flame.svg`));
     this.flame.anchor.set(0.5, 1);
     this.flame.position.set(at[0] + 3, at[1] - 1);
     this.flame.scale.set(this.flameScale);
     this.flame.visible = false;
     this.blastScale = (a.height * 1.5) / 140; // explosion.svg fait 140 px de côté
-    this.blast = new Sprite2D(texture('explosion.svg'));
+    this.blast = new Sprite2D(texture(`${DIR}/explosion.svg`));
     this.blast.anchor.set(0.5, 0.5);
     this.blast.position.set(at[0] + 6, at[1]);
     this.blast.scale.set(this.blastScale * 0.4);
@@ -184,27 +190,63 @@ const BUSHES = ['bush'];
 const ROCKS = ['rock1', 'rock2', 'rock3'];
 const CLOUDS = ['cloud1', 'cloud2'];
 
-/** Arbres, buissons et rochers posés sur les deux rives (placement déterministe par niveau). */
-export function buildDecor(level: LevelDef, node: Node2D): void {
-  node.removeChildren().forEach((c) => c.destroy());
+export interface DecorItem { name: string; x: number; y: number; scale: number; flip: boolean }
+
+/**
+ * Placement déterministe du décor sur les deux rives (sans rendu).
+ * `y` est la base de l'élément : plantée au niveau ou sous le haut de la chaussée
+ * (`deckY - 5`), jamais en l'air. L'approche immédiate du pont reste libre.
+ */
+export function decorLayout(level: LevelDef, biome?: Biome): DecorItem[] {
+  const ground = level.deckY - 5; // haut de la chaussée sur les rives
   const gen = new Random.Generator(level.id * 7919 + 13);
   const pick = <T>(a: readonly T[]): T => a[gen.int(a.length)];
-  const put = (name: string, x: number, y: number, scale: number, flip = false) => {
-    const sp = new Sprite2D(texture(`${name}.svg`));
-    sp.anchor.set(0.5, 1);
-    sp.position.set(x, y);
-    sp.scale.set(flip ? -scale : scale, scale);
+  const items: DecorItem[] = [];
+  const side = (from: number, to: number) => {
+    // Plusieurs tailles et espacements évitent un alignement uniforme du décor.
+    for (let x = from; x < to; x += 40 + gen.float() * 50) items.push({ name: pick(biome?.scenery ?? TREES), x, y: ground + 3, scale: 0.34 + gen.float() * 0.2, flip: gen.float() < 0.5 });
+    for (let x = from + 30; x < to; x += 55 + gen.float() * 60) items.push({ name: pick(biome?.scenery ?? BUSHES), x, y: ground + 3, scale: 0.5 + gen.float() * 0.3, flip: gen.float() < 0.5 });
+    for (let x = from + 50; x < to; x += 220 + gen.float() * 150) items.push({ name: pick(biome?.scenery ?? ROCKS), x, y: ground + 4, scale: 0.4 + gen.float() * 0.3, flip: false });
+  };
+  side(-650, level.x0 - 95);
+  side(level.x1 + 95, 1450);
+  return items;
+}
+
+/** Décor du biome posé sur les rives, à distance de la zone de construction. */
+export function buildDecor(level: LevelDef, node: Node2D, biome?: Biome): void {
+  node.removeChildren().forEach((c) => c.destroy());
+  for (const scenery of decorLayout(level, biome)) {
+    const file = `${biome?.id ?? DIR}/${scenery.name}.svg`;
+    const sp = new Sprite2D(texture(file));
+    const artwork = biome ? artOf(`${biome.id}/${scenery.name}`) : artOf(scenery.name);
+    const scale = biome ? scenery.scale * Math.min(1, MAX_DECOR_HEIGHT / artwork.height, MAX_DECOR_WIDTH / artwork.width) : scenery.scale;
+    sp.anchor.set(...artwork.anchor);
+    sp.position.set(scenery.x, scenery.y);
+    sp.scale.set(scenery.flip ? -scale : scale, scale);
     node.addChild(sp);
-  };
-  const side = (from: number, to: number, y: number) => {
-    // arrière-plan : arbres ; premier plan : buissons et rochers
-    for (let x = from; x < to; x += 40 + gen.float() * 50) put(pick(TREES), x, y - 7, 0.34 + gen.float() * 0.2, gen.float() < 0.5);
-    for (let x = from + 30; x < to; x += 55 + gen.float() * 60) put(pick(BUSHES), x, y - 4, 0.5 + gen.float() * 0.3, gen.float() < 0.5);
-    for (let x = from + 50; x < to; x += 220 + gen.float() * 150) put(pick(ROCKS), x, y - 3, 0.4 + gen.float() * 0.3);
-  };
-  // on laisse libre l'approche immédiate du pont (panneaux, véhicule)
-  side(-650, level.x0 - 95, level.deckY);
-  side(level.x1 + 95, 1450, level.deckY);
+  }
+}
+
+/** Fonds raccordables du biome, du relief lointain aux silhouettes proches. */
+export function buildLandscape(level: LevelDef, node: Node2D, biome: Biome): void {
+  node.removeChildren().forEach((child) => child.destroy());
+  const planes = [
+    { name: 'bg_far', offsetY: -30, alpha: 0.65 },
+    { name: 'bg_mid', offsetY: -10, alpha: 0.8 },
+    { name: 'bg_near', offsetY: 15, alpha: 1 },
+  ];
+  for (const plane of planes) {
+    const name = `${biome.id}/${plane.name}`;
+    const artwork = artOf(name);
+    for (let x = -artwork.width; x < 1500; x += artwork.width) {
+      const sprite = new Sprite2D(texture(`${name}.svg`));
+      sprite.anchor.set(0, 1);
+      sprite.position.set(x, level.deckY + plane.offsetY);
+      sprite.alpha = plane.alpha;
+      node.addChild(sprite);
+    }
+  }
 }
 
 export interface Clouds { update(dt: number): void }
@@ -213,7 +255,7 @@ export function buildClouds(node: Node2D, seed: number): Clouds {
   const gen = new Random.Generator(seed);
   const items: { sp: Sprite2D; v: number }[] = [];
   for (let i = 0; i < 9; i++) {
-    const sp = new Sprite2D(texture(`${CLOUDS[i % CLOUDS.length]}.svg`));
+    const sp = new Sprite2D(texture(`${DIR}/${CLOUDS[i % CLOUDS.length]}.svg`));
     const sc = 0.3 + gen.float() * 0.35;
     sp.scale.set(sc);
     sp.alpha = 0.55 + gen.float() * 0.4;

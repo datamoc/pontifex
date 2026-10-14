@@ -1,3 +1,5 @@
+import { buildPopulation, type Population } from './population.ts';
+import { BIOMES, randomBiome, type Biome } from './biomes.ts';
 import {
   Game, Scene2D, Button, Label, Bar, Window, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt,
 } from '@datamoc/mw_games/two-d';
@@ -13,12 +15,14 @@ import { LEVELS as BUILTIN_LEVELS } from './levels.ts';
 import { deriveLevel, isSolid, parseSpec, slug, type LevelSpec } from './level.ts';
 import { LevelEditor } from './editor-ui.ts';
 import { newSpec } from './editor.ts';
-import { ropeHit, splitBeam, prune, type RopeHit } from './structure.ts';
+import { ropeHit, splitBeam, prune, nearestNode, chainStart, type RopeHit } from './structure.ts';
 import { drawScene, type Layers } from './render.ts';
-import { buildClouds, buildDecor, makeVehicle, type CarState, type Clouds, type Vehicle } from './art.ts';
+import { buildClouds, buildDecor, buildLandscape, makeVehicle, type CarState, type Clouds, type Vehicle } from './art.ts';
 
 type Tool = MaterialId | 'delete';
 const SNAP_R = 14;
+/** aimantation au clic : le point d'accroche proche du curseur brut l'emporte, même hors case de grille */
+const MAGNET_R = 22;
 
 const clone = (s: Structure): Structure => JSON.parse(JSON.stringify(s));
 
@@ -38,6 +42,7 @@ export class PontifexScene extends Scene2D {
 
   // --- état de jeu
   private levelIdx = 0;
+  private biome: Biome = BIOMES[0];
   private level!: LevelDef;
   /** niveaux du jeu puis niveaux personnalisés */
   private levels: LevelDef[] = [...BUILTIN_LEVELS];
@@ -66,6 +71,7 @@ export class PontifexScene extends Scene2D {
   private world!: Container;
   private layers!: Layers;
   private clouds: Clouds | null = null;
+  private population: Population | null = null;
   private car: Vehicle | null = null;
   private carState: CarState | '' = '';
   private debris!: ParticleEmitter;
@@ -110,8 +116,8 @@ export class PontifexScene extends Scene2D {
     this.world = this.camera.world;
     this.stage.addChild(this.world);
     const L = (n: string) => { const s = new Shape2D(); s.label = n; return s; };
-    this.layers = { sky: L('sky'), clouds: new Node2D(), back: L('back'), decor: new Node2D(), grid: L('grid'), bridge: L('bridge'), car: new Node2D(), front: L('front'), fx: new Node2D() };
-    this.world.addChild(this.layers.sky, this.layers.clouds, this.layers.back, this.layers.decor, this.layers.grid, this.layers.bridge, this.layers.car, this.layers.front, this.layers.fx);
+    this.layers = { sky: L('sky'), clouds: new Node2D(), landscape: new Node2D(), back: L('back'), decor: new Node2D(), grid: L('grid'), bridge: L('bridge'), car: new Node2D(), front: L('front'), fx: new Node2D() };
+    this.world.addChild(this.layers.sky, this.layers.clouds, this.layers.landscape, this.layers.back, this.layers.decor, this.layers.grid, this.layers.bridge, this.layers.car, this.layers.front, this.layers.fx);
     this.clouds = buildClouds(this.layers.clouds, 4242);
 
     const mk = (tint: [number, number], g: number, life: [number, number], speed: [number, number]) => new ParticleEmitter({
@@ -172,18 +178,22 @@ export class PontifexScene extends Scene2D {
   /** Installe un niveau : décor, ancrages, véhicule, interface. */
   private applyLevel(level: LevelDef): void {
     this.level = level;
+    this.biome = randomBiome();
     this.sim = null;
     this.windows.closeAll();
     this.structure = { nodes: this.level.anchors.map((a) => ({ x: a.x, y: a.y, fixed: true })), beams: [] };
     this.history.clear();
     this.history.push(JSON.stringify(this.structure));
     this.drag = null;
+    this.chain = null;
     this.debris.clear(); this.spray.clear();
     if (this.tool !== 'delete' && !this.level.materials.includes(this.tool)) this.tool = this.level.materials[0];
     const v = this.level.vehicle;
-    this.lblHint.setText(`${this.level.hint}  ·  Véhicule : ${v.name}, ${(v.mass / 10).toFixed(1).replace('.', ',')} t`);
-    drawScene.static(this.layers, this.level, this.snapOn);
-    buildDecor(this.level, this.layers.decor);
+    this.lblHint.setText(`${this.level.hint}  ·  ${this.biome.name}  ·  Véhicule : ${v.name}, ${(v.mass / 10).toFixed(1).replace('.', ',')} t`);
+    drawScene.static(this.layers, this.level, this.snapOn, this.biome);
+    buildLandscape(this.level, this.layers.landscape, this.biome);
+    buildDecor(this.level, this.layers.decor, this.biome);
+    this.population = buildPopulation(this.level, this.biome, this.layers.decor);
     this.layers.car.removeChildren().forEach((c) => c.destroy());
     this.car = makeVehicle(this.level.vehicle);
     this.layers.car.addChild(this.car);
@@ -210,9 +220,40 @@ export class PontifexScene extends Scene2D {
     return { x: Math.round(p.x / GRID) * GRID, y: Math.round(p.y / GRID) * GRID };
   }
   private nodeAt(p: Pt, r = SNAP_R): number {
-    let best = -1, bd = r;
-    this.structure.nodes.forEach((n, i) => { const d = Math.hypot(n.x - p.x, n.y - p.y); if (d < bd) { bd = d; best = i; } });
-    return best;
+    return nearestNode(this.structure.nodes, p, r);
+  }
+  /** Point d'accroche sous le curseur : nœud aimanté (curseur brut d'abord), sinon case de grille. */
+  private magnetAt(raw: Pt): number {
+    const idx = this.nodeAt(raw, MAGNET_R);
+    return idx >= 0 ? idx : this.nodeAt(this.snap(raw));
+  }
+  /** Fin du dernier élément créé, si elle existe encore (annuler/effacer l'a peut-être retirée). */
+  private chain: Pt | null = null;
+  private chainNode(): number {
+    return this.chain ? this.nodeAt(this.chain, 6) : -1;
+  }
+  /** Nœud de chaînage utilisable depuis `raw`, ou -1 : il faut cliquer à portée du dernier point. */
+  private chainTarget(raw: Pt): number {
+    if (this.tool === 'delete' || !this.chain) return -1;
+    if (chainStart(this.chain, raw, MATERIALS[this.tool].maxLen) === null) return -1;
+    return this.chainNode();
+  }
+  private setTool(t: Tool): void {
+    this.tool = t;
+    this.chain = null; // la portée change : le chaînage ne suit pas
+    this.refreshHud();
+  }
+  /** Où la poutre atterrira : nœud aimanté sous le curseur, sinon point de grille (comme onUp). */
+  private previewTo(raw: Pt): Pt {
+    const idx = this.magnetAt(raw);
+    if (idx >= 0) { const n = this.structure.nodes[idx]; return { x: n.x, y: n.y }; }
+    return this.snap(raw);
+  }
+  /** Nœud survolé : aimant d'abord, puis point chaîné (anneau bleu = départ du prochain élément). */
+  private hoverAt(raw: Pt): number {
+    const idx = this.magnetAt(raw);
+    if (idx >= 0 || this.tool === 'delete') return idx;
+    return this.chainTarget(raw);
   }
   private solid(p: Pt): boolean { return isSolid(this.level, p); }
   private inWorld(p: Pt): boolean { return p.x >= 0 && p.x <= WORLD_W && p.y >= 20 && p.y <= this.level.waterY + 30; }
@@ -243,9 +284,14 @@ export class PontifexScene extends Scene2D {
     if (this.editing) { this.editor.pointer(this.snap(raw), e.button); return; }
     if (e.button === 2 || this.tool === 'delete') { this.deleteAt(raw); return; }
     const p = this.snap(raw);
-    const idx = this.nodeAt(p);
+    let idx = this.magnetAt(raw);
     // un câble fin peut s'accrocher n'importe où sur un câble porteur
     const rope = idx < 0 && this.tool === 'cable' ? ropeHit(this.structure, raw) : null;
+    if (idx < 0 && !rope) {
+      // chaînage : on repart de la fin du dernier élément, sauf clic au-delà de sa portée
+      idx = this.chainTarget(raw);
+      if (idx < 0) this.chain = null;
+    }
     const from = idx >= 0 ? { x: this.structure.nodes[idx].x, y: this.structure.nodes[idx].y } : rope ? rope.pos : p;
     if (idx < 0 && !rope && (this.solid(p) || !this.inWorld(p))) return;
     this.drag = { from, fromIdx: idx, fromRope: rope };
@@ -260,7 +306,7 @@ export class PontifexScene extends Scene2D {
     if (!d || this.sim) return;
     const raw = this.toWorld(e);
     const pEnd = this.snap(raw);
-    const endIdx = this.nodeAt(pEnd);
+    const endIdx = this.magnetAt(raw);
     const endRope = endIdx < 0 && this.tool === 'cable' ? ropeHit(this.structure, raw) : null;
     const to = endIdx >= 0 ? { x: this.structure.nodes[endIdx].x, y: this.structure.nodes[endIdx].y } : endRope ? endRope.pos : pEnd;
     const mat = MATERIALS[this.tool as MaterialId];
@@ -279,6 +325,7 @@ export class PontifexScene extends Scene2D {
     if (a < 0) a = d.fromRope ? splitBeam(this.structure, d.fromRope.beam, d.fromRope.pos) : this.addNode(d.from);
     if (b < 0) b = endRope ? splitBeam(this.structure, endRope.beam, endRope.pos) : this.addNode(to);
     this.structure.beams.push({ a, b, mat: mat.id });
+    this.chain = { x: to.x, y: to.y };
     this.sfx.onBuild();
     this.commit();
   }
@@ -524,8 +571,10 @@ export class PontifexScene extends Scene2D {
   private previewDraft(spec: LevelSpec): void {
     this.level = deriveLevel({ ...spec, id: 0, label: 'P' });
     this.structure = { nodes: this.level.anchors.map((a) => ({ x: a.x, y: a.y, fixed: true })), beams: [] };
-    drawScene.static(this.layers, this.level, this.snapOn);
-    buildDecor(this.level, this.layers.decor);
+    drawScene.static(this.layers, this.level, this.snapOn, this.biome);
+    buildLandscape(this.level, this.layers.landscape, this.biome);
+    buildDecor(this.level, this.layers.decor, this.biome);
+    this.population = buildPopulation(this.level, this.biome, this.layers.decor);
     this.layers.car.removeChildren().forEach((c) => c.destroy());
     this.car = makeVehicle(this.level.vehicle);
     this.layers.car.addChild(this.car);
@@ -567,16 +616,16 @@ export class PontifexScene extends Scene2D {
     this.btnLevel = this.button('', () => this.showLevels(), 190);
     for (const id of MATERIAL_ORDER) {
       const m = MATERIALS[id];
-      const b = this.button('', () => { this.tool = id; this.refreshHud(); }, 150);
+      const b = this.button('', () => this.setTool(id), 150);
       this.matButtons.set(id, b);
     }
-    this.btnDelete = this.button('Effacer', () => { this.tool = 'delete'; this.refreshHud(); }, 80);
+    this.btnDelete = this.button('Effacer', () => this.setTool('delete'), 80);
     this.matButtons.set('delete', this.btnDelete);
     this.btnUndo = this.button('Annuler', () => this.undo(), 80);
     this.btnRedo = this.button('Rétablir', () => this.redo(), 80);
     this.btnClear = this.button('Vider', () => this.clearAll(), 66);
     this.btnSpeed = this.button('1×', () => { this.speed = this.speed === 1 ? 2 : this.speed === 2 ? 0.5 : 1; this.refreshHud(); }, 52);
-    this.btnGrid = this.button('', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn); this.refreshHud(); }, 90);
+    this.btnGrid = this.button('', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); }, 90);
     this.btnSound = this.button('', () => { this.sfx.enabled = !this.sfx.enabled; this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
     this.btnBack = this.button('↩ Éditeur', () => this.backToEditor(), 110);
     this.btnTest = new Button({ width: 130, height: 40, text: '▶  TESTER', label: { size: 14, bold: true }, onClick: () => { this.sfx.onClick(); this.toggleSim(); } });
@@ -691,11 +740,11 @@ export class PontifexScene extends Scene2D {
     if (e.code === 'Space') { e.preventDefault(); if (this.windows.isEmpty) this.toggleSim(); }
     else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); }
     else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY') { e.preventDefault(); this.redo(); }
-    else if (e.code === 'Delete' || e.code === 'KeyX') { this.tool = 'delete'; this.refreshHud(); }
+    else if (e.code === 'Delete' || e.code === 'KeyX') this.setTool('delete');
     else if (e.code === 'KeyG') { this.btnGrid.onClick.dispatch(); }
     else if (e.code >= 'Digit1' && e.code <= 'Digit5') {
       const m = MATERIAL_ORDER[Number(e.code.slice(5)) - 1];
-      if (this.level.materials.includes(m)) { this.tool = m; this.refreshHud(); }
+      if (this.level.materials.includes(m)) this.setTool(m);
     }
   }
 
@@ -722,15 +771,16 @@ export class PontifexScene extends Scene2D {
     this.windows.update(dt);
     if (this.toastT > 0) this.toastT -= dt;
     this.overBudgetFlash = Math.max(0, this.overBudgetFlash - dt * 2);
-    const preview = !this.sim && this.drag ? { from: this.drag.from, to: this.snap(this.pointer) } : null;
+    const preview = !this.sim && this.drag ? { from: this.drag.from, to: this.previewTo(this.pointer) } : null;
     drawScene.dynamic(this.layers, {
       level: this.level, structure: this.structure, sim: this.sim, time: this.time, preview,
-      tool: this.tool, hoverNode: !this.sim && this.pointerIn ? this.nodeAt(this.snap(this.pointer)) : -1,
+      tool: this.tool, hoverNode: !this.sim && this.pointerIn ? this.hoverAt(this.pointer) : -1,
       pointer: this.pointerIn && !this.sim ? this.snap(this.pointer) : null, flash: this.overBudgetFlash,
-      ropePoint: !this.sim && this.pointerIn && this.tool === 'cable' && this.nodeAt(this.snap(this.pointer)) < 0 ? (ropeHit(this.structure, this.pointer)?.pos ?? null) : null,
+      ropePoint: !this.sim && this.pointerIn && this.tool === 'cable' && this.magnetAt(this.pointer) < 0 ? (ropeHit(this.structure, this.pointer)?.pos ?? null) : null,
     });
     this.updateCar(dt);
     this.clouds?.update(dt);
+    this.population?.update(dt);
     this.lblToast.visible = this.toastT > 0;
     if (this.toastT > 0) { this.lblToast.setText(this.toastMsg); this.lblToast.position.set((this.vw - this.lblToast.width) / 2, this.botY - 40); }
     if (this.editing) {

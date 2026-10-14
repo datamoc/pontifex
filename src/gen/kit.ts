@@ -76,7 +76,7 @@ export function add(biome: string, name: string, category: string, asset: {
 /**
  * Defines a shape for an asset.
  * @param options Shape options (e.g., tints, dimensions, anchor, pivots).
- * @param elements SVG elements as a string.
+ * @param build Optional builder callback receiving an untyped svg handle (legacy generator call shape).
  */
 export function shape(options: {
   tints?: Record<string, string>;
@@ -85,7 +85,10 @@ export function shape(options: {
   anchor?: [number, number];
   pivots?: Record<string, [number, number]>;
   elements?: string;
-}) {
+  tile?: unknown;
+  [extra: string]: unknown;
+}, build?: (svg: any) => void): any {
+  void build;
   return {
     ...options,
     width: options.width || 100,
@@ -116,41 +119,41 @@ export function writeManifest() {
 }
 
 /**
- * Placeholder for combining shapes.
+ * Placeholder for combining shapes (untyped legacy generator call shapes accepted).
  */
-export function unite(...shapes: any[]) {
+export function unite(...shapes: any[]): any {
   return {};
 }
 
 /**
  * Placeholder for subtracting shapes.
  */
-export function subtract(shapeA: any, shapeB: any) {
+export function subtract(...args: any[]): any {
   return {};
 }
 
 /**
  * Placeholder for creating a circle.
  */
-export function circleD(diameter: number) {
+export function circleD(...args: any[]): any {
   return {};
 }
 
 /**
  * Placeholder for creating a symmetric shape.
  */
-export function symmetricD(points: [number, number][]) {
+export function symmetricD(...args: any[]): any {
   return {};
 }
 
 /**
  * Placeholder for rotating a shape.
  */
-export function turn(shape: any, degrees: number) {
+export function turn(...args: any[]): any {
   return {};
 }
 
 /**
  * Placeholder for adding a glow effect.
  */
-export function glow() {}
+export function glow(...args: any[]): void {}

@@ -11,8 +11,16 @@ GitHub Pages publie automatiquement `dist/standalone.html` comme `index.html` à
 
 **Jouer hors ligne** : ouvrir `pontifex.html` (= `dist/standalone.html`). Glisser d'un point à un autre pour poser une poutre ;
 points d'ancrage orange fixes ; clic droit ou outil « Effacer » pour retirer ; **Tester** (ou Espace) lance la voiture.
+Le curseur s'aimante au point d'accroche le plus proche, et la poutre suivante repart de la fin de la précédente (cliquer plus loin que la portée du matériau recommence ailleurs).
 Raccourcis : `1`–`5` matériaux, `X` effacer, `G` grille, `Ctrl+Z` / `Ctrl+Y` annuler/rétablir, `Échap` ferme une fenêtre.
 Étoiles : ★ traverser · ★ garder ≥ 20 % du budget · ★ contrainte max < 75 %.
+
+## Biomes et décor vivant
+
+Chaque scénario tire au hasard une ambiance parmi neuf biomes. Le ciel, le terrain, les objets et
+les trois plans de paysage suivent ce biome. L'ambiance reste stable pendant les essais du pont.
+Six passants et quatre animaux adaptés au biome se promènent sur les rives. Chaque passant a
+20 % de chances d'être un cycliste, avec une animation de pédalage et une vitesse plus élevée.
 
 ## Progression et matériaux
 

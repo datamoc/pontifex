@@ -20,6 +20,19 @@ export function ropeHit(s: Structure, p: Pt, tol = 10, nodeTol = 14): RopeHit | 
   return best;
 }
 
+/** Index du nœud le plus proche de `p` (à `r` px près, strictement), ou -1. */
+export function nearestNode(nodes: readonly { x: number; y: number }[], p: Pt, r: number): number {
+  let best = -1, bd = r;
+  nodes.forEach((n, i) => { const d = Math.hypot(n.x - p.x, n.y - p.y); if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+
+/** Chaînage : un clic à portée (`maxLen`) du dernier point repart de celui-ci, sinon il recommence ailleurs. */
+export function chainStart(chain: Pt | null, click: Pt, maxLen: number): Pt | null {
+  if (!chain) return null;
+  return Math.hypot(click.x - chain.x, click.y - chain.y) <= maxLen ? chain : null;
+}
+
 /** Coupe une poutre en deux au point `pos` (nouveau nœud libre) ; renvoie l'index du nœud. */
 export function splitBeam(s: Structure, beam: number, pos: Pt): number {
   const b = s.beams[beam];

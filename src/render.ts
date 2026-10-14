@@ -1,8 +1,9 @@
+import { BIOMES, type Biome } from './biomes.ts';
 import { Shape2D, Label, Gradient, type Node2D } from '@datamoc/mw_games/two-d';
 import { GRID, MATERIALS, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt } from './data.ts';
 import type { BridgeSim, Structure } from './physics.ts';
 
-export interface Layers { sky: Shape2D; clouds: Node2D; back: Shape2D; decor: Node2D; grid: Shape2D; bridge: Shape2D; car: Node2D; front: Shape2D; fx: Node2D }
+export interface Layers { sky: Shape2D; clouds: Node2D; landscape: Node2D; back: Shape2D; decor: Node2D; grid: Shape2D; bridge: Shape2D; car: Node2D; front: Shape2D; fx: Node2D }
 
 export interface DynamicArgs {
   level: LevelDef;
@@ -30,19 +31,16 @@ let lenLabel: Label | null = null;
 
 export const drawScene = {
   /** Décor fixe du niveau : ciel, montagnes, falaises, grille. Redessiné au changement de niveau. */
-  static(layers: Layers, lv: LevelDef, grid: boolean): void {
+  static(layers: Layers, lv: LevelDef, grid: boolean, biome: Biome = BIOMES[0]): void {
     const sk = layers.sky.clear();
     const sky = new Gradient({
       type: 'linear', start: { x: 0, y: 0 }, end: { x: 0, y: 1 },
-      colorStops: [{ offset: 0, color: '#2f7fc4' }, { offset: 0.65, color: '#8cc8ec' }, { offset: 1, color: '#d6eef8' }],
+      colorStops: [{ offset: 0, color: biome.sky[0] }, { offset: 0.65, color: biome.sky[1] }, { offset: 1, color: biome.sky[2] }],
     });
     sk.rect(X0, -300, X1 - X0, Y1 + 300).fill(sky);
     const b = layers.back.clear();
-    // montagnes lointaines
-    b.poly([X0, 420, -300, 250, -150, 330, 0, 200, 140, 300, 300, 170, 460, 290, 600, 190, 760, 300, 900, 220, 1100, 330, X1, 260, X1, 600, X0, 600]).fill({ color: 0x7c9fc4, alpha: 0.75 });
-    b.poly([X0, 480, -200, 360, 20, 420, 200, 330, 380, 430, 560, 340, 760, 440, 960, 360, X1, 440, X1, 600, X0, 600]).fill({ color: 0x5b82ab, alpha: 0.6 });
     // falaises
-    const rock = 0x6b5a48, edge = 0x2f261d;
+    const rock = biome.rock, edge = 0x2f261d;
     const cliff = (pts: number[]) => { b.poly(pts).fill(rock).stroke({ width: 3, color: edge }); };
     cliff([X0, lv.deckY, lv.x0, lv.deckY, lv.x0, Y1, X0, Y1]);
     cliff([lv.x1, lv.deckY, X1, lv.deckY, X1, Y1, lv.x1, Y1]);
@@ -52,7 +50,7 @@ export const drawScene = {
       b.moveTo(X0, y).lineTo(lv.x0, y).moveTo(lv.x1, y).lineTo(X1, y).stroke({ width: 1, color: 0x4a3b2e, alpha: 0.6 });
     }
     // herbe + route
-    b.rect(X0, lv.deckY, lv.x0 - X0, 5).fill(0x4d7c0f).rect(lv.x1, lv.deckY, X1 - lv.x1, 5).fill(0x4d7c0f);
+    b.rect(X0, lv.deckY, lv.x0 - X0, 5).fill(biome.ground).rect(lv.x1, lv.deckY, X1 - lv.x1, 5).fill(biome.ground);
     b.rect(X0, lv.deckY - 5, lv.x0 - X0, 5).fill(0x334155).rect(lv.x1, lv.deckY - 5, X1 - lv.x1, 5).fill(0x334155);
     for (let x = X0; x < lv.x0 - 20; x += 40) b.rect(x, lv.deckY - 3, 18, 1.5).fill(0xe2e8f0);
     for (let x = lv.x1 + 10; x < X1; x += 40) b.rect(x, lv.deckY - 3, 18, 1.5).fill(0xe2e8f0);

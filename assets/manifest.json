@@ -5649,5 +5649,212 @@
       1
     ],
     "tile": true
+  },
+  "car": {
+    "file": "common/car.svg",
+    "width": 100,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.9791666666666666
+    ],
+    "wheelbase": 56,
+    "pivot": [
+      54,
+      38
+    ],
+    "wheelRadius": 9,
+    "foot": 1,
+    "wheels": [
+      {
+        "group": "wheel-rear",
+        "at": [
+          26,
+          38
+        ]
+      },
+      {
+        "group": "wheel-front",
+        "at": [
+          82,
+          38
+        ]
+      }
+    ],
+    "hood": {
+      "pivot": [
+        78,
+        20
+      ],
+      "openAngle": -40
+    }
+  },
+  "jeep": {
+    "file": "common/jeep.svg",
+    "width": 110,
+    "height": 56,
+    "anchor": [
+      0.5,
+      0.9821428571428571
+    ],
+    "wheelbase": 62,
+    "pivot": [
+      55,
+      44
+    ],
+    "wheelRadius": 11,
+    "foot": 1,
+    "wheels": [
+      {
+        "group": "wheel-rear",
+        "at": [
+          24,
+          44
+        ]
+      },
+      {
+        "group": "wheel-front",
+        "at": [
+          86,
+          44
+        ]
+      }
+    ],
+    "hood": {
+      "pivot": [
+        80,
+        22
+      ],
+      "openAngle": -40
+    }
+  },
+  "truck": {
+    "file": "common/truck.svg",
+    "width": 150,
+    "height": 64,
+    "anchor": [
+      0.5,
+      0.984375
+    ],
+    "wheelbase": 92,
+    "pivot": [
+      76,
+      52
+    ],
+    "wheelRadius": 11,
+    "foot": 1,
+    "wheels": [
+      {
+        "group": "wheel-rear",
+        "at": [
+          30,
+          52
+        ]
+      },
+      {
+        "group": "wheel-mid",
+        "at": [
+          54,
+          52
+        ]
+      },
+      {
+        "group": "wheel-front",
+        "at": [
+          122,
+          52
+        ]
+      }
+    ]
+  },
+  "cloud1": {
+    "file": "common/cloud1.svg",
+    "width": 160,
+    "height": 70,
+    "anchor": [
+      0,
+      0
+    ]
+  },
+  "cloud2": {
+    "file": "common/cloud2.svg",
+    "width": 160,
+    "height": 70,
+    "anchor": [
+      0,
+      0
+    ]
+  },
+  "tree_round": {
+    "file": "common/tree_round.svg",
+    "width": 100,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "tree_fir": {
+    "file": "common/tree_fir.svg",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "bush": {
+    "file": "common/bush.svg",
+    "width": 70,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "rock1": {
+    "file": "common/rock1.svg",
+    "width": 90,
+    "height": 56,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "rock2": {
+    "file": "common/rock2.svg",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "rock3": {
+    "file": "common/rock3.svg",
+    "width": 110,
+    "height": 38,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "explosion": {
+    "file": "common/explosion.svg",
+    "width": 140,
+    "height": 140,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "flame": {
+    "file": "common/flame.svg",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ]
   }
 }
