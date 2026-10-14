@@ -63,8 +63,8 @@ export const WALK_CLIP: Skeleton.Clip = {
       rotations: {
         'leg-near': swing * 24,
         'leg-far': -swing * 24,
-        'shin-near': -Math.max(0, Math.sin(phase)) * 42,
-        'shin-far': -Math.max(0, -Math.sin(phase)) * 42,
+        'shin-near': Math.max(0, Math.sin(phase)) * 42,
+        'shin-far': Math.max(0, -Math.sin(phase)) * 42,
         'arm-near': -swing * 18,
         'arm-far': swing * 18,
         'forearm-near': -10 - Math.max(0, -swing) * 8,
