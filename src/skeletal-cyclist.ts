@@ -1,11 +1,10 @@
-import { get, getBinary, loadBinary, sanitizeSvg, svgDataUri, texture } from '@datamoc/mw_games/assets';
-import { Assets } from 'pixi.js';
-import { Node2D } from '@datamoc/mw_games/two-d';
-import { SkeletalSprite } from '@datamoc/mw_games/two-d/render';
+import { get, getBinary, loadBinary, sanitizeSvg } from '@datamoc/mwg/assets';
+import { Node2D } from '@datamoc/mwg/two-d';
+import { SkeletalSprite, loadSvgSkeleton } from '@datamoc/mwg/two-d/render';
 import { CYCLIST, CYCLIST_PARTS, CYCLIST_WHEEL_RADIUS, createCyclistSkeleton, cyclistPose, cyclistRestAngles, type CyclistArt } from './cyclist-rig.ts';
 import type { AnimatedResident } from './resident-animation.ts';
 
-const partAlias = (part: string): string => `${CYCLIST}/skeletal-${part}`;
+let textures: Awaited<ReturnType<typeof loadSvgSkeleton>>['textures'];
 
 export async function loadCyclistSkeleton(): Promise<void> {
   await loadBinary([`${CYCLIST}.svg`]);
@@ -13,38 +12,20 @@ export async function loadCyclistSkeleton(): Promise<void> {
   const document = new DOMParser().parseFromString(sanitizeSvg(new TextDecoder().decode(getBinary(`${CYCLIST}.svg`))), 'image/svg+xml');
   const root = document.documentElement;
   const rest = cyclistRestAngles(art);
-  const aliases: string[] = [];
-  for (const part of CYCLIST_PARTS) {
-    let drawing: Element;
-    if (part === 'body') {
-      drawing = document.createElementNS(root.namespaceURI, 'g');
-      for (const child of root.children) drawing.appendChild(child.cloneNode(true));
-      for (const member of drawing.querySelectorAll('g[id]')) {
-        if (CYCLIST_PARTS.includes(member.id)) member.remove();
-      }
-    } else {
-      const group = root.querySelector(`[id="${part}"]`);
-      if (!group) throw new Error(`${CYCLIST} : groupe ${part} manquant`);
-      drawing = group.cloneNode(true) as Element;
-      for (const member of drawing.querySelectorAll('g[id]')) {
-        if (CYCLIST_PARTS.includes(member.id)) member.remove();
-      }
-    }
-    const [x, y] = part === 'body' ? [0, 0] : art.pivots[part];
-    const isolated = root.cloneNode(false) as Element;
-    const radius = art.height;
-    isolated.setAttribute('viewBox', `${-radius} ${-radius} ${radius * 2} ${radius * 2}`);
-    isolated.setAttribute('width', String(radius * 2));
-    isolated.setAttribute('height', String(radius * 2));
-    const local = document.createElementNS(root.namespaceURI, 'g');
-    local.setAttribute('transform', `rotate(${-rest[part]}) translate(${-x} ${-y})`);
-    local.appendChild(drawing);
-    isolated.appendChild(local);
-    const alias = partAlias(part);
-    Assets.add({ alias, src: svgDataUri(new XMLSerializer().serializeToString(isolated)), format: 'svg', data: { resolution: 2 } });
-    aliases.push(alias);
-  }
-  await Assets.load(aliases);
+  // Le corps rassemble les éléments fixes ; MWG retire les descendants articulés.
+  const body = document.createElementNS(root.namespaceURI, 'g');
+  body.setAttribute('id', 'body');
+  for (const child of [...root.children]) body.appendChild(child);
+  root.appendChild(body);
+  const loaded = await loadSvgSkeleton(new XMLSerializer().serializeToString(root), {
+    skeleton: createCyclistSkeleton(art), resolution: 2,
+    bindings: CYCLIST_PARTS.map((bone) => {
+      const [x, y] = bone === 'body' ? [0, 0] : art.pivots[bone];
+      return { bone, pivot: { x, y }, rotation: rest[bone] };
+    }),
+  });
+  textures = loaded.textures;
+  loaded.sprite.destroy({ children: true });
 }
 
 export function makeSkeletalCyclist(): AnimatedResident {
@@ -52,7 +33,7 @@ export function makeSkeletalCyclist(): AnimatedResident {
   const rig = new SkeletalSprite(createCyclistSkeleton(art));
   rig.label = 'skeletal-cyclist';
   for (const part of CYCLIST_PARTS) {
-    const sprite = rig.bind(part, texture(partAlias(part)));
+    const sprite = rig.bind(part, textures[part]);
     sprite.anchor.set(0.5);
     sprite.label = part;
   }

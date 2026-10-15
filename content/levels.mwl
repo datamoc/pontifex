@@ -4,7 +4,7 @@
     "id": 1,
     "label": "1",
     "name": _("Premiers pas"),
-    "hint": _("Relie les deux points orange avec une poutre de chaussée : glisse de l’un à l’autre."),
+    "hint": _("Relie les deux points orange : touche le départ, puis l’arrivée, ou glisse de l’un à l’autre."),
     "budget": 150,
     "car": "citadine",
     "x0": 340,

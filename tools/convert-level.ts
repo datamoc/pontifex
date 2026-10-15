@@ -1,7 +1,7 @@
 // Convert an exported player level into Pontifex MWL content.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { compile } from '@datamoc/mw_games/mwl';
+import { compile } from '@datamoc/mwg/mwl';
 import { BUILTIN_SPECS } from '../src/levels.ts';
 import { parseSpec } from '../src/level.ts';
 import { schemas } from './mwl-schema.ts';

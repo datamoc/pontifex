@@ -2,6 +2,32 @@
 
 Format : besoin → ce que MWG offre → contournement → suggestion.
 
+## Suivi après mise à jour vers 0.39.1 (15 octobre 2026)
+
+- **Nom court adopté** : dépendance directe et imports migrés vers `@datamoc/mwg` 0.39.1.
+  L’ancien paquet n’est plus une dépendance directe ; l’alias le charge en version 0.39.1.
+- **Pièces SVG (30)** : les trois véhicules utilisent `loadSvgParts`, avec cache à résolution 2×
+  et ordre des groupes conservé. Le code d’enregistrement Pixi correspondant a été supprimé.
+- **Personnages** : `loadSvgSkeleton` remplace l’isolation, le recentrage et la normalisation
+  des membres des piétons et du cycliste. Les adaptations des dessins (cuisse dégroupée,
+  corps fixe du vélo) et les pivots du manifeste restent propres au jeu. Les textures sont
+  partagées entre instances ; les sprites temporaires de chargement sont détruits.
+- **Articulations** : les pieds du cycliste suivent les pédales via `solveTwoBoneIK` ;
+  les tests existants vérifient toujours un tour complet.
+- **Ailes** : `DeformableSprite.dragVertices` remplace les écritures dans les buffers Pixi.
+  Les positions cibles sont réutilisées et chaque aile effectue un seul envoi GPU par mise à jour.
+  L’amplitude de 20 unités, les attaches fixes et les UV sont conservés.
+- **Filtrage des assets (32)** : `assetFiles` exclut `garbage/` et les anciens cycles
+  de marche/vélo directement depuis `assets/`, sans copie intermédiaire. Le manifeste source
+  reste intact, y compris ses métadonnées historiques inutilisées.
+- **Poids et doublons (28)** : `npm run assets:report` après le build produit
+  `e2e/out/assets-report.json` avec les poids brut/gzip/brotli et les doublons des seuls
+  assets sélectionnés. Le rapport reste hors du répertoire distribué.
+
+Les effets de tissu, ressort, brume et néon sont disponibles mais ne remplacent aucun
+besoin actuel du jeu. La composition MWL de l’interface proposée au point 33 reste à migrer ;
+ce changement concerne les API d’assets, d’animation et de build de la version 0.39.
+
 ## Suivi après mise à jour vers 0.37.0 (14 octobre 2026)
 
 Les constats ci-dessous restent l'historique de la version 0.36.0. La version 0.37.0 répond à plusieurs demandes :

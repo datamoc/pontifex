@@ -2,9 +2,9 @@ import { buildPopulation, type Population } from './population.ts';
 import { BIOMES, randomBiome, type Biome } from './biomes.ts';
 import {
   Game, Scene2D, Button, Label, Bar, Window, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt,
-} from '@datamoc/mw_games/two-d';
-import { Camera } from '@datamoc/mw_games/two-d/render';
-import { Settings, UndoHistory, Input, FixedStepper } from '@datamoc/mw_games/core';
+} from '@datamoc/mwg/two-d';
+import { Camera } from '@datamoc/mwg/two-d/render';
+import { Settings, UndoHistory, Input, FixedStepper } from '@datamoc/mwg/core';
 import { Texture, FederatedPointerEvent, Rectangle, type Container } from 'pixi.js';
 import {
   GRID, MATERIALS, MATERIAL_ORDER, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
@@ -35,6 +35,8 @@ function distToSegment(p: Pt, v: Pt, w: Pt): number {
 
 interface Progress { stars: Record<string, number> }
 
+interface BuildStart { from: Pt; fromIdx: number; fromRope: RopeHit | null }
+
 export class PontifexScene extends Scene2D {
   private settings = new Settings({ namespace: 'pontifex' });
   private sfx = new Sfx();
@@ -62,7 +64,16 @@ export class PontifexScene extends Scene2D {
   private overBudgetFlash = 0;
 
   // --- interaction
-  private drag: { from: Pt; fromIdx: number; fromRope: RopeHit | null } | null = null;
+  private drag: BuildStart | null = null;
+  private pendingStart: BuildStart | null = null;
+  private pressAt: Pt | null = null;
+  private activePointer: number | null = null;
+  private touchAction: { point: Pt; button: number } | null = null;
+  private touches = new Map<number, Pt>();
+  private pinching = false;
+  private pinch: { distance: number; zoom: number; anchor: Pt } | null = null;
+  private fitZoom = 1;
+  private touchHandler = (event: PointerEvent) => this.handleTouch(event);
   private pointer: Pt = { x: 0, y: 0 };
   private pointerIn = false;
 
@@ -99,11 +110,14 @@ export class PontifexScene extends Scene2D {
   private btnSpeed!: Button;
   private btnGrid!: Button;
   private btnSound!: Button;
+  private btnFullscreen!: Button;
+  private fullscreenIcon = new Shape2D();
   private btnTest!: Button;
   private btnBack!: Button;
   private vw = 0;
   private vh = 0;
   private keyHandler = (e: KeyboardEvent) => this.onKey(e);
+  private fullscreenHandler = () => this.refreshHud();
   private actionHandler = (a: string) => { if (!this.windows.isEmpty) return this.windows.handleAction(a); };
 
   create(): void {
@@ -133,8 +147,15 @@ export class PontifexScene extends Scene2D {
     this.world.on('pointerdown', (e: FederatedPointerEvent) => this.onDown(e));
     this.world.on('pointermove', (e: FederatedPointerEvent) => this.onMove(e));
     this.world.on('pointerup', (e: FederatedPointerEvent) => this.onUp(e));
-    this.world.on('pointerupoutside', () => { this.drag = null; });
+    this.world.on('pointerupoutside', () => this.cancelBuild());
+    this.world.on('pointercancel', () => this.cancelBuild());
     this.world.on('pointerleave', () => { this.pointerIn = false; });
+
+    const canvas = Game.current.app.canvas;
+    canvas.style.touchAction = 'none';
+    for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {
+      canvas.addEventListener(type, this.touchHandler as EventListener, { capture: true, passive: false });
+    }
 
     this.buildHud();
     this.editor = new LevelEditor(this.editorHost());
@@ -143,6 +164,7 @@ export class PontifexScene extends Scene2D {
     // clic droit = effacer : pas de menu contextuel du navigateur par-dessus le jeu
     Game.current.app.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     window.addEventListener('keydown', this.keyHandler);
+    window.addEventListener('fullscreenchange', this.fullscreenHandler);
     Input.onAction.add(this.actionHandler);
     window.addEventListener('dragover', (e) => e.preventDefault());
     window.addEventListener('drop', (e) => { e.preventDefault(); void e.dataTransfer?.files[0]?.text().then((t) => this.importText(t)); });
@@ -152,7 +174,13 @@ export class PontifexScene extends Scene2D {
   }
 
   override teardown(): void {
+    for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {
+      Game.current.app.canvas.removeEventListener(type, this.touchHandler as EventListener, true);
+    }
+    this.touches.clear();
+    this.cancelBuild();
     window.removeEventListener('keydown', this.keyHandler);
+    window.removeEventListener('fullscreenchange', this.fullscreenHandler);
     Input.onAction.remove(this.actionHandler);
     super.teardown();
   }
@@ -184,7 +212,7 @@ export class PontifexScene extends Scene2D {
     this.structure = { nodes: this.level.anchors.map((a) => ({ x: a.x, y: a.y, fixed: true })), beams: [] };
     this.history.clear();
     this.history.push(JSON.stringify(this.structure));
-    this.drag = null;
+    this.cancelBuild();
     this.chain = null;
     this.debris.clear(); this.spray.clear();
     if (this.tool !== 'delete' && !this.level.materials.includes(this.tool)) this.tool = this.level.materials[0];
@@ -206,9 +234,10 @@ export class PontifexScene extends Scene2D {
 
   /** Quels éléments d'interface sont visibles : jeu, essai depuis l'éditeur, ou éditeur. */
   private updateVisibility(): void {
+    this.cancelBuild();
     const play = !this.editing;
     for (const [t, b] of this.matButtons) b.visible = play && (t === 'delete' || this.level.materials.includes(t));
-    for (const b of [this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest]) b.visible = play;
+    for (const b of [this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnFullscreen, this.btnTest]) b.visible = play;
     for (const o of [this.lblBudget, this.barBudget, this.lblStress, this.barStress]) o.visible = play;
     this.btnBack.visible = play && this.testingSpec !== null;
     for (const it of this.editor?.items ?? []) it.visible = this.editing;
@@ -240,6 +269,7 @@ export class PontifexScene extends Scene2D {
     return this.chainNode();
   }
   private setTool(t: Tool): void {
+    this.cancelBuild();
     this.tool = t;
     this.chain = null; // la portée change : le chaînage ne suit pas
     this.refreshHud();
@@ -269,6 +299,8 @@ export class PontifexScene extends Scene2D {
   private prune(): void { this.structure = prune(this.structure); }
   private restore(json: string | null): void {
     if (json === null) return;
+    this.cancelBuild();
+    this.chain = null;
     this.structure = JSON.parse(json);
     this.sfx.onDelete();
     this.refreshHud();
@@ -278,12 +310,78 @@ export class PontifexScene extends Scene2D {
     return { x: p.x, y: p.y };
   }
 
+  private cancelBuild(): void {
+    this.drag = null;
+    this.pendingStart = null;
+    this.pressAt = null;
+    this.activePointer = null;
+    this.touchAction = null;
+  }
+
+  /** Le pincement prend la main avant Pixi et ne produit aucune action de construction. */
+  private handleTouch(event: PointerEvent): void {
+    if (event.pointerType !== 'touch') return;
+    const canvas = Game.current.app.canvas;
+    const bounds = canvas.getBoundingClientRect();
+    const point = {
+      x: (event.clientX - bounds.left) * this.vw / bounds.width,
+      y: (event.clientY - bounds.top) * this.vh / bounds.height,
+    };
+    if (event.type === 'pointerdown') {
+      if (!this.windows.isEmpty || point.y < this.topH || point.y >= this.botY) return;
+      this.touches.set(event.pointerId, point);
+      canvas.setPointerCapture(event.pointerId);
+      if (this.touches.size === 2) {
+        this.cancelBuild();
+        this.pinching = true;
+        const [a, b] = [...this.touches.values()];
+        this.pinch = {
+          distance: Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)),
+          zoom: this.camera.zoom,
+          anchor: this.camera.toWorld((a.x + b.x) / 2, (a.y + b.y) / 2),
+        };
+      }
+    } else if (!this.touches.has(event.pointerId)) return;
+    else if (event.type === 'pointermove') {
+      this.touches.set(event.pointerId, point);
+      if (this.pinch && this.touches.size === 2 && this.windows.isEmpty) {
+        const [a, b] = [...this.touches.values()];
+        this.camera.zoom = Math.max(this.fitZoom * 0.5, Math.min(this.fitZoom * 4,
+          this.pinch.zoom * Math.hypot(b.x - a.x, b.y - a.y) / this.pinch.distance));
+        const underFingers = this.camera.toWorld((a.x + b.x) / 2, (a.y + b.y) / 2);
+        this.camera.snapTo(this.camera.x + this.pinch.anchor.x - underFingers.x,
+          this.camera.y + this.pinch.anchor.y - underFingers.y);
+        this.camera.update(0);
+      }
+    }
+    const suppress = this.pinching || event.type === 'pointercancel';
+    if (event.type === 'pointerup' || event.type === 'pointercancel') {
+      this.touches.delete(event.pointerId);
+      if (this.touches.size < 2) this.pinch = null;
+      if (this.touches.size === 0) this.pinching = false;
+      if (suppress) this.cancelBuild();
+    }
+    if (suppress) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }
+
   private onDown(e: FederatedPointerEvent): void {
-    if (this.sim || !this.windows.isEmpty) return;
+    if (this.sim || !this.windows.isEmpty || this.pinching) return;
     const raw = this.toWorld(e);
     this.pointer = raw;
-    if (this.editing) { this.editor.pointer(this.snap(raw), e.button); return; }
-    if (e.button === 2 || this.tool === 'delete') { this.deleteAt(raw); return; }
+    this.activePointer = e.pointerId;
+    this.pressAt = { x: e.global.x, y: e.global.y };
+    if (this.editing || e.button === 2 || this.tool === 'delete') {
+      this.pendingStart = null;
+      this.drag = null;
+      if (e.pointerType === 'touch') this.touchAction = { point: raw, button: e.button };
+      else if (this.editing) this.editor.pointer(this.snap(raw), e.button);
+      else this.deleteAt(raw);
+      return;
+    }
+    if (this.pendingStart) { this.drag = this.pendingStart; return; }
     const p = this.snap(raw);
     let idx = this.magnetAt(raw);
     // un câble fin peut s'accrocher n'importe où sur un câble porteur
@@ -302,17 +400,34 @@ export class PontifexScene extends Scene2D {
     this.pointerIn = true;
   }
   private onUp(e: FederatedPointerEvent): void {
+    if (e.pointerId !== this.activePointer) return;
+    const press = this.pressAt;
     const d = this.drag;
     this.drag = null;
-    if (!d || this.sim) return;
+    this.activePointer = null;
+    this.pressAt = null;
+    if (this.sim || !this.windows.isEmpty || this.pinching) { this.cancelBuild(); return; }
     const raw = this.toWorld(e);
+    this.pointer = raw;
+    const tapped = !!press && Math.hypot(e.global.x - press.x, e.global.y - press.y) < 8;
+    if (this.touchAction) {
+      const action = this.touchAction;
+      this.touchAction = null;
+      if (tapped) {
+        if (this.editing) this.editor.pointer(this.snap(action.point), action.button);
+        else this.deleteAt(action.point);
+      }
+      return;
+    }
+    if (!d) return;
+    if (tapped && !this.pendingStart) { this.pendingStart = d; return; }
     const pEnd = this.snap(raw);
     const endIdx = this.magnetAt(raw);
     const endRope = endIdx < 0 && this.tool === 'cable' ? ropeHit(this.structure, raw) : null;
     const to = endIdx >= 0 ? { x: this.structure.nodes[endIdx].x, y: this.structure.nodes[endIdx].y } : endRope ? endRope.pos : pEnd;
     const mat = MATERIALS[this.tool as MaterialId];
     const len = Math.hypot(to.x - d.from.x, to.y - d.from.y);
-    if (len < 10) return;
+    if (len < 10) { this.pendingStart = null; return; }
     if (len > mat.maxLen) { this.reject('Trop long pour ce matériau'); return; }
     if (endIdx < 0 && !endRope && (this.solid(to) || !this.inWorld(to))) return;
     if (d.fromRope && endRope) { this.reject('Une suspente relie le câble porteur au tablier'); return; }
@@ -325,6 +440,7 @@ export class PontifexScene extends Scene2D {
     if (a >= 0 && b >= 0 && this.beamExists(a, b)) return;
     if (a < 0) a = d.fromRope ? splitBeam(this.structure, d.fromRope.beam, d.fromRope.pos) : this.addNode(d.from);
     if (b < 0) b = endRope ? splitBeam(this.structure, endRope.beam, endRope.pos) : this.addNode(to);
+    this.pendingStart = null;
     this.structure.beams.push({ a, b, mat: mat.id });
     this.chain = { x: to.x, y: to.y };
     this.sfx.onBuild();
@@ -354,13 +470,22 @@ export class PontifexScene extends Scene2D {
   private toastMsg = '';
   private toastT = 0;
 
+  /** Plein écran : l’icône change selon l’état (⤢ entrer, ⤡ sortir). */
+  private toggleFullscreen(): void {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    else document.documentElement.requestFullscreen().catch(() => {
+      this.toastMsg = 'Plein écran indisponible';
+      this.toastT = 1.6;
+    });
+  }
+
   // ------------------------------------------------------------------ simulation
   private toggleSim(): void {
     if (this.sim) { this.stopSim(); return; }
     if (this.structure.beams.length === 0) { this.reject('Construis d’abord un pont !'); return; }
     this.sim = new BridgeSim(this.level, clone(this.structure));
     this.stepper.reset();
-    this.drag = null;
+    this.cancelBuild();
     this.debris.clear(); this.spray.clear();
     this.refreshHud();
   }
@@ -440,6 +565,7 @@ export class PontifexScene extends Scene2D {
   }
 
   private showLevels(): void {
+    this.cancelBuild();
     this.windows.closeAll();
     const cols = 4, bw = 172, bh = 56, gap = 8;
     const rows = Math.ceil(this.builtinCount / cols);
@@ -487,6 +613,7 @@ export class PontifexScene extends Scene2D {
   }
 
   private confirm(message: string, yes: () => void): void {
+    this.cancelBuild();
     const win = new Window({ width: 340, height: 170, title: 'Confirmer', modal: true, closable: true, closeButton: true });
     const l = new Label({ text: message, size: 13, wrapWidth: win.contentWidth - 16 });
     l.position.set(8, 10);
@@ -614,6 +741,24 @@ export class PontifexScene extends Scene2D {
   private button(text: string, onClick: () => void, w = 96, size = 12): Button {
     return new Button({ width: w, height: 34, text, label: { size }, onClick: () => { this.sfx.onClick(); onClick(); } });
   }
+  private drawFullscreenIcon(): void {
+    const icon = this.fullscreenIcon.clear();
+    const fullscreen = !!document.fullscreenElement;
+    // Quatre coins vers l’extérieur pour agrandir, vers l’intérieur pour réduire.
+    for (const [x, y] of [[0, 0], [20, 0], [0, 20], [20, 20]]) {
+      const dx = x === 0 ? 1 : -1;
+      const dy = y === 0 ? 1 : -1;
+      const cornerX = fullscreen ? x + dx * 7 : x;
+      const cornerY = fullscreen ? y + dy * 7 : y;
+      const direction = fullscreen ? -1 : 1;
+      icon.moveTo(cornerX + dx * direction * 7, cornerY)
+        .lineTo(cornerX, cornerY)
+        .lineTo(cornerX, cornerY + dy * direction * 7);
+    }
+    icon.stroke({ color: 0xe2e8f0, width: 2, cap: 'round', join: 'round' });
+    icon.eventMode = 'none';
+  }
+
   private buildHud(): void {
     this.btnLevel = this.button('', () => this.showLevels(), 190);
     for (const id of MATERIAL_ORDER) {
@@ -629,15 +774,21 @@ export class PontifexScene extends Scene2D {
     this.btnSpeed = this.button('1×', () => { this.speed = this.speed === 1 ? 2 : this.speed === 2 ? 0.5 : 1; this.refreshHud(); }, 52);
     this.btnGrid = this.button('', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); }, 90);
     this.btnSound = this.button('', () => { this.sfx.enabled = !this.sfx.enabled; this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
+    this.drawFullscreenIcon();
+    this.btnFullscreen = new Button({
+      width: 52, height: 34, icon: this.fullscreenIcon,
+      onClick: () => { this.sfx.onClick(); this.toggleFullscreen(); },
+    });
     this.btnBack = this.button('↩ Éditeur', () => this.backToEditor(), 110);
     this.btnTest = new Button({ width: 130, height: 40, text: '▶  TESTER', label: { size: 14, bold: true }, onClick: () => { this.sfx.onClick(); this.toggleSim(); } });
     this.stage.addChild(this.topBar, this.botBar);
     for (const o of [this.lblTitle, this.btnLevel, this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblHint, this.lblToast,
-      ...this.matButtons.values(), this.btnBack, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest]) this.stage.addChild(o);
+      ...this.matButtons.values(), this.btnBack, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnFullscreen, this.btnTest]) this.stage.addChild(o);
   }
   private undo(): void { if (!this.sim) this.restore(this.history.undo()); }
   private redo(): void { if (!this.sim) this.restore(this.history.redo()); }
   private clearAll(): void {
+    this.cancelBuild();
     if (this.sim || this.structure.beams.length === 0) return;
     this.structure = { nodes: this.structure.nodes.filter((n) => n.fixed), beams: [] };
     this.sfx.onDelete();
@@ -661,6 +812,8 @@ export class PontifexScene extends Scene2D {
     this.btnSpeed.setText(`${this.speed === 0.5 ? '½' : this.speed}×`);
     this.btnGrid.setText(`Grille ${this.snapOn ? 'ON' : 'OFF'}`);
     this.btnSound.setText(this.sfx.enabled ? 'Son ON' : 'Son OFF');
+    this.drawFullscreenIcon();
+    this.btnFullscreen.label = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
     this.btnTest.setText(this.sim ? '🛠  ÉDITER' : '▶  TESTER');
     if (!this.sim) this.setStress(0);
   }
@@ -708,7 +861,7 @@ export class PontifexScene extends Scene2D {
     this.topH = topH;
     // barre basse
     const botItems: Container[] = this.editing ? this.editor.items
-      : [...(this.testingSpec ? [this.btnBack] : []), ...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!).filter((b) => b.visible), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnTest];
+      : [...(this.testingSpec ? [this.btnBack] : []), ...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!).filter((b) => b.visible), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnFullscreen, this.btnTest];
     const h = place(botItems, 8, 8);
     const oy = vh - h;
     for (const it of botItems) it.y += oy;
@@ -724,6 +877,7 @@ export class PontifexScene extends Scene2D {
     const view = (!this.editing && this.level?.view) || { x: 0, y: 0, w: WORLD_W, h: WORLD_H };
     this.camera.setViewport(vw, availH, 0, this.topH);
     this.camera.fit(view.w, view.h);
+    this.fitZoom = this.camera.zoom;
     this.camera.snapTo(view.x + view.w / 2, view.y + view.h / 2);
     this.camera.update(0);
   }
@@ -731,6 +885,8 @@ export class PontifexScene extends Scene2D {
   private botY = 0;
 
   override resize(w: number, h: number): void {
+    this.cancelBuild();
+    this.pinch = null;
     this.vw = w; this.vh = h;
     this.effects.setViewport(w, h);
     this.windows.setViewport(w, h);
@@ -738,6 +894,7 @@ export class PontifexScene extends Scene2D {
   }
 
   private onKey(e: KeyboardEvent): void {
+    if (e.code === 'Escape') this.cancelBuild();
     if (e.repeat || this.editing) return;
     if (e.code === 'Space') { e.preventDefault(); if (this.windows.isEmpty) this.toggleSim(); }
     else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); }
@@ -773,7 +930,8 @@ export class PontifexScene extends Scene2D {
     this.windows.update(dt);
     if (this.toastT > 0) this.toastT -= dt;
     this.overBudgetFlash = Math.max(0, this.overBudgetFlash - dt * 2);
-    const preview = !this.sim && this.drag ? { from: this.drag.from, to: this.previewTo(this.pointer) } : null;
+    const start = this.drag ?? this.pendingStart;
+    const preview = !this.sim && start ? { from: start.from, to: this.previewTo(this.pointer) } : null;
     drawScene.dynamic(this.layers, {
       level: this.level, structure: this.structure, sim: this.sim, time: this.time, preview,
       tool: this.tool, hoverNode: !this.sim && this.pointerIn ? this.hoverAt(this.pointer) : -1,

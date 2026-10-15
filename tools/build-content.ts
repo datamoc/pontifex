@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
-import { compileSources, contentCatalog, extractCatalog, validateCatalog } from '@datamoc/mw_games/mwl';
-import type { MwlCompiledNode } from '@datamoc/mw_games/mwl';
+import { compileSources, contentCatalog, extractCatalog, validateCatalog } from '@datamoc/mwg/mwl';
+import type { MwlCompiledNode } from '@datamoc/mwg/mwl';
 import { MATERIAL_ORDER, type VehicleDef } from '../src/data.ts';
 import { schemas } from './mwl-schema.ts';
 import { parseSpec } from '../src/level.ts';

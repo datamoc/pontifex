@@ -1,5 +1,6 @@
+import { runtimeAssetFiles } from '../tools/runtime-assets.ts';
 import { wingTipDrop, wingVertexY } from '../src/resident-animation.ts';
-import * as Skeleton from '@datamoc/mw_games/skeleton';
+import * as Skeleton from '@datamoc/mwg/skeleton';
 import { WALKERS, WALK_CLIP, createWalkerSkeleton } from '../src/walker-rig.ts';
 import { CYCLIST, createCyclistSkeleton, cyclistPose } from '../src/cyclist-rig.ts';
 import { RESIDENT_FILES, populationLayout, residentPosition } from '../src/population.ts';
@@ -156,4 +157,17 @@ test('oiseaux : la pointe descend de 20 unités puis remonte, sans déplacer l�
       assert.equal(wingVertexY(attachmentY, tipY, 20), attachmentY);
     }
   }
+});
+
+
+test('build : la sélection embarque les assets du jeu et exclut les anciens cycles', () => {
+  const files = runtimeAssetFiles();
+  const selected = new Set(files);
+  for (const file of ['manifest.json', 'powered-by-mwg.svg', ...BIOME_FILES, ...RESIDENT_FILES,
+    ...VEHICLES.map((name) => `${DIR}/${name}.svg`), ...WALKERS.map((name) => `${name}.svg`), `${CYCLIST}.svg`]) {
+    assert.ok(selected.has(file), `${file} absent du HTML autonome`);
+  }
+  assert.ok(!files.some((file) => file.startsWith('garbage/')));
+  assert.ok(!selected.has('common/walker_man_bald_shorts_f0.svg'));
+  assert.ok(!selected.has('common/cyclist_f0.svg'));
 });

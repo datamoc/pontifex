@@ -7,7 +7,7 @@
     "test": "tsx --test test/physics.test.ts test/editor.test.ts test/content.test.ts test/assets.test.ts test/build.test.ts test/walker-rig.test.ts",
     "build": "vite build",
     "typecheck": "tsc -p .",
-    "e2e": "node e2e/run.mjs",
+    "e2e": "node e2e/run.mjs && node e2e/mobile.mjs",
     "check": "npm run typecheck && npm test && npm run build && npm run e2e",
     "content": "tsx tools/build-content.ts",
     "gen:biomes": "tsx src/gen/biomes/index.ts",
@@ -16,13 +16,14 @@
     "pretest": "npm run content",
     "pretypecheck": "npm run content",
     "dev": "npm run content && vite",
-    "level:convert": "tsx tools/convert-level.ts"
+    "level:convert": "tsx tools/convert-level.ts",
+    "assets:report": "tsx tools/report-assets.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@datamoc/mw_games": "^0.38.0",
+    "@datamoc/mwg": "^0.39.1",
     "pixi.js": "^8.22.0",
     "svg.js": "^2.7.1"
   },

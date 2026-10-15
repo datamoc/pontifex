@@ -1,4 +1,4 @@
-import * as Skeleton from '@datamoc/mw_games/skeleton';
+import * as Skeleton from '@datamoc/mwg/skeleton';
 
 export const CYCLIST = 'common/cyclist';
 export const CYCLIST_WHEEL_RADIUS = 14;
@@ -12,19 +12,23 @@ export interface CyclistArt {
   rig: { legs: { hip: [number, number]; bb: [number, number]; crank: number; thigh: number; shin: number; baseAngle: number } };
 }
 
+const pedalChains = new WeakMap<CyclistArt, Skeleton.SkeletonBones>();
+
 /** Le pied suit la pédale ; le genou est résolu par les longueurs des deux os. */
 function pedalAngles(art: CyclistArt, phase: number): { thigh: number; shin: number } {
   const leg = art.rig.legs;
   const dx = leg.bb[0] + Math.cos(phase) * leg.crank - leg.hip[0];
   const dy = leg.bb[1] + Math.sin(phase) * leg.crank - leg.hip[1];
-  const distance = Math.hypot(dx, dy);
-  const bend = Math.acos(Math.max(-1, Math.min(1,
-    (leg.thigh ** 2 + distance ** 2 - leg.shin ** 2) / (2 * leg.thigh * distance))));
-  const thigh = Math.atan2(dy, dx) - bend;
-  const kneeX = Math.cos(thigh) * leg.thigh;
-  const kneeY = Math.sin(thigh) * leg.thigh;
-  const shin = Math.atan2(dy - kneeY, dx - kneeX) - thigh;
-  return { thigh: thigh * 180 / Math.PI, shin: shin * 180 / Math.PI };
+  let chain = pedalChains.get(art);
+  if (!chain) {
+    chain = Skeleton.create([
+      { name: 'thigh', length: leg.thigh },
+      { name: 'shin', parent: 'thigh', length: leg.shin },
+    ]);
+    pedalChains.set(art, chain);
+  }
+  const pose = Skeleton.solveTwoBoneIK(chain, 'thigh', 'shin', { x: dx, y: dy });
+  return { thigh: pose.thigh, shin: pose.shin };
 }
 
 export function cyclistRestAngles(art: CyclistArt): Record<string, number> {

@@ -1,5 +1,5 @@
 // Interface de l'éditeur de niveaux : boutons, outils et saisie du pointeur. La logique est dans editor.ts.
-import { Button } from '@datamoc/mw_games/two-d';
+import { Button } from '@datamoc/mwg/two-d';
 import type { Container } from 'pixi.js';
 import { MATERIALS, MATERIAL_ORDER, CARS, type Pt } from './data.ts';
 import { deriveLevel, type LevelSpec } from './level.ts';

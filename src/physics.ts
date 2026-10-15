@@ -1,6 +1,6 @@
 // Moteur de pont : XPBD (position-based dynamics étendu), pas fixe, déterministe.
 // Aucune dépendance au rendu ni au navigateur : testable avec `node --test`.
-import { XpbdWorld, type XpbdNode, type XpbdLink } from '@datamoc/mw_games/physics/xpbd';
+import { XpbdWorld, type XpbdNode, type XpbdLink } from '@datamoc/mwg/physics/xpbd';
 import { MATERIALS, type LevelDef, type MaterialId } from './data.ts';
 
 export interface StructNode { x: number; y: number; fixed: boolean }

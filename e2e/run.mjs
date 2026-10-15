@@ -40,8 +40,27 @@ for (let biome = 0; biome < 9; biome++) {
       .filter((rig) => rig.label === 'skeletal-walker' || rig.label === 'skeletal-cyclist');
     if (!rigs.some((rig) => rig.label === 'skeletal-walker')) throw new Error('Piétons sans squelette');
     if (!rigs.some((rig) => rig.label === 'skeletal-cyclist')) throw new Error('Cyclistes sans squelette');
+    const wings = scene.layers.wildlife.children.flatMap((resident) => resident.children)
+      .filter((part) => part.label === 'wing' || part.label === 'wing-back');
+    if (scene.biome.flyingBirds.length && !wings.length) throw new Error('Oiseaux sans ailes déformables');
+    const wingBefore = wings.map((wing) => ({
+      positions: Array.from(wing.geometry.positions),
+      uvs: Array.from(wing.geometry.getAttribute('aUV').buffer.data),
+    }));
     const before = rigs.map((rig) => rig.part('leg-near').rotation);
     scene.population.update(0.093);
+    for (const [index, wing] of wings.entries()) {
+      if (!wing.geometry.positions.some((value, i) => value !== wingBefore[index].positions[i]))
+        throw new Error('Aile immobile');
+      for (let vertex = 0; vertex < wing.count; vertex++) {
+        const rest = wing.restAt(vertex), current = wing.vertexAt(vertex);
+        if (current.x !== rest.x || (rest.y >= 13 && current.y !== rest.y))
+          throw new Error('Attache ou abscisse de l’aile déplacée');
+      }
+      const uvs = wing.geometry.getAttribute('aUV').buffer.data;
+      if (uvs.some((value, i) => value !== wingBefore[index].uvs[i]) || wing.rotation !== 0)
+        throw new Error('Texture ou rotation de l’aile modifiée');
+    }
     for (const [index, rig] of rigs.entries()) {
       const thigh = rig.part('leg-near');
       const shin = rig.part('shin-near');
@@ -53,7 +72,7 @@ for (let biome = 0; biome < 9; biome++) {
     }
   }, biome);
 }
-console.log('✔ piétons et cyclistes articulés dans les neuf biomes');
+console.log('✔ piétons, cyclistes et ailes déformables dans les neuf biomes');
 await page.evaluate(() => window.__pontifex.loadLevel(0));
 
 
@@ -66,6 +85,17 @@ const drag = async (a, b) => { const [ax, ay] = await w2s(...a), [bx, by] = awai
   await page.mouse.move(ax, ay); await page.mouse.down(); await page.mouse.move((ax + bx) / 2, (ay + by) / 2); await page.mouse.move(bx, by); await page.mouse.up(); };
 const waitEnd = async () => { for (let i = 0; i < 60; i++) { await sleep(500); if (await sc(() => window.__pontifex.windows.top !== null)) return; } };
 const check = (label, ok) => { console.log(ok ? '✔' : '✖', label); if (!ok) problems.push('échec : ' + label); };
+
+// La souris peut aussi construire en deux clics, puis annuler une sélection avec Échap.
+await page.mouse.click(...await w2s(340, 340));
+check('premier clic : aucun élément créé', await sc(() => window.__pontifex.structure.beams.length === 0 && !!window.__pontifex.pendingStart));
+await page.mouse.click(...await w2s(460, 340));
+check('second clic : poutre créée', await sc(() => window.__pontifex.structure.beams.length === 1));
+await sc(() => window.__pontifex.loadLevel(0));
+await page.mouse.click(...await w2s(340, 340));
+await page.keyboard.press('Escape');
+check('Échap annule le départ sélectionné', await sc(() => window.__pontifex.pendingStart === null));
+await sc(() => window.__pontifex.loadLevel(0));
 
 // 1. niveau 1 (chaussée seule) : trois tronçons à la souris
 await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());

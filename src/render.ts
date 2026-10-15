@@ -1,5 +1,5 @@
 import { BIOMES, type Biome } from './biomes.ts';
-import { Shape2D, Label, Gradient, type Node2D } from '@datamoc/mw_games/two-d';
+import { Shape2D, Label, Gradient, type Node2D } from '@datamoc/mwg/two-d';
 import { GRID, MATERIALS, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt } from './data.ts';
 import type { BridgeSim, Structure } from './physics.ts';
 
@@ -118,6 +118,7 @@ export const drawScene = {
       const col = ok ? 0x38bdf8 : 0xf43f5e;
       fr.dashedLine(from.x, from.y, to.x, to.y, 12, 12);
       fr.stroke({ width: mat.isRoad ? 8 : 4, color: col, alpha: 0.8, cap: 'round' });
+      fr.circle(from.x, from.y, 11).stroke({ width: 2.5, color: 0x38bdf8 });
       fr.circle(to.x, to.y, 5).fill({ color: col, alpha: 0.9 });
       if (!lenLabel) { lenLabel = new Label({ text: '', size: 12, color: 0xffffff }); layers.fx.addChild(lenLabel); }
       lenLabel.visible = true;

@@ -1,6 +1,6 @@
 # Pontifex — constructeur de ponts
 
-Jeu de construction de ponts 2D, fait avec **MWG** (`@datamoc/mw_games` **0.37.0**, rendu PixiJS) : un seul
+Jeu de construction de ponts 2D, fait avec **MWG** (`@datamoc/mwg` **0.39.1**, rendu PixiJS) : un seul
 fichier HTML, qui s'ouvre en double-clic, hors ligne. **Tous les graphismes sont des SVG** faits pour le jeu
 (aucun asset externe) : ils sont compilés dans la page, les véhicules sont recomposés depuis les groupes de
 leur dessin (roues qui tournent, capot qui s'ouvre à l'écrasement), voir `assets/README.md`.
@@ -9,10 +9,11 @@ leur dessin (roues qui tournent, capot qui s'ouvre à l'écrasement), voir `asse
 
 GitHub Pages publie automatiquement `dist/standalone.html` comme `index.html` à chaque push sur `main`.
 
-**Jouer hors ligne** : ouvrir `pontifex.html` (= `dist/standalone.html`). Glisser d'un point à un autre pour poser une poutre ;
+**Jouer hors ligne** : ouvrir `pontifex.html` (= `dist/standalone.html`). Cliquer ou toucher le point de départ, puis le point d’arrivée pour poser une poutre ; le glisser fonctionne aussi.
+Sur téléphone, écarter ou rapprocher deux doigts pour zoomer ou dézoomer, et les déplacer ensemble pour déplacer la vue ;
 points d'ancrage orange fixes ; clic droit ou outil « Effacer » pour retirer ; **Tester** (ou Espace) lance la voiture.
 Le curseur s'aimante au point d'accroche le plus proche, et la poutre suivante repart de la fin de la précédente (cliquer plus loin que la portée du matériau recommence ailleurs).
-Raccourcis : `1`–`5` matériaux, `X` effacer, `G` grille, `Ctrl+Z` / `Ctrl+Y` annuler/rétablir, `Échap` ferme une fenêtre.
+Raccourcis : `1`–`5` matériaux, `X` effacer, `G` grille, `Ctrl+Z` / `Ctrl+Y` annuler/rétablir, `Échap` annule le départ sélectionné ou ferme une fenêtre. Retoucher le départ annule aussi la sélection.
 Étoiles : ★ traverser · ★ garder ≥ 20 % du budget · ★ contrainte max < 75 %.
 
 ## Biomes et décor vivant
@@ -26,7 +27,7 @@ Piétons et cyclistes utilisent les squelettes MWG (`skeleton` et `SkeletalSprit
 découpés en membres, animés en temps réel par le jeu. La marche suit la vitesse du personnage ;
 les jambes du cycliste suivent ses pédales par cinématique inverse, sans images précalculées.
 Les 96 anciennes images de marche et les 8 images de pédalage restent dans les sources,
-mais le build les exclut de la page publiée et de son manifeste runtime.
+mais le build les exclut de la page publiée. Le manifeste conserve leurs métadonnées historiques.
 
 ## Progression et matériaux
 
@@ -115,3 +116,11 @@ Test Windows : `e2e/win-smoke.mjs` (Node + Chrome Windows).
 
 Graphismes : **SVG dessinés pour le jeu**, dans `assets/` (licences et découpage : `assets/README.md`).
 Rien n'est emprunté à un pack tiers ; le jeu et ses assets sont donc entièrement redistribuables.
+
+
+### MWG et poids des assets
+
+Le jeu utilise `@datamoc/mwg` 0.39.1. Le build sélectionne les fichiers avec `assetFiles` :
+les brouillons de `assets/garbage/` et les anciens cycles de marche/vélo ne sont pas embarqués.
+Après `npm run build`, lancer `npm run assets:report` pour produire
+`e2e/out/assets-report.json` (poids brut/gzip/brotli et doublons des assets sélectionnés).

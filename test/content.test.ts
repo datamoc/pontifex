@@ -11,6 +11,8 @@ import { BUILTIN_SPECS } from '../src/levels.ts';
 
 test('MWL preserves every authored level, vehicle and physics parameter', () => {
   const before = JSON.parse(readFileSync(new URL('./fixtures/content-before-mwl.json', import.meta.url), 'utf8'));
+  // La consigne du premier niveau a depuis été adaptée à la construction tactile.
+  before.levels.find((level: { id: number }) => level.id === 1).hint = 'Relie les deux points orange : touche le départ, puis l’arrivée, ou glisse de l’un à l’autre.';
   assert.deepEqual({ materials: MATERIALS, vehicles: CARS, levels: BUILTIN_SPECS.filter(level => before.levels.some((original: { id: number }) => original.id === level.id)) }, before);
 });
 

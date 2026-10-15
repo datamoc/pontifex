@@ -3,9 +3,9 @@ import { CYCLIST } from './cyclist-rig.ts';
 import { WALKERS } from './walker-rig.ts';
 import { makeSkeletalWalker } from './skeletal-walkers.ts';
 import { makeFlyingBird } from './resident-animation.ts';
-import { get, texture } from '@datamoc/mw_games/assets';
-import { Node2D, Sprite2D } from '@datamoc/mw_games/two-d';
-import { Random } from '@datamoc/mw_games/core';
+import { get, texture } from '@datamoc/mwg/assets';
+import { Node2D, Sprite2D } from '@datamoc/mwg/two-d';
+import { Random } from '@datamoc/mwg/core';
 import type { Biome } from './biomes.ts';
 import type { LevelDef } from './data.ts';
 

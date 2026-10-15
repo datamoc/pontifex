@@ -1,19 +1,17 @@
-import { get, getBinary, loadBinary, sanitizeSvg, svgDataUri, texture } from '@datamoc/mw_games/assets';
-import { Assets } from 'pixi.js';
-import { Node2D } from '@datamoc/mw_games/two-d';
-import { SkeletalSprite } from '@datamoc/mw_games/two-d/render';
-import * as Skeleton from '@datamoc/mw_games/skeleton';
+import { get, getBinary, loadBinary, sanitizeSvg } from '@datamoc/mwg/assets';
+import { Node2D } from '@datamoc/mwg/two-d';
+import { SkeletalSprite, loadSvgSkeleton } from '@datamoc/mwg/two-d/render';
+import * as Skeleton from '@datamoc/mwg/skeleton';
 import { WALKERS, WALK_PARTS, WALK_CLIP, createWalkerSkeleton, walkerPivot, isWalkerLimb, type WalkerArt } from './walker-rig.ts';
 import type { AnimatedResident } from './resident-animation.ts';
 
 const WALK_STRIDE = 28;
-const availableParts = new Map<string, string[]>();
-const partAlias = (name: string, part: string): string => `${name}/skeletal-${part}`;
+type WalkerTextures = Awaited<ReturnType<typeof loadSvgSkeleton>>['textures'];
+const texturesOf = new Map<string, WalkerTextures>();
 
 export async function loadWalkerSkeletons(): Promise<void> {
   await loadBinary(WALKERS.map((name) => `${name}.svg`));
   const manifest = get<Record<string, WalkerArt>>('manifest.json');
-  const aliases: string[] = [];
   for (const name of WALKERS) {
     const artwork = manifest[name];
     const source = sanitizeSvg(new TextDecoder().decode(getBinary(`${name}.svg`)));
@@ -29,31 +27,16 @@ export async function loadWalkerSkeletons(): Promise<void> {
       while (thigh.previousElementSibling?.localName === 'path') thigh.prepend(thigh.previousElementSibling);
     }
     const parts = WALK_PARTS.filter((part) => root.querySelector(`[id="${part}"]`));
-    availableParts.set(name, parts);
-    for (const part of parts) {
-      const group = root.querySelector(`[id="${part}"]`)!.cloneNode(true) as Element;
-      // Chaque articulation est dessinée une seule fois, par son propre os.
-      for (const child of group.querySelectorAll('g[id]')) {
-        if (WALK_PARTS.includes(child.id)) child.remove();
-      }
-      const [pivotX, pivotY] = walkerPivot(artwork, part);
-      const isolated = root.cloneNode(false) as Element;
-      const local = document.createElementNS(root.namespaceURI, 'g');
-      // Une marge autour du pivot évite de couper le membre une fois orienté sur l'axe de l'os.
-      const radius = artwork.height;
-      isolated.setAttribute('viewBox', `${-radius} ${-radius} ${radius * 2} ${radius * 2}`);
-      isolated.setAttribute('width', String(radius * 2));
-      isolated.setAttribute('height', String(radius * 2));
-      const rotation = isWalkerLimb(part) ? 'rotate(-90) ' : '';
-      local.setAttribute('transform', `${rotation}translate(${-pivotX} ${-pivotY})`);
-      local.appendChild(group);
-      isolated.appendChild(local);
-      const alias = partAlias(name, part);
-      Assets.add({ alias, src: svgDataUri(new XMLSerializer().serializeToString(isolated)), format: 'svg', data: { resolution: 2 } });
-      aliases.push(alias);
-    }
+    const loaded = await loadSvgSkeleton(new XMLSerializer().serializeToString(root), {
+      skeleton: createWalkerSkeleton(artwork), resolution: 2,
+      bindings: parts.map((bone) => {
+        const [x, y] = walkerPivot(artwork, bone);
+        return { bone, pivot: { x, y }, rotation: isWalkerLimb(bone) ? 90 : 0 };
+      }),
+    });
+    texturesOf.set(name, loaded.textures);
+    loaded.sprite.destroy({ children: true });
   }
-  await Assets.load(aliases);
 }
 
 export function makeSkeletalWalker(name: string): AnimatedResident {
@@ -62,8 +45,8 @@ export function makeSkeletalWalker(name: string): AnimatedResident {
   const mixer = Skeleton.createMixer(bones, WALK_CLIP);
   const rig = new SkeletalSprite(bones, mixer);
   rig.label = 'skeletal-walker';
-  for (const part of availableParts.get(name) ?? []) {
-    const sprite = rig.bind(part, texture(partAlias(name, part)));
+  for (const [part, texture] of Object.entries(texturesOf.get(name)!)) {
+    const sprite = rig.bind(part, texture);
     sprite.anchor.set(0.5);
     sprite.label = part;
   }

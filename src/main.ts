@@ -1,5 +1,5 @@
-import { Game } from '@datamoc/mw_games/two-d';
-import { resolve } from '@datamoc/mw_games/assets';
+import { Game } from '@datamoc/mwg/two-d';
+import { resolve } from '@datamoc/mwg/assets';
 import { PontifexScene } from './scene.ts';
 import { loadArt } from './art.ts';
 

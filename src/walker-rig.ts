@@ -1,4 +1,4 @@
-import * as Skeleton from '@datamoc/mw_games/skeleton';
+import * as Skeleton from '@datamoc/mwg/skeleton';
 
 export const WALKERS = [
   'common/walker_man_short_hair_trousers',

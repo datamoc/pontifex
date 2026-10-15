@@ -1,4 +1,4 @@
-import { Sound, synthesizeSound, type ToneOptions } from '@datamoc/mw_games/audio';
+import { Sound, synthesizeSound, type ToneOptions } from '@datamoc/mwg/audio';
 
 /** Petits effets synthétisés : aucun fichier audio à embarquer. */
 const make = (o: ToneOptions, pool = 4) => synthesizeSound(o, { poolSize: pool });

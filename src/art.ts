@@ -3,13 +3,13 @@ import { loadWalkerSkeletons } from './skeletal-walkers.ts';
 import { loadResidentAnimations } from './resident-animation.ts';
 import { RESIDENT_FILES } from './population.ts';
 // Graphismes 100 % SVG (voir assets/) : mwgPage compile les fichiers dans la page, et leur
-// texte source passe par sanitizeSvg / splitSvgGroups (@datamoc/mw_games/assets) pour
+// texte source passe par loadSvgParts (@datamoc/mwg/assets) pour
 // fabriquer les textures — un véhicule est découpé en ses groupes <g> (roues, capot, moteur)
 // et devient ainsi animable, sans planche de sprites ni image bitmap dans le dépôt.
-import { get, getBinary, load, loadBinary, sanitizeSvg, splitSvgGroups, svgDataUri, texture } from '@datamoc/mw_games/assets';
-import { Assets } from 'pixi.js';
-import { Node2D, Sprite2D } from '@datamoc/mw_games/two-d';
-import { Random } from '@datamoc/mw_games/core';
+import { get, load, loadSvgParts, texture } from '@datamoc/mwg/assets';
+import type { Texture2D } from '@datamoc/mwg/two-d/render';
+import { Node2D, Sprite2D } from '@datamoc/mwg/two-d';
+import { Random } from '@datamoc/mwg/core';
 import type { LevelDef, VehicleDef } from './data.ts';
 import { BIOME_FILES, type Biome } from './biomes.ts';
 
@@ -27,7 +27,7 @@ const SCENERY = [
   'cloud1.svg', 'cloud2.svg', 'explosion.svg', 'flame.svg',
 ].map((f) => `${DIR}/${f}`);
 
-const partAlias = (file: string, group: string): string => `${file}/${group}`;
+const vehicleParts = new Map<string, Readonly<Record<string, Texture2D>>>();
 
 export interface WheelArt { group: string; at: [number, number] }
 export interface ArtDef {
@@ -64,20 +64,12 @@ const vehicleArtOf = (name: string): VehicleArt => {
 
 export async function loadArt(): Promise<void> {
   await load(['manifest.json', ...SCENERY, ...BIOME_FILES, ...RESIDENT_FILES], { resolution: RES });
-  // le texte des véhicules (et non leur texture) : ce sont ses groupes qu'on recompose
-  await loadBinary(VEHICLES);
   art = get<Record<string, ArtDef>>('manifest.json');
-  const parts: string[] = [];
   for (const file of VEHICLES) {
-    const source = sanitizeSvg(new TextDecoder().decode(getBinary(file)));
-    const groups = splitSvgGroups(source);
-    groupsOf.set(file, Object.keys(groups));
-    for (const [group, src] of Object.entries(groups)) {
-      Assets.add({ alias: partAlias(file, group), src: svgDataUri(src), format: 'svg', data: { resolution: RES } });
-      parts.push(partAlias(file, group));
-    }
+    const parts = await loadSvgParts(file, { resolution: RES });
+    vehicleParts.set(file, parts);
+    groupsOf.set(file, Object.keys(parts));
   }
-  await Assets.load(parts);
   await loadResidentAnimations();
   await loadWalkerSkeletons();
   await loadCyclistSkeleton();
@@ -116,7 +108,7 @@ export class Vehicle extends Node2D {
 
     const wheelGroups = new Set(a.wheels.map((w) => w.group));
     for (const w of a.wheels) {
-      const sp = new Sprite2D(texture(partAlias(a.file, w.group)));
+      const sp = new Sprite2D(vehicleParts.get(a.file)![w.group]);
       // dessin à sa place dans le SVG, pivot au moyeu : la roue tourne sur elle-même
       sp.anchor.set(0);
       sp.pivot.set(w.at[0], w.at[1]);
@@ -126,7 +118,7 @@ export class Vehicle extends Node2D {
     }
     for (const group of groupsOf.get(a.file) ?? []) {
       if (wheelGroups.has(group)) continue;
-      const sp = new Sprite2D(texture(partAlias(a.file, group)));
+      const sp = new Sprite2D(vehicleParts.get(a.file)![group]);
       sp.anchor.set(0);
       if (group === 'hood' && a.hood) {
         sp.pivot.set(a.hood.pivot[0], a.hood.pivot[1]);

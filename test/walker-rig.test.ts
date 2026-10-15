@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import * as Skeleton from '@datamoc/mw_games/skeleton';
+import * as Skeleton from '@datamoc/mwg/skeleton';
 import { WALKERS, WALK_CLIP, WALK_PARTS, createWalkerSkeleton, walkerPivot, type WalkerArt } from '../src/walker-rig.ts';
 
 const manifest = JSON.parse(readFileSync(new URL('../assets/manifest.json', import.meta.url), 'utf8'));

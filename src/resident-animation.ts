@@ -1,6 +1,7 @@
-import { get, getBinary, loadBinary, sanitizeSvg, svgDataUri, texture } from '@datamoc/mw_games/assets';
-import { Assets, MeshPlane } from 'pixi.js';
-import { Node2D, Sprite2D } from '@datamoc/mw_games/two-d';
+import { get, getBinary, loadBinary, sanitizeSvg, svgDataUri, texture } from '@datamoc/mwg/assets';
+import { Assets } from 'pixi.js';
+import { DeformableSprite } from '@datamoc/mwg/two-d/render';
+import { Node2D, Sprite2D } from '@datamoc/mwg/two-d';
 import { BIOMES } from './biomes.ts';
 
 const FLAP_FREQUENCY = 3;
@@ -64,26 +65,24 @@ export function makeFlyingBird(name: string): AnimatedResident {
   const body = new Sprite2D(texture(animationAlias(name, 'body')));
   body.anchor.set(0);
   const wings = ['wing-back', 'wing'].map((part) => {
-    const plane = new MeshPlane({
-      texture: texture(animationAlias(name, part)), verticesX: 2, verticesY: artwork.height + 1,
+    const plane = new DeformableSprite(texture(animationAlias(name, part)), {
+      columns: 2, rows: artwork.height + 1,
     });
     plane.label = part;
     // Une ligne par unité SVG : la pointe se déplace exactement de 20 unités,
     // tandis que les points d'attache et les coordonnées horizontales restent fixes.
-    const original = new Float32Array(plane.geometry.positions);
-    return { plane, original, tipY: WING_TIP_Y[part] };
+    const original = Array.from({ length: plane.count }, (_, index) => ({ index, ...plane.restAt(index) }));
+    const points = original.map((point) => ({ ...point }));
+    return { plane, original, points, tipY: WING_TIP_Y[part] };
   });
   node.addChild(wings[0].plane, body, wings[1].plane);
   return {
     node,
     update(time) {
       const drop = wingTipDrop(time);
-      for (const { plane, original, tipY } of wings) {
-        const positions = plane.geometry.positions;
-        for (let index = 1; index < positions.length; index += 2) {
-          positions[index] = wingVertexY(original[index], tipY, drop);
-        }
-        plane.geometry.getAttribute('aPosition').buffer.update();
+      for (const { plane, original, points, tipY } of wings) {
+        for (const point of points) point.y = wingVertexY(original[point.index].y, tipY, drop);
+        plane.dragVertices(points);
       }
     },
   };

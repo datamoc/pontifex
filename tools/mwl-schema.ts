@@ -1,5 +1,5 @@
-import { schema10 } from '@datamoc/mw_games/mwl';
-import type { MwlTagSchema } from '@datamoc/mw_games/mwl';
+import { schema10 } from '@datamoc/mwg/mwl';
+import type { MwlTagSchema } from '@datamoc/mwg/mwl';
 
 export const schemas: Record<string, MwlTagSchema> = {
   ...schema10,

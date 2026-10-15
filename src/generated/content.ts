@@ -100,7 +100,7 @@ export const BUILTIN_SPECS: LevelSpec[] = [
     "id": 1,
     "label": "1",
     "name": "Premiers pas",
-    "hint": "Relie les deux points orange avec une poutre de chaussée : glisse de l’un à l’autre.",
+    "hint": "Relie les deux points orange : touche le départ, puis l’arrivée, ou glisse de l’un à l’autre.",
     "budget": 150,
     "car": "citadine",
     "x0": 340,
