@@ -1,4 +1,4 @@
-import { parseMidi, renderMidiToBufferAsync } from '@datamoc/mwg/audio';
+import { parseMidi, scheduleMidi, renderMidiToBufferAsync } from '@datamoc/mwg/audio';
 import { getBinary, loadBinary } from '@datamoc/mwg/assets';
 
 import { MUSIC_TRACKS, SOUNDFONT_FILE } from './music-catalog.ts';
@@ -153,7 +153,9 @@ export class BackgroundMusic {
       const midiFile = `music/${track.file}`;
       await loadBinary([midiFile, SOUNDFONT_FILE]);
       const midi = getBinary(midiFile);
-      parseMidi(midi); // refuse tout de suite un fichier qui n'est pas du MIDI
+      const notes = scheduleMidi(parseMidi(midi));
+      // Certains MIDI réservent plusieurs mesures aux réglages des instruments.
+      const firstNoteTime = notes.find((note) => note.velocity > 0 && note.gain > 0)?.time ?? 0;
       const rendered = await renderMidiToBufferAsync(midi, {
         soundFontBytes: getBinary(SOUNDFONT_FILE), missingProgram: 'synth', sampleRate: context.sampleRate,
       });
@@ -163,7 +165,7 @@ export class BackgroundMusic {
       buffer.copyToChannel(new Float32Array(rendered.right), 1);
       this.buffer = buffer;
       this.trackDuration = rendered.duration;
-      this.playFrom(0);
+      this.playFrom(firstNoteTime);
     } catch (error) {
       if (token === this.request) this.error = `Musique indisponible : ${String(error)}`;
     } finally {

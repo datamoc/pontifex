@@ -1,22 +1,26 @@
 import { buildPopulation, type Population } from './population.ts';
 import { BIOMES, randomBiome, type Biome } from './biomes.ts';
 import {
-  Game, Scene2D, Button, Label, Bar, Window, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt, ScrollBox,
+  Game, Scene2D, Button, Label, Sprite2D, Bar, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt,
 } from '@datamoc/mwg/two-d';
+import { texture } from '@datamoc/mwg/assets';
 import { Camera } from '@datamoc/mwg/two-d/render';
 import { Settings, UndoHistory, Input, FixedStepper } from '@datamoc/mwg/core';
 import { Texture, FederatedPointerEvent, Rectangle, type Container } from 'pixi.js';
 import {
-  GRID, MATERIALS, MATERIAL_ORDER, SHIPS, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
+  MATERIALS, MATERIAL_ORDER, SHIPS, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
 } from './data.ts';
 import { BridgeSim, FRAME_DT, SETTLE, WHEEL_R, structureCost, type Structure } from './physics.ts';
 import { Sfx } from './audio.ts';
-import { BackgroundMusic, MUSIC_TRACKS, drawTrackId } from './music.ts';
+import { BackgroundMusic, drawTrackId } from './music.ts';
 import { LEVELS as BUILTIN_LEVELS } from './levels.ts';
-import { deriveLevel, isSolid, parseSpec, slug, type LevelSpec } from './level.ts';
+import { deriveLevel, isInsideWorld, isSolid, slug, type LevelSpec } from './level.ts';
+import { ProgressStore, rateAttempt } from './progress.ts';
+import { buildConfirmWindow, buildLevelsWindow, buildMusicWindow, buildResultWindow } from './dialogs.ts';
+import { CustomLevels, parseLevelFile } from './custom-levels.ts';
 import { LevelEditor } from './editor-ui.ts';
 import { newSpec } from './editor.ts';
-import { ropeHit, splitBeam, prune, nearestNode, chainStart, type RopeHit } from './structure.ts';
+import { ropeHit, splitBeam, prune, nearestNode, chainStart, beamNear, beamExists, snapPoint, type RopeHit } from './structure.ts';
 import { drawScene, type Layers } from './render.ts';
 import { buildClouds, buildDecor, buildFleet, buildLandscape, makeVehicle, type CarState, type Clouds, type Fleet, type Vehicle } from './art.ts';
 
@@ -27,22 +31,14 @@ const MAGNET_R = 22;
 
 const clone = (s: Structure): Structure => JSON.parse(JSON.stringify(s));
 
-function distToSegment(p: Pt, v: Pt, w: Pt): number {
-  const l2 = (v.x - w.x) ** 2 + (v.y - w.y) ** 2;
-  if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
-  const t = Math.max(0, Math.min(1, ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2));
-  return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
-}
-
-interface Progress { stars: Record<string, number> }
-
 interface BuildStart { from: Pt; fromIdx: number; fromRope: RopeHit | null }
 
 export class PontifexScene extends Scene2D {
   private settings = new Settings({ namespace: 'pontifex' });
   private sfx = new Sfx();
   private music = new BackgroundMusic();
-  private progress: Progress = { stars: {} };
+  private progress = new ProgressStore(this.settings);
+  private customLevels = new CustomLevels(this.settings);
 
   // --- état de jeu
   private levelIdx = 0;
@@ -50,7 +46,6 @@ export class PontifexScene extends Scene2D {
   private level!: LevelDef;
   /** niveaux du jeu puis niveaux personnalisés */
   private levels: LevelDef[] = [...BUILTIN_LEVELS];
-  private customs: LevelSpec[] = [];
   private editing = false;
   /** brouillon en cours d'essai depuis l'éditeur */
   private testingSpec: LevelSpec | null = null;
@@ -121,7 +116,7 @@ export class PontifexScene extends Scene2D {
   private btnMusicNext!: Button;
   private musicLabel = '';
   private btnFullscreen!: Button;
-  private fullscreenIcon = new Shape2D();
+  private buttonIcons = new Map<Button, Sprite2D>();
   private btnTest!: Button;
   private btnBack!: Button;
   private vw = 0;
@@ -131,8 +126,9 @@ export class PontifexScene extends Scene2D {
   private actionHandler = (a: string) => { if (!this.windows.isEmpty) return this.windows.handleAction(a); };
 
   create(): void {
-    this.loadProgress();
-    this.loadCustoms();
+    this.progress.load();
+    this.customLevels.load();
+    this.rebuildLevels();
     const saved = this.settings.getCustom('level2', 0);
     this.sfx.enabled = this.settings.getCustom('sound', true) !== false;
     this.music.setEnabled(this.sfx.enabled);
@@ -201,13 +197,9 @@ export class PontifexScene extends Scene2D {
   }
 
   // ------------------------------------------------------------------ progression
-  private loadProgress(): void {
-    try { this.progress = JSON.parse(String(this.settings.getCustom('progress2', '{"stars":{}}'))); } catch { this.progress = { stars: {} }; }
-    if (!this.progress.stars) this.progress = { stars: {} };
-  }
-  private saveProgress(): void { this.settings.setCustom('progress2', JSON.stringify(this.progress)); }
   private get builtinCount(): number { return BUILTIN_LEVELS.length; }
-  private unlocked(idx: number): boolean { return idx === 0 || idx >= this.builtinCount || (this.progress.stars[String(this.levels[idx - 1].id)] ?? 0) > 0; }
+  /** Un niveau intégré s'ouvre dès que le précédent a au moins une étoile ; les niveaux du joueur sont toujours ouverts. */
+  private unlocked(idx: number): boolean { return idx === 0 || idx >= this.builtinCount || this.progress.starsOf(this.levels[idx - 1].id) > 0; }
 
   // ------------------------------------------------------------------ niveau
   private loadLevel(idx: number): void {
@@ -261,10 +253,7 @@ export class PontifexScene extends Scene2D {
   }
 
   // ------------------------------------------------------------------ édition
-  private snap(p: Pt): Pt {
-    if (!this.snapOn) return { x: Math.round(p.x), y: Math.round(p.y) };
-    return { x: Math.round(p.x / GRID) * GRID, y: Math.round(p.y / GRID) * GRID };
-  }
+  private snap(p: Pt): Pt { return snapPoint(p, this.snapOn); }
   private nodeAt(p: Pt, r = SNAP_R): number {
     return nearestNode(this.structure.nodes, p, r);
   }
@@ -303,10 +292,7 @@ export class PontifexScene extends Scene2D {
     return this.chainTarget(raw);
   }
   private solid(p: Pt): boolean { return isSolid(this.level, p); }
-  private inWorld(p: Pt): boolean { return p.x >= 0 && p.x <= WORLD_W && p.y >= 20 && p.y <= this.level.waterY + 30; }
-  private beamExists(a: number, b: number): boolean {
-    return this.structure.beams.some((m) => (m.a === a && m.b === b) || (m.a === b && m.b === a));
-  }
+  private inWorld(p: Pt): boolean { return isInsideWorld(this.level, p); }
   private commit(): void {
     this.prune();
     this.history.push(JSON.stringify(this.structure));
@@ -453,7 +439,7 @@ export class PontifexScene extends Scene2D {
     if (structureCost(this.structure) + cost > this.level.budget + 1e-6) { this.reject('Budget dépassé'); return; }
     let a = d.fromIdx, b = endIdx;
     if (a >= 0 && a === b) return;
-    if (a >= 0 && b >= 0 && this.beamExists(a, b)) return;
+    if (a >= 0 && b >= 0 && beamExists(this.structure, a, b)) return;
     if (a < 0) a = d.fromRope ? splitBeam(this.structure, d.fromRope.beam, d.fromRope.pos) : this.addNode(d.from);
     if (b < 0) b = endRope ? splitBeam(this.structure, endRope.beam, endRope.pos) : this.addNode(to);
     this.pendingStart = null;
@@ -467,11 +453,7 @@ export class PontifexScene extends Scene2D {
     return this.structure.nodes.length - 1;
   }
   private deleteAt(p: Pt): void {
-    let best = -1, bd = 9;
-    this.structure.beams.forEach((b, i) => {
-      const d = distToSegment(p, this.structure.nodes[b.a], this.structure.nodes[b.b]);
-      if (d < bd) { bd = d; best = i; }
-    });
+    const best = beamNear(this.structure, p);
     if (best < 0) return;
     this.structure.beams.splice(best, 1);
     this.sfx.onDelete();
@@ -539,139 +521,63 @@ export class PontifexScene extends Scene2D {
     const sim = this.sim!;
     const won = sim.status === 'won';
     const cost = Math.round(structureCost(this.structure));
-    const left = this.level.budget - cost;
-    const okBudget = won && left >= this.level.budget * 0.2;
-    const okStress = won && sim.maxRatio < 0.75;
-    const stars = won ? 1 + Number(okBudget) + Number(okStress) : 0;
+    const rating = rateAttempt({ won, cost, budget: this.level.budget, maxRatio: sim.maxRatio });
     const testing = this.testingSpec;
     if (won && testing) testing.solution = clone(this.structure);
-    else if (won) {
-      const key = String(this.level.id);
-      if (stars > (this.progress.stars[key] ?? 0)) { this.progress.stars[key] = stars; this.saveProgress(); }
-    }
-    const win = new Window({ width: 380, height: won ? 320 : 250, title: won ? (testing ? 'Solution validée !' : 'Niveau réussi !') : 'Le pont s’est effondré', modal: true, closable: false });
-    const c = win.content;
-    const star = new Label({ text: won ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : '✖', size: 40, color: won ? 0xfbbf24 : 0xf43f5e });
-    star.position.set(win.contentWidth / 2 - star.width / 2, 4);
-    const mark = (ok: boolean) => (ok ? '✔' : '✖');
-    const info = new Label({
-      text: won
-        ? `${mark(true)}  Le véhicule a traversé\n${mark(okBudget)}  Au moins 20 % du budget restant (${left} €)\n${mark(okStress)}  Contrainte max sous 75 % (${Math.round(sim.maxRatio * 100)} %)${testing ? `\n\nCe pont devient la solution de référence (${cost} €).` : ''}`
-        : 'Renforce les poutres qui rougissent en premier, ou ajoute des triangles : un triangle ne se déforme pas.',
-      size: 13, wrapWidth: win.contentWidth - 16, color: 0xcbd5e1,
-    });
-    info.position.set(8, 70);
-    c.addChild(star, info);
-    const y = win.contentHeight - 44;
-    const bw = (win.contentWidth - 24) / 2;
-    const retry = new Button({ width: bw, height: 36, text: 'Modifier', onClick: () => { win.close(); this.stopSim(); } });
-    retry.position.set(8, y);
+    else if (won) this.progress.record(this.level.id, rating.stars);
     const custom = this.levelIdx >= this.builtinCount;
     const lastBuiltin = this.levelIdx >= this.builtinCount - 1;
-    const label = !won ? 'Revoir la chute' : testing ? '↩ Éditeur' : custom ? 'Niveaux' : lastBuiltin ? 'Recommencer' : 'Suivant →';
-    const next = new Button({
-      width: bw, height: 36, text: label,
-      onClick: () => {
-        win.close();
+    const nextLabel = !won ? 'Revoir la chute' : testing ? '↩ Éditeur' : custom ? 'Niveaux' : lastBuiltin ? 'Recommencer' : 'Suivant →';
+    this.windows.push(buildResultWindow({
+      won, testing: testing !== null, rating, cost, maxRatio: sim.maxRatio, nextLabel,
+      onModify: () => this.stopSim(),
+      onNext: () => {
         if (!won) { this.stopSim(); this.toggleSim(); }
         else if (testing) this.backToEditor();
         else if (custom) { this.stopSim(); this.showLevels(); }
         else this.loadLevel(lastBuiltin ? 0 : this.levelIdx + 1);
       },
-    });
-    next.position.set(16 + bw, y);
-    c.addChild(retry, next);
-    this.windows.push(win);
+    }));
   }
 
   private showLevels(): void {
     this.cancelBuild();
     this.windows.closeAll();
-    const cols = 4, bw = 172, bh = 56, gap = 8;
-    const rows = Math.ceil(this.builtinCount / cols);
-    const customRows = this.customs.length;
-    const win = new Window({ width: cols * (bw + gap) + gap + 16, height: rows * (bh + gap) + gap + 96 + (customRows + 1) * 42 + 30, title: 'Choisir un niveau', modal: true, closable: true, closeButton: true });
-    this.levels.slice(0, this.builtinCount).forEach((lv, i) => {
-      const s = this.progress.stars[String(lv.id)] ?? 0;
-      const ok = this.unlocked(i);
-      const b = new Button({
-        width: bw, height: bh, disabled: !ok,
-        text: `${lv.label}. ${lv.name}\n${ok ? '★'.repeat(s) + '☆'.repeat(3 - s) : '— verrouillé —'}`,
-        label: { size: 12 },
-        onClick: () => { win.close(); this.loadLevel(i); },
-      });
-      b.position.set(gap + (i % cols) * (bw + gap), gap + Math.floor(i / cols) * (bh + gap));
-      win.content.addChild(b);
-    });
-    // niveaux personnalisés
-    let y = rows * (bh + gap) + gap + 6;
-    const title = new Label({ text: 'Mes niveaux', size: 13, bold: true, color: 0xfbbf24 });
-    title.position.set(gap, y); win.content.addChild(title);
-    y += 24;
-    this.customs.forEach((spec, k) => {
-      const idx = this.builtinCount + k;
-      const stars = this.progress.stars[String(spec.id)] ?? 0;
-      const play = new Button({ width: 330, height: 34, label: { size: 12 }, text: `${spec.name}   ${spec.solution ? '✔ validé' : '✖ non validé'}   ${'★'.repeat(stars)}`, onClick: () => { win.close(); this.loadLevel(idx); } });
-      const edit = new Button({ width: 80, height: 34, label: { size: 12 }, text: '✎ Éditer', onClick: () => { win.close(); this.enterEditor(spec); } });
-      const del = new Button({ width: 90, height: 34, label: { size: 12 }, text: '✖ Suppr.', onClick: () => this.confirm(`Supprimer « ${spec.name} » ?`, () => { this.customs.splice(k, 1); this.saveCustoms(); this.showLevels(); }) });
-      play.position.set(gap, y); edit.position.set(gap + 338, y); del.position.set(gap + 426, y);
-      win.content.addChild(play, edit, del);
-      y += 42;
-    });
-    const nouveau = new Button({ width: 200, height: 34, label: { size: 12 }, text: '＋ Nouveau niveau', onClick: () => { win.close(); this.enterEditor(null); } });
-    const imp = new Button({ width: 220, height: 34, label: { size: 12 }, text: 'Importer (presse-papiers)', onClick: () => {
-      void navigator.clipboard.readText().then((t) => { win.close(); this.importText(t); }).catch(() => this.reject('Presse-papiers inaccessible : dépose plutôt le fichier .json sur la page'));
-    } });
-    nouveau.position.set(gap, y); imp.position.set(gap + 208, y);
-    win.content.addChild(nouveau, imp);
-    const hint = new Label({ text: 'Astuce : dépose un fichier .json de niveau sur la page pour l’importer.', size: 11, color: 0x94a3b8 });
-    hint.position.set(gap, y + 40); win.content.addChild(hint);
-    const close = new Button({ width: 120, height: 32, text: 'Fermer', onClick: () => win.close() });
-    close.position.set(win.contentWidth - 128, win.contentHeight - 40);
-    win.content.addChild(close);
-    this.windows.push(win);
+    const customs = this.customLevels.all;
+    this.windows.push(buildLevelsWindow({
+      builtin: this.levels.slice(0, this.builtinCount).map((level, i) => ({
+        label: level.label, name: level.name, stars: this.progress.starsOf(level.id), unlocked: this.unlocked(i),
+      })),
+      customs: customs.map((spec) => ({ name: spec.name, validated: !!spec.solution, stars: this.progress.starsOf(spec.id) })),
+      onPlayBuiltin: (index) => this.loadLevel(index),
+      onPlayCustom: (index) => this.loadLevel(this.builtinCount + index),
+      onEdit: (index) => this.enterEditor(customs[index]),
+      onDelete: (index) => this.confirm(`Supprimer « ${customs[index].name} » ?`, () => {
+        this.customLevels.remove(index);
+        this.rebuildLevels();
+        this.showLevels();
+      }),
+      onNew: () => this.enterEditor(null),
+      onImportText: (text) => this.importText(text),
+      onClipboardDenied: () => this.reject('Presse-papiers inaccessible : dépose plutôt le fichier .json sur la page'),
+    }));
   }
 
-  private confirm(message: string, yes: () => void): void {
+  private confirm(message: string, onYes: () => void): void {
     this.cancelBuild();
-    const win = new Window({ width: 340, height: 170, title: 'Confirmer', modal: true, closable: true, closeButton: true });
-    const l = new Label({ text: message, size: 13, wrapWidth: win.contentWidth - 16 });
-    l.position.set(8, 10);
-    const ok = new Button({ width: 140, height: 34, text: 'Oui', onClick: () => { win.close(); yes(); } });
-    const no = new Button({ width: 140, height: 34, text: 'Non', onClick: () => win.close() });
-    ok.position.set(8, win.contentHeight - 44); no.position.set(win.contentWidth - 148, win.contentHeight - 44);
-    win.content.addChild(l, ok, no);
-    this.windows.push(win);
+    this.windows.push(buildConfirmWindow(message, onYes));
   }
 
   // ------------------------------------------------------------------ niveaux personnalisés
-  private loadCustoms(): void {
-    this.customs = [];
-    try {
-      const raw = JSON.parse(String(this.settings.getCustom('customs', '[]')));
-      for (const r of Array.isArray(raw) ? raw : []) {
-        const parsed = parseSpec(r);
-        if ('spec' in parsed && Number.isInteger(r.id)) this.customs.push({ ...parsed.spec, id: r.id, label: 'P' });
-      }
-    } catch { /* stockage corrompu : on repart d'une liste vide */ }
-    this.rebuildLevels();
-  }
-  private saveCustoms(): void {
-    this.settings.setCustom('customs', JSON.stringify(this.customs));
-    this.rebuildLevels();
-  }
   private rebuildLevels(): void {
-    this.levels = [...BUILTIN_LEVELS, ...this.customs.map((c, i) => deriveLevel({ ...c, label: `P${i + 1}` }))];
+    this.levels = [...BUILTIN_LEVELS, ...this.customLevels.levels()];
   }
-  private nextId(): number { return Math.max(100, ...this.customs.map((c) => c.id)) + 1; }
 
   private importText(text: string): void {
-    let raw: unknown;
-    try { raw = JSON.parse(text); } catch { this.reject('Ce n’est pas un niveau (JSON illisible)'); return; }
-    const parsed = parseSpec(raw);
+    const parsed = parseLevelFile(text);
     if ('error' in parsed) { this.reject(parsed.error); return; }
-    this.customs.push({ ...parsed.spec, id: this.nextId() });
-    this.saveCustoms();
+    this.customLevels.add(parsed.spec);
+    this.rebuildLevels();
     this.toastMsg = `Niveau « ${parsed.spec.name} » importé`; this.toastT = 2.5;
     this.showLevels();
   }
@@ -737,11 +643,8 @@ export class PontifexScene extends Scene2D {
     this.applyLevel(deriveLevel({ ...spec, id: 0, label: 'P' }));
   }
   private saveDraft(spec: LevelSpec): void {
-    const copy: LevelSpec = JSON.parse(JSON.stringify(spec));
-    const at = this.customs.findIndex((c) => c.id === this.editingId);
-    if (at >= 0) { copy.id = this.editingId; this.customs[at] = copy; }
-    else { copy.id = this.nextId(); this.editingId = copy.id; this.customs.push(copy); }
-    this.saveCustoms();
+    this.editingId = this.customLevels.saveDraft(spec, this.editingId);
+    this.rebuildLevels();
     this.toastMsg = spec.solution ? 'Niveau enregistré' : 'Niveau enregistré (solution non validée)';
     this.toastT = 2.2;
   }
@@ -762,48 +665,42 @@ export class PontifexScene extends Scene2D {
   private button(text: string, onClick: () => void, w = 96, size = 12): Button {
     return new Button({ width: w, height: 34, text, label: { size }, onClick: () => { this.sfx.onClick(); onClick(); } });
   }
-  private drawFullscreenIcon(): void {
-    const icon = this.fullscreenIcon.clear();
-    const fullscreen = !!document.fullscreenElement;
-    // Quatre coins vers l’extérieur pour agrandir, vers l’intérieur pour réduire.
-    for (const [x, y] of [[0, 0], [20, 0], [0, 20], [20, 20]]) {
-      const dx = x === 0 ? 1 : -1;
-      const dy = y === 0 ? 1 : -1;
-      const cornerX = fullscreen ? x + dx * 7 : x;
-      const cornerY = fullscreen ? y + dy * 7 : y;
-      const direction = fullscreen ? -1 : 1;
-      icon.moveTo(cornerX + dx * direction * 7, cornerY)
-        .lineTo(cornerX, cornerY)
-        .lineTo(cornerX, cornerY + dy * direction * 7);
-    }
-    icon.stroke({ color: 0xe2e8f0, width: 2, cap: 'round', join: 'round' });
+  private setButtonIcon(button: Button, name: string): void {
+    const icon = this.buttonIcons.get(button);
+    if (icon) icon.texture = texture(`ui/${name}.svg`);
+  }
+
+  private iconButton(name: string, text: string, onClick: () => void, width: number): Button {
+    const icon = new Sprite2D(texture(`ui/${name}.svg`));
+    icon.width = 20;
+    icon.height = 20;
     icon.eventMode = 'none';
+    const button = new Button({ width: width + 28, height: 34, text, icon, label: { size: 12 },
+      onClick: () => { this.sfx.onClick(); onClick(); } });
+    this.buttonIcons.set(button, icon);
+    return button;
   }
 
   private buildHud(): void {
     this.btnLevel = this.button('', () => this.showLevels(), 190);
     for (const id of MATERIAL_ORDER) {
-      const m = MATERIALS[id];
-      const b = this.button('', () => this.setTool(id), 150);
+      const name = id === 'concrete' || id === 'hydraulics' ? `icon_${id}` : `mat_${id}`;
+      const b = this.iconButton(name, '', () => this.setTool(id), 150);
       this.matButtons.set(id, b);
     }
-    this.btnDelete = this.button('Effacer', () => this.setTool('delete'), 80);
+    this.btnDelete = this.iconButton('tool_delete', 'Effacer', () => this.setTool('delete'), 80);
     this.matButtons.set('delete', this.btnDelete);
-    this.btnUndo = this.button('Annuler', () => this.undo(), 80);
-    this.btnRedo = this.button('Rétablir', () => this.redo(), 80);
-    this.btnClear = this.button('Vider', () => this.clearAll(), 66);
-    this.btnSpeed = this.button('', () => { this.speed = this.speed === 0.5 ? 1 : 0.5; this.refreshHud(); }, 126);
-    this.btnGrid = this.button('', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); }, 90);
-    this.btnSound = this.button('', () => { this.sfx.enabled = !this.sfx.enabled; this.music.setEnabled(this.sfx.enabled); this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
-    this.btnMusic = this.button('Musique', () => this.showMusic(), 86);
-    this.btnMusicPause = this.button('Pause', () => this.music.togglePause(), 96);
-    this.btnMusicNext = this.button('Suivant', () => this.music.next(), 80);
-    this.drawFullscreenIcon();
-    this.btnFullscreen = new Button({
-      width: 52, height: 34, icon: this.fullscreenIcon,
-      onClick: () => { this.sfx.onClick(); this.toggleFullscreen(); },
-    });
-    this.btnBack = this.button('↩ Éditeur', () => this.backToEditor(), 110);
+    this.btnUndo = this.iconButton('tool_undo', 'Annuler', () => this.undo(), 80);
+    this.btnRedo = this.iconButton('tool_redo', 'Rétablir', () => this.redo(), 80);
+    this.btnClear = this.iconButton('tool_clear', 'Vider', () => this.clearAll(), 66);
+    this.btnSpeed = this.iconButton('speed_slow', '', () => { this.speed = this.speed === 0.5 ? 1 : 0.5; this.refreshHud(); }, 126);
+    this.btnGrid = this.iconButton('grid_on', '', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); }, 90);
+    this.btnSound = this.iconButton('sound_on', '', () => { this.sfx.enabled = !this.sfx.enabled; this.music.setEnabled(this.sfx.enabled); this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
+    this.btnMusic = this.iconButton('music', 'Musique', () => this.showMusic(), 86);
+    this.btnMusicPause = this.iconButton('music_pause', 'Pause', () => this.music.togglePause(), 96);
+    this.btnMusicNext = this.iconButton('music_next', 'Suivant', () => this.music.next(), 80);
+    this.btnFullscreen = this.iconButton('fullscreen_enter', '', () => this.toggleFullscreen(), 24);
+    this.btnBack = this.iconButton('editor', '↩ Éditeur', () => this.backToEditor(), 110);
     this.btnTest = new Button({ width: 130, height: 40, text: '▶  TESTER', label: { size: 14, bold: true }, onClick: () => { this.sfx.onClick(); this.toggleSim(); } });
     this.stage.addChild(this.topBar, this.botBar);
     for (const o of [this.lblTitle, this.btnLevel, this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblHint, this.lblToast,
@@ -813,41 +710,11 @@ export class PontifexScene extends Scene2D {
   private showMusic(): void {
     this.cancelBuild();
     this.windows.closeAll();
-    const win = new Window({ width: Math.min(520, this.vw - 16), height: Math.min(600, this.vh - 20), title: 'Musique', modal: true, closable: true, closeButton: true, blocker: true });
-    const current = MUSIC_TRACKS.find((track) => track.id === this.music.selected);
-    const now = new Label({ text: current ? `En écoute : ${current.composer}\n${current.title}` : 'Musique arrêtée', size: 12, wrapWidth: win.contentWidth - 20 });
-    now.position.set(8, 4);
-    win.content.addChild(now);
-    const listHeight = win.contentHeight - 96;
-    const list = new ScrollBox({ width: win.contentWidth - 48, height: listHeight, contentHeight: MUSIC_TRACKS.length * 96 });
-    list.position.set(4, 44);
-    win.content.addChild(list);
-    const choose = (id: string) => {
-      this.music.select(id);
-      this.settings.setCustom('music', id);
-      win.close();
-    };
-    MUSIC_TRACKS.forEach((track, i) => {
-      const y = i * 96;
-      const button = this.button(track.title, () => choose(track.id), win.contentWidth - 66);
-      button.setSelected(this.music.selected === track.id);
-      button.position.set(8, y);
-      const credit = new Label({ text: `${track.composer} · ${track.license} ↗\n${track.author}`, size: 11, color: 0xcbd5e1, wrapWidth: win.contentWidth - 66 });
-      credit.position.set(10, y + 37);
-      credit.eventMode = 'static';
-      credit.cursor = 'pointer';
-      credit.on('pointertap', () => window.open(track.url, '_blank', 'noopener,noreferrer'));
-      list.content.addChild(button, credit);
-    });
-    const up = this.button('↑', () => list.scrollBy(-160), 32);
-    const down = this.button('↓', () => list.scrollBy(160), 32);
-    up.position.set(win.contentWidth - 36, 44);
-    down.position.set(win.contentWidth - 36, 44 + listHeight - 34);
-    const off = this.button('Sans musique', () => choose(''), win.contentWidth - 16);
-    off.position.set(8, win.contentHeight - 40);
-    off.setSelected(!this.music.selected);
-    win.content.addChild(off, up, down);
-    this.windows.push(win);
+    this.windows.push(buildMusicWindow({
+      viewportWidth: this.vw, viewportHeight: this.vh, selected: this.music.selected,
+      makeButton: (text, onClick, width, size) => this.button(text, onClick, width, size),
+      onChoose: (id) => { this.music.select(id); this.settings.setCustom('music', id); },
+    }));
   }
   private undo(): void { if (!this.sim) this.restore(this.history.undo()); }
   private redo(): void { if (!this.sim) this.restore(this.history.redo()); }
@@ -876,7 +743,11 @@ export class PontifexScene extends Scene2D {
     this.btnSpeed.setText(this.speed === 1 ? 'Temps réel' : 'Ralenti ×½');
     this.btnGrid.setText(`Grille ${this.snapOn ? 'ON' : 'OFF'}`);
     this.btnSound.setText(this.sfx.enabled ? 'Son ON' : 'Son OFF');
-    this.drawFullscreenIcon();
+    this.setButtonIcon(this.btnFullscreen, document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen_enter');
+    this.setButtonIcon(this.btnSpeed, this.speed === 1 ? 'speed_real' : 'speed_slow');
+    this.setButtonIcon(this.btnGrid, this.snapOn ? 'grid_on' : 'grid_off');
+    this.setButtonIcon(this.btnSound, this.sfx.enabled ? 'sound_on' : 'sound_off');
+    this.setButtonIcon(this.btnTest, this.sim ? 'sim_stop' : 'sim_play');
     this.btnFullscreen.label = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
     this.btnTest.setText(this.sim ? '🛠  ÉDITER' : '▶  TESTER');
     if (!this.sim) this.setStress(0);
@@ -974,6 +845,7 @@ export class PontifexScene extends Scene2D {
   // ------------------------------------------------------------------ boucle
   override update(dt: number): void {
     this.music.update();
+    this.setButtonIcon(this.btnMusicPause, this.music.paused ? 'music_play' : 'music_pause');
     this.btnMusicPause.setText(this.music.paused ? 'Reprendre' : 'Pause');
     const musicLabel = this.music.error ? 'Musique !' : this.music.loading ? 'Musique…' : this.music.selected ? 'Musique' : 'Mus. OFF';
     if (musicLabel !== this.musicLabel) {

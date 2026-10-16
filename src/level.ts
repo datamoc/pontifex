@@ -170,6 +170,11 @@ export function pointInPoly(p: Pt, poly: Pt[]): boolean {
   return inside;
 }
 
+/** Vrai si `p` est dans la zone où l'on peut construire : dans le monde, sous la barre du haut, au-dessus de l'eau (30 px de marge). */
+export function isInsideWorld(level: LevelDef, p: Pt): boolean {
+  return p.x >= 0 && p.x <= WORLD_W && p.y >= 20 && p.y <= level.waterY + 30;
+}
+
 /** Vrai si `p` est à l'intérieur de la roche (2 px de tolérance : un point posé sur le bord n'est pas dedans). */
 export function isSolid(level: LevelDef, p: Pt): boolean {
   return [level.leftCliff, level.rightCliff, ...level.islands].some((poly) => pointInPoly(p, poly) &&

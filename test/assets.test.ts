@@ -32,7 +32,8 @@ test('musique : chaque morceau est livré en MIDI avec le SoundFont, dont les in
   assert.ok(files.has(SOUNDFONT_FILE), 'SoundFont livré');
   assert.equal(new Set(MUSIC_TRACKS.map((track) => track.id)).size, MUSIC_TRACKS.length);
   const midis = MUSIC_TRACKS.map((track) => {
-    assert.ok(track.composer && track.author && track.license && track.url);
+    assert.ok(track.composer && track.author && track.license);
+    assert.ok(track.url || track.license === 'Licence du MIDI non renseignée');
     assert.ok(files.has('music/' + track.file), track.id + ' : MIDI absent des assets');
     const bytes = readFileSync(new URL('../assets/music/' + track.file, import.meta.url));
     const midi = parseMidi(bytes);

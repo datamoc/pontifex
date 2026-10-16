@@ -1,5 +1,5 @@
 // Opérations d'édition sur une Structure, sans rendu : accrochage sur câble porteur, nettoyage.
-import type { Pt } from './data.ts';
+import { GRID, type Pt } from './data.ts';
 import type { Structure } from './physics.ts';
 
 export interface RopeHit { beam: number; pos: Pt }
@@ -18,6 +18,35 @@ export function ropeHit(s: Structure, p: Pt, tol = 10, nodeTol = 14): RopeHit | 
     if (d < bd && Math.hypot(pos.x - v.x, pos.y - v.y) > nodeTol && Math.hypot(pos.x - w.x, pos.y - w.y) > nodeTol) { bd = d; best = { beam: i, pos }; }
   });
   return best;
+}
+
+/** Distance de `p` au segment [from, to]. */
+export function distToSegment(p: Pt, from: Pt, to: Pt): number {
+  const lengthSquared = (from.x - to.x) ** 2 + (from.y - to.y) ** 2;
+  if (lengthSquared === 0) return Math.hypot(p.x - from.x, p.y - from.y);
+  const t = Math.max(0, Math.min(1, ((p.x - from.x) * (to.x - from.x) + (p.y - from.y) * (to.y - from.y)) / lengthSquared));
+  return Math.hypot(p.x - (from.x + t * (to.x - from.x)), p.y - (from.y + t * (to.y - from.y)));
+}
+
+/** Index de la poutre la plus proche de `p` (strictement à moins de `tolerance` px), ou -1. */
+export function beamNear(s: Structure, p: Pt, tolerance = 9): number {
+  let best = -1, bestDistance = tolerance;
+  s.beams.forEach((beam, index) => {
+    const distance = distToSegment(p, s.nodes[beam.a], s.nodes[beam.b]);
+    if (distance < bestDistance) { bestDistance = distance; best = index; }
+  });
+  return best;
+}
+
+/** Vrai si une poutre relie déjà ces deux nœuds, quel que soit le sens. */
+export function beamExists(s: Structure, a: number, b: number): boolean {
+  return s.beams.some((beam) => (beam.a === a && beam.b === b) || (beam.a === b && beam.b === a));
+}
+
+/** Point de grille le plus proche, ou simple arrondi à l'entier quand l'aimantation est coupée. */
+export function snapPoint(p: Pt, gridOn: boolean): Pt {
+  if (!gridOn) return { x: Math.round(p.x), y: Math.round(p.y) };
+  return { x: Math.round(p.x / GRID) * GRID, y: Math.round(p.y / GRID) * GRID };
 }
 
 /** Index du nœud le plus proche de `p` (à `r` px près, strictement), ou -1. */

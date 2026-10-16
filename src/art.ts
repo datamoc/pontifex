@@ -29,6 +29,13 @@ const SCENERY = [
   'ship_small.svg', 'ship_medium.svg', 'ship_large.svg', // Nouveaux sprites pour les navires
 ].map((f) => `${DIR}/${f}`);
 
+const UI_FILES = [
+  'mat_road', 'mat_wood', 'mat_steel', 'mat_rope', 'mat_cable', 'icon_concrete', 'icon_hydraulics',
+  'tool_delete', 'tool_undo', 'tool_redo', 'tool_clear', 'speed_slow', 'speed_real',
+  'grid_on', 'grid_off', 'sound_on', 'sound_off', 'music', 'music_play', 'music_pause',
+  'music_next', 'fullscreen_enter', 'fullscreen_exit', 'editor', 'sim_play', 'sim_stop',
+].map((name) => `ui/${name}.svg`);
+
 const vehicleParts = new Map<string, Readonly<Record<string, Texture2D>>>();
 
 export interface WheelArt { group: string; at: [number, number] }
@@ -65,7 +72,7 @@ const vehicleArtOf = (name: string): VehicleArt => {
 };
 
 export async function loadArt(): Promise<void> {
-  await load(['manifest.json', ...SCENERY, ...BIOME_FILES, ...RESIDENT_FILES], { resolution: RES });
+  await load(['manifest.json', ...SCENERY, ...UI_FILES, ...BIOME_FILES, ...RESIDENT_FILES], { resolution: RES });
   art = get<Record<string, ArtDef>>('manifest.json');
   for (const file of VEHICLES) {
     const parts = await loadSvgParts(file, { resolution: RES });

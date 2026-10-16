@@ -3,7 +3,7 @@ export const SOUNDFONT_FILE = 'soundfonts/microgm-opt.sf2';
 
 export const MUSIC_TRACKS = [
   { id: 'gymnopedie-1', file: 'gymnopedie-1.mid', title: 'Gymnopédie n° 1', composer: 'Erik Satie', author: 'Saisie Evin Robertson', license: 'Domaine public', url: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=37' },
-  { id: 'meditation-thais', file: 'Meditation.mid', title: 'Méditation de Thaïs', composer: 'Jules Massenet', author: 'Fichier MIDI, d’après Massenet', license: 'CC BY-SA 4.0', url: 'https://commons.wikimedia.org/wiki/File:Jules_Massenet_-_Meditation_from_Thais_-_David_Hernando_Vitores_-_Kayoko_Morimoto_(Wasei_Duo).ogg' },
+  { id: 'meditation-thais', file: 'Meditation.mid', title: 'Méditation de Thaïs', composer: 'Jules Massenet', author: 'MIDI fourni : THAIS.MID ; séquenceur non identifié', license: 'Licence du MIDI non renseignée', url: '' },
   { id: 'marche-turque', file: 'marche-turque.mid', title: 'Marche turque · K. 331', composer: 'W. A. Mozart', author: 'Saisie Rune Zedeler et Chris Sawer', license: 'Domaine public', url: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=108' },
   { id: 'les-sauvages', file: 'les-sauvages.mid', title: 'Les Sauvages · version clavier', composer: 'Jean-Philippe Rameau', author: 'Saisie Ludovic Sardain', license: 'Domaine public', url: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=407' },
   { id: 'beethoven-7-2', file: 'beethoven-7-2.mid', title: 'Symphonie n° 7 · II. Allegretto', composer: 'L. van Beethoven', author: 'Saisie Stelios Samelis · orchestre', license: 'Domaine public', url: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=595' },

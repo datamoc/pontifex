@@ -33,7 +33,7 @@ try {
       const data = new Float32Array(analyser.fftSize);
       analyser.getFloatTimeDomainData(data);
       return data.some((sample) => Math.abs(sample) > 0.005);
-    }, { timeout: 20000 });
+    }, { timeout: id === 'meditation-thais' ? 2000 : 20000 });
     const state = await page.evaluate(() => {
       const music = window.__pontifex.music;
       return { error: music.error, playing: music.channel?.isPlaying, context: music.context.state,
@@ -43,6 +43,7 @@ try {
     assert.equal(state.playing, true);
     assert.equal(state.context, 'running');
     assert.ok(state.duration > 30 && state.scheduled > 0 && state.position >= 0);
+    if (id === 'meditation-thais') assert.ok(state.position >= 3.69 && state.duration > 270, 'THAIS.MID entier, sans silence initial');
     if (id === 'beethoven-7-2') assert.ok(state.duration > 430, 'mouvement entier');
     if (id === 'beethoven-5-1') assert.ok(state.duration > 310, 'mouvement entier');
     if (id === 'marche-turque') assert.ok(state.duration > 250, 'morceau entier');

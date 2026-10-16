@@ -4,9 +4,8 @@ import { DEFAULT_MIME } from '@datamoc/mwg/tools/compile-resources';
 
 /**
  * Dossiers d'assets que le jeu ne charge nulle part : ils restent dans le dépôt mais n'alourdissent pas la page.
- * `ui/` attend la migration des icônes de boutons (elles doivent être embarquées au build, pas chargées par `fetch`).
  */
-const UNUSED_DIRECTORIES = ['biomes/', 'svg/', 'levels/', 'ui/'];
+const UNUSED_DIRECTORIES = ['biomes/', 'svg/', 'levels/'];
 
 /** Même sélection pour le HTML autonome et son rapport de poids. */
 export function runtimeAssetFiles(): string[] {

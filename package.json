@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tsx --test test/physics.test.ts test/editor.test.ts test/content.test.ts test/assets.test.ts test/build.test.ts test/walker-rig.test.ts test/ships.test.ts",
+    "test": "tsx --test test/physics.test.ts test/editor.test.ts test/content.test.ts test/assets.test.ts test/build.test.ts test/walker-rig.test.ts test/ships.test.ts test/scene-parts.test.ts",
     "build": "vite build",
     "typecheck": "tsc -p .",
     "e2e": "node e2e/run.mjs && node e2e/mobile.mjs",
