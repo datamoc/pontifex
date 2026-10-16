@@ -8,7 +8,6 @@ export function runtimeAssetFiles(): string[] {
     .filter((entry) => entry.isFile())
     .map((entry) => relative('assets', join(entry.parentPath, entry.name)).replaceAll('\\', '/'))
     .filter((file) => !file.startsWith('garbage/')
-      && !file.startsWith('music/') // les MIDI sont embarqués en base64 via src/generated/music.ts
       && !/^(?:walker_.+|cyclist)_f\d+\.svg$/.test(basename(file))
       && (file === 'credits.json' || extname(file).toLowerCase() in DEFAULT_MIME))
     .sort();

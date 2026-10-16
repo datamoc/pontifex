@@ -1,7 +1,6 @@
 import { runtimeAssetFiles } from '../tools/runtime-assets.ts';
-import { MUSIC_TRACKS } from '../src/music-catalog.ts';
-import { MUSIC_MIDI } from '../src/generated/music.ts';
-import { parseMidi, scheduleMidi } from '@datamoc/mwg/audio';
+import { MUSIC_TRACKS, SOUNDFONT_FILE } from '../src/music-catalog.ts';
+import { collectSoundFontUsage, missingSoundFontPrograms, parseMidi, scheduleMidi, subsetSoundFont } from '@datamoc/mwg/audio';
 import { drawTrackId } from '../src/music.ts';
 import { wingTipDrop, wingVertexY } from '../src/resident-animation.ts';
 import * as Skeleton from '@datamoc/mwg/skeleton';
@@ -28,23 +27,25 @@ const DIR = 'common';
 
 const manifest = JSON.parse(readFileSync(new URL('../assets/manifest.json', import.meta.url), 'utf8'));
 
-test('musique : chaque morceau est embarqué en MIDI et tient dans le build', () => {
+test('musique : chaque morceau est livré en MIDI avec le SoundFont, dont les instruments sont couverts', () => {
   const files = new Set(runtimeAssetFiles());
-  assert.ok(![...files].some((file) => file.startsWith('music/')), 'MIDI dans le bundle');
+  assert.ok(files.has(SOUNDFONT_FILE), 'SoundFont livré');
   assert.equal(new Set(MUSIC_TRACKS.map((track) => track.id)).size, MUSIC_TRACKS.length);
-  const ALIAS: Record<string, string> = { 'meditation-thais': 'Meditation.mid' };
-  for (const track of MUSIC_TRACKS) {
+  const midis = MUSIC_TRACKS.map((track) => {
     assert.ok(track.composer && track.author && track.license && track.url);
-    const raw = MUSIC_MIDI[track.id];
-    assert.ok(raw && raw.length > 100, track.id);
-    const embedded = Buffer.from(raw, 'base64');
-    const file = ALIAS[track.id] ?? track.id + '.mid';
-    const disk = readFileSync(new URL('../assets/music/' + file, import.meta.url));
-    assert.ok(embedded.equals(disk), track.id + ' : relancer npm run music:embed');
-    const notes = scheduleMidi(parseMidi(embedded));
+    assert.ok(files.has('music/' + track.file), track.id + ' : MIDI absent des assets');
+    const bytes = readFileSync(new URL('../assets/music/' + track.file, import.meta.url));
+    const midi = parseMidi(bytes);
+    const notes = scheduleMidi(midi);
     const duration = Math.max(...notes.map((note) => note.time + note.duration));
     assert.ok(notes.length > 50 && duration > 30, track.id + ' : morceau entier attendu');
-  }
+    return midi;
+  });
+  // MWG ne garde au build que ces programmes : tous doivent exister dans le SoundFont, sinon le synthétiseur de repli joue.
+  const font = readFileSync(new URL('../assets/' + SOUNDFONT_FILE, import.meta.url));
+  const usage = collectSoundFontUsage(midis);
+  assert.deepEqual(missingSoundFontPrograms(font, usage), []);
+  assert.ok(subsetSoundFont(font, usage).byteLength < font.byteLength / 2, 'le SoundFont réduit doit être bien plus léger');
 });
 
 test('musique : le tirage au sort ne rejoue jamais le morceau en cours', () => {

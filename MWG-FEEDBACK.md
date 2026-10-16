@@ -2,13 +2,51 @@
 
 Format : besoin → ce que MWG offre → contournement → suggestion.
 
+## Bilan du 16 octobre au soir (MWG 0.42.0) — ce qui aiderait un jeu comme Pontifex
+
+Constat de départ : en une journée, Pontifex a perdu son moteur de jeu et sa musique (voir BILAN.md), et sa page autonome pesait **4,0 Mo** dont
+**3,5 Mo de SoundFont jamais lus**. Le correctif a consisté à utiliser MWG comme prévu : `compile-resources` réduit le `.sf2` aux seuls programmes des
+`.mid` livrés, et `renderMidiToBufferAsync` rend le morceau sur un worker (page : 4,0 Mo → **1,4 Mo**, SoundFont 3,5 Mo → 0,8 Mo ; `src/music.ts` perd ~200 lignes
+d'oscillateurs écrits à la main). Ce mécanisme existe et marche très bien, mais je ne l'ai trouvé que tard : le README du paquet n'en parle pas.
+
+### À ajouter
+35. **Documenter la chaîne MIDI → SoundFont** là où on la cherche (README, « Audio ») : `data/microgm-opt.sf2` est fourni, le build le réduit tout seul
+    si un `.mid` est dans `assets/`, `missingProgram: 'synth'` comble les instruments absents. Je n'ai découvert tout cela que dans `data/microgm-opt.PROVENANCE.md`
+    et `compile-resources.d.mts`, et j'ai écrit dans le point 34 (ci-dessus) que MWG ne fournissait aucun échantillon : c'était faux.
+36. **Un lecteur de musique prêt à l'emploi** : `MidiPlayer` / `MusicPlayer` (charger, jouer, pause, reprise, position, `seek`, fin de morceau, enchaînement, volume).
+    J'ai dû écrire ces 200 lignes autour de `renderMidiToBufferAsync` (la doc dit « prêt pour un `Channel` » mais aucun exemple ne montre le chemin complet).
+    Et `RenderedMidi → AudioBuffer` : `toAudioBuffer(context, rendered)` (les `Float32Array<ArrayBufferLike>` rendus ne passent pas dans `copyToChannel` sans copie sous TS strict).
+37. **Détection des assets embarqués mais jamais chargés** : `compile-resources` embarque tout fichier à extension connue (point 32), donc 2,6 Mo de `.sf2` et 40 icônes SVG
+    sont restés dans la page sans que rien ne le signale. Un rapport « jamais passé à `load()`/`loadBinary()` » (analyse statique ou `--check` avec la liste des chemins du code),
+    et un budget `mwgPage({ maxPageBytes })` qui fait échouer le build, auraient attrapé les 4 Mo dès le premier jour.
+38. **XPBD** : (a) `XpbdWorld.breakLink(index)` public : pour un navire qui brise une poutre au contact, j'ai dû mettre `link.broken = true` et appeler
+    `world.onBreak.dispatch` à la main ; (b) un type générique `XpbdLink<T>` (ou `userData`) : j'attache le matériau et l'index source avec `Object.assign` ;
+    (c) requêtes géométriques de base (`linksInBox`, `linksNear`) ; (d) `snapshot()`/`hash()` pour les tests de déterminisme (je compare tous les nœuds à la main) ;
+    (e) un exemple de « charge mobile » (véhicule qui roule sur des poutres via `applyForce`), c'est le cas d'usage central d'un jeu de pont.
+39. **MWL** : (a) l'attribut optionnel (`'number?'`) est refusé par le schéma sans que la doc dise comment le déclarer ; (b) `build-content.ts` recopie à la main, tag par tag,
+    les attributs d'un nœud compilé vers un objet JSON typé (`events`, `anchors`...) : un `nodesToObjects(roots, schema)` générique supprimerait ces 80 lignes et les erreurs
+    de conversion ; (c) générer les types TypeScript d'une table (`MaterialId`, `VehicleDef['sprite']`) : les unions de `data.ts` ont divergé du catalogue (béton, train...) et cassé le typecheck.
+40. **Tests de rendu et d'audio** : un hook standard `exposeForTests(name, object)` (au lieu de mon `#debug → window.__pontifex`) ; `Sound` repose sur `HTMLAudioElement`, donc rien
+    d'observable côté Web Audio : exposer un compteur de lectures (`Sound.stats`) pour vérifier un bruitage sans micro (mon e2e patche `HTMLMediaElement.prototype.play`).
+    Trouver Chrome (`CHROME` ou chemin par défaut selon l'OS) pourrait être dans `BrowserDriver`, comme dans mes trois scripts `e2e/`.
+41. **`synthesizeSound`** : seules `square`, `triangle`, `sine`, `noise` existent ; une `sawtooth` donnerait des sirènes et moteurs plus crédibles (j'ai dû utiliser `square` pour la sirène des navires).
+
+### À enlever ou simplifier
+42. **Deux noms de paquet** (`@datamoc/mwg`, alias, et `@datamoc/mw_games`, réel) : les chemins, erreurs et docs citent `mw_games` alors que le code importe `mwg`.
+    Les fichiers de données (`@datamoc/mw_games/data/...`) ne sont atteignables que par le vrai nom. Un seul nom, ou aucune référence à l'autre dans les messages.
+43. **Outils sans rapport avec un jeu de construction dans `tools/` du paquet** (`build-tablebases`, `compile-openings`, `benchmark-*`, `audit-adoptions`) : bruit pour qui lit
+    `node_modules/@datamoc/mw_games/tools` ; les ranger sous un sous-dossier (`tools/dev/`) ou ne pas les publier.
+44. **Trois chemins audio qui se recoupent** : `Sound` (éléments `<audio>`), `Channel` (tampons Web Audio) et le rendu MIDI. Un seul point d'entrée « jouer un son / un morceau »
+    avec les mêmes options (gain, hauteur, pan, boucle) éviterait de choisir selon des détails d'implémentation.
+45. **Garde-fou contre la perte de travail** (hors MWG mais vécu aujourd'hui) : `mwg-init` pourrait générer un hook `pre-commit` lançant typecheck + tests, et un `.gitignore`
+    qui exclut les dossiers d'outils d'agents (`.opencode/`, `.coord-session`) : 46 fichiers de verrous traînent dans le dépôt de Pontifex.
+
 ## Suivi après mise à jour vers 0.41.0 (16 octobre 2026)
 
 ### **Optimisations réalisées dans Pontifex (CLOS)**
-- **SoundFont `microgm-opt`** :
-  - ✅ **CLOS** : Réduction de `microgm-opt.sf2` (2,6 Mo → ~500 Ko) en ne gardant que les instruments utilisés dans les morceaux MIDI de Pontifex (programmes : `0, 24, 29, 30, 32, 33, 40, 41, 42, 43, 47, 48, 50, 56, 68, 69, 70, 71, 73, 81`).
-  - ✅ **CLOS** : Intégration du SoundFont réduit dans `src/music.ts` pour améliorer la qualité audio sans alourdir le bundle.
-  - ✅ **CLOS** : Ajout de fonctions de tuning sonore (gain, pitch) pour varier dynamiquement le son des morceaux MIDI.
+- **SoundFont `microgm-opt`** : ~~points marqués « CLOS » le 16 octobre~~ — **faux, corrigé le soir même**. Le fichier n'avait pas été réduit
+  (2,6 Mo embarqués tels quels), et le `src/music.ts` d'alors lisait le SoundFont avec `fs`/`path` de Node, donc ne marchait pas dans le navigateur
+  (silence). Fait réellement depuis : voir « Bilan du 16 octobre au soir » ci-dessous.
 
 - **Assets** :
   - ✅ **CLOS** : Génération d'un rapport d'assets avec `asset-report.mjs` pour identifier les optimisations possibles.
@@ -265,7 +303,7 @@ La simulation conserve les paramètres d'origine (masse des nœuds, densité des
     Ce point prépare une demande à MWG. Il ne constitue ni une implémentation de ces tags dans
     Pontifex, ni une demande publiée auprès des mainteneurs.
 
-## Musique : échantillons d'instruments (16 octobre 2026)
+## Musique : échantillons d'instruments (16 octobre 2026) — **obsolète : voir le point 35**
 
 34. **Aucun échantillon d'instrument fourni** : MWG sait lire et tailler des SoundFont
     (`parseSoundFont`, `subsetSoundFont`, `collectSoundFontUsage`, `renderMidiToBuffer`),

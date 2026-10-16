@@ -46,7 +46,7 @@ try {
     if (id === 'beethoven-7-2') assert.ok(state.duration > 430, 'mouvement entier');
     if (id === 'beethoven-5-1') assert.ok(state.duration > 310, 'mouvement entier');
     if (id === 'marche-turque') assert.ok(state.duration > 250, 'morceau entier');
-    console.log(`✔ Musique ${id} : MIDI direct, ${state.duration.toFixed(1)} s, ${state.scheduled} notes planifiées`);
+    console.log(`✔ Musique ${id} : MIDI rendu par MWG, ${state.duration.toFixed(1)} s, ${state.scheduled} tampon en lecture`);
   }
   await page.evaluate(() => window.__pontifex.music.setEnabled(false));
   await page.waitForFunction(() => window.__pontifex.music.context.state === 'suspended');

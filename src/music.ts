@@ -1,22 +1,8 @@
-import { noteToFrequency, parseMidi, scheduleMidi } from '@datamoc/mwg/audio';
+import { parseMidi, renderMidiToBufferAsync } from '@datamoc/mwg/audio';
+import { getBinary, loadBinary } from '@datamoc/mwg/assets';
 
-import { MUSIC_TRACKS } from './music-catalog.ts';
+import { MUSIC_TRACKS, SOUNDFONT_FILE } from './music-catalog.ts';
 export { MUSIC_TRACKS } from './music-catalog.ts';
-import { MUSIC_MIDI } from './generated/music.ts';
-
-type Note = ReturnType<typeof scheduleMidi>[number];
-
-/** Regard de planification : les notes sont créées à l'avance sur l'horloge audio. */
-const LOOKAHEAD = 0.4;
-
-/** Timbre par famille General MIDI : un oscillateur léger, sans échantillon embarqué. */
-function waveformFor(program: number): OscillatorType {
-  switch (program >> 3) {
-    case 2: case 6: case 7: case 8: case 10: return 'square';
-    case 3: case 5: return 'sawtooth';
-    default: return program >> 3 === 4 || (program >> 3) >= 9 ? 'sine' : 'triangle';
-  }
-}
 
 /** Tirage au sort : un morceau au hasard, jamais celui qui joue déjà. */
 export function drawTrackId(except = '', rng: () => number = Math.random): string {
@@ -38,7 +24,11 @@ function reverbImpulse(context: AudioContext): AudioBuffer {
   return impulse;
 }
 
-/** Lecture directe des MIDI embarqués : huit morceaux pour ~250 Ko au lieu de ~25 Mo d'Ogg. */
+/**
+ * Musique de fond : MWG rend le MIDI en PCM (échantillons du SoundFont `microgm-opt`, réduit au build
+ * aux seuls instruments de nos huit morceaux ; synthétiseur de MWG pour un instrument absent), puis le
+ * morceau se lit comme n'importe quel tampon audio.
+ */
 export class BackgroundMusic {
   selected: string = MUSIC_TRACKS[0].id;
   paused = false;
@@ -47,18 +37,16 @@ export class BackgroundMusic {
   context: AudioContext | null = null;
   gain: GainNode | null = null;
   analyser: AnalyserNode | null = null;
-  /** Même forme que l'ancien lecteur à buffers pour le débogage (`#debug`) et l'e2e. */
+  /** Même forme que l'ancien lecteur pour le débogage (`#debug`) et l'e2e : défini quand un morceau est prêt. */
   channel: BackgroundMusic | null = null;
-  /** Notes planifiées depuis le début du morceau : prouve que l'ordonnanceur avance. */
+  /** 1 une fois le morceau rendu et lancé, 0 avant : prouve qu'un tampon joue. */
   scheduledTotal = 0;
   private enabled = true;
-  private notes: Note[] = [];
+  private buffer: AudioBuffer | null = null;
+  private source: AudioBufferSourceNode | null = null;
   private trackDuration = 0;
   private startCtxTime = 0;
   private offsetBase = 0;
-  private nextIdx = 0;
-  private voices = new Set<AudioScheduledSourceNode>();
-  private noise: AudioBuffer | null = null;
   private request = 0;
   private disposed = false;
   private activated = false;
@@ -77,7 +65,7 @@ export class BackgroundMusic {
   }
 
   get isPlaying(): boolean {
-    return !!this.context && !!this.notes.length && !this.paused && this.enabled
+    return !!this.context && !!this.buffer && !this.paused && this.enabled
       && !document.hidden && this.position() < this.trackDuration;
   }
 
@@ -86,28 +74,23 @@ export class BackgroundMusic {
   }
 
   position(): number {
-    if (!this.context || !this.notes.length) return this.offsetBase;
+    if (!this.context || !this.buffer) return this.offsetBase;
     return Math.min(this.trackDuration, Math.max(0, this.offsetBase + this.context.currentTime - this.startCtxTime));
   }
 
   seek(pos: number): void {
-    if (!this.context || !this.notes.length) return;
-    this.killVoices();
-    this.offsetBase = Math.min(Math.max(0, pos), Math.max(0, this.trackDuration - 0.001));
-    this.startCtxTime = this.context.currentTime;
-    this.nextIdx = this.notes.findIndex((note) => note.time + note.duration > this.offsetBase);
-    if (this.nextIdx < 0) this.nextIdx = this.notes.length;
+    if (!this.context || !this.buffer) return;
+    this.playFrom(Math.min(Math.max(0, pos), Math.max(0, this.trackDuration - 0.001)));
   }
 
   select(id: string, keepPaused = false): void {
     this.paused = keepPaused;
     this.selected = MUSIC_TRACKS.some((track) => track.id === id) ? id : '';
     this.request++;
-    this.killVoices();
-    this.notes = [];
+    this.stopSource();
+    this.buffer = null;
     this.trackDuration = 0;
     this.offsetBase = 0;
-    this.nextIdx = 0;
     this.channel = null;
     this.loading = false;
     this.error = '';
@@ -127,54 +110,60 @@ export class BackgroundMusic {
   private unlock(): void {
     if (this.disposed || !this.activated || !this.enabled || this.paused || !this.selected || document.hidden) return;
     // Création et reprise dans un geste utilisateur : respecte l'autoplay du navigateur.
-    if (!this.context) {
-      this.context = new AudioContext();
-      this.gain = this.context.createGain();
-      this.gain.gain.value = 0.45;
-      this.analyser = this.context.createAnalyser();
-      this.analyser.fftSize = 2048;
-      const compressor = this.context.createDynamicsCompressor();
-      compressor.threshold.value = -18;
-      compressor.ratio.value = 4;
-      compressor.attack.value = 0.003;
-      compressor.release.value = 0.25;
-      this.gain.connect(this.analyser);
-      // Réverb légère pour lier les notes sans échantillon ni fichier supplémentaire.
-      const reverb = this.context.createConvolver();
-      reverb.buffer = reverbImpulse(this.context);
-      const wet = this.context.createGain();
-      wet.gain.value = 0.33;
-      this.gain.connect(reverb);
-      reverb.connect(wet);
-      wet.connect(this.analyser);
-      this.analyser.connect(compressor);
-      compressor.connect(this.context.destination);
-    }
-    void this.context.resume().then(() => {
-      if (this.enabled && !this.paused && this.selected && !document.hidden && !this.notes.length && !this.loading && !this.disposed) void this.start();
+    if (!this.context) this.createAudioGraph();
+    void this.context!.resume().then(() => {
+      if (this.enabled && !this.paused && this.selected && !document.hidden && !this.buffer && !this.loading && !this.disposed) void this.start();
     }).catch((error: unknown) => { this.error = String(error); });
   }
 
+  private createAudioGraph(): void {
+    const context = new AudioContext();
+    this.context = context;
+    this.gain = context.createGain();
+    this.gain.gain.value = 0.45;
+    this.analyser = context.createAnalyser();
+    this.analyser.fftSize = 2048;
+    const compressor = context.createDynamicsCompressor();
+    compressor.threshold.value = -18;
+    compressor.ratio.value = 4;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
+    this.gain.connect(this.analyser);
+    // Réverb légère pour lier les notes sans fichier supplémentaire.
+    const reverb = context.createConvolver();
+    reverb.buffer = reverbImpulse(context);
+    const wet = context.createGain();
+    wet.gain.value = 0.33;
+    this.gain.connect(reverb);
+    reverb.connect(wet);
+    wet.connect(this.analyser);
+    this.analyser.connect(compressor);
+    compressor.connect(context.destination);
+  }
+
+  /** Rend le morceau choisi (sur un worker de MWG, sans figer l'écran) puis le lance. */
   private async start(): Promise<void> {
     const context = this.context!;
-    const id = this.selected;
+    const track = MUSIC_TRACKS.find((candidate) => candidate.id === this.selected);
+    if (!track) return;
     const token = ++this.request;
     this.loading = true;
     this.error = '';
     try {
-      const raw = MUSIC_MIDI[id];
-      if (!raw) throw new Error(`MIDI introuvable : ${id}`);
-      const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
-      const notes = scheduleMidi(parseMidi(bytes.buffer));
+      const midiFile = `music/${track.file}`;
+      await loadBinary([midiFile, SOUNDFONT_FILE]);
+      const midi = getBinary(midiFile);
+      parseMidi(midi); // refuse tout de suite un fichier qui n'est pas du MIDI
+      const rendered = await renderMidiToBufferAsync(midi, {
+        soundFontBytes: getBinary(SOUNDFONT_FILE), missingProgram: 'synth', sampleRate: context.sampleRate,
+      });
       if (token !== this.request || this.disposed) return;
-      notes.sort((a, b) => a.time - b.time);
-      this.notes = notes;
-      this.trackDuration = Math.max(0, ...notes.map((note) => note.time + note.duration));
-      this.offsetBase = 0;
-      this.startCtxTime = context.currentTime;
-      this.nextIdx = 0;
-      this.scheduledTotal = 0;
-      this.channel = this;
+      const buffer = context.createBuffer(2, rendered.left.length, rendered.sampleRate);
+      buffer.copyToChannel(new Float32Array(rendered.left), 0);
+      buffer.copyToChannel(new Float32Array(rendered.right), 1);
+      this.buffer = buffer;
+      this.trackDuration = rendered.duration;
+      this.playFrom(0);
     } catch (error) {
       if (token === this.request) this.error = `Musique indisponible : ${String(error)}`;
     } finally {
@@ -182,126 +171,24 @@ export class BackgroundMusic {
     }
   }
 
-  private noiseBuffer(): AudioBuffer {
-    const context = this.context!;
-    if (!this.noise) {
-      this.noise = context.createBuffer(1, context.sampleRate / 4, context.sampleRate);
-      const data = this.noise.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-    }
-    return this.noise;
+  private playFrom(offset: number): void {
+    this.stopSource();
+    const source = this.context!.createBufferSource();
+    source.buffer = this.buffer;
+    source.connect(this.gain!);
+    source.start(0, offset);
+    this.source = source;
+    this.offsetBase = offset;
+    this.startCtxTime = this.context!.currentTime;
+    this.scheduledTotal = 1;
+    this.channel = this;
   }
 
-  /** Batterie (canal 9) : grosse caisse sinusoïdale, bruit filtré pour caisse claire et charleston. */
-  private drum(note: Note, when: number, peak: number): void {
-    const context = this.context!;
-    const out = context.createGain();
-    out.connect(this.gain!);
-    if (note.note === 35 || note.note === 36) {
-      const osc = context.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(120, when);
-      osc.frequency.exponentialRampToValueAtTime(42, when + 0.12);
-      out.gain.setValueAtTime(peak * 1.4, when);
-      out.gain.exponentialRampToValueAtTime(0.001, when + 0.24);
-      osc.connect(out);
-      osc.start(when);
-      osc.stop(when + 0.26);
-      this.voices.add(osc);
-      osc.onended = () => { this.voices.delete(osc); out.disconnect(); };
-      return;
-    }
-    const hat = note.note === 42 || note.note === 44 || note.note === 46;
-    const burst = context.createBufferSource();
-    burst.buffer = this.noiseBuffer();
-    const filter = context.createBiquadFilter();
-    filter.type = hat ? 'highpass' : 'bandpass';
-    filter.frequency.value = hat ? 7000 : 1800;
-    const length = hat ? (note.note === 46 ? 0.28 : 0.05) : 0.14;
-    out.gain.setValueAtTime(peak * (hat ? 0.5 : 0.9), when);
-    out.gain.exponentialRampToValueAtTime(0.001, when + length);
-    burst.connect(filter);
-    filter.connect(out);
-    burst.start(when);
-    burst.stop(when + length + 0.02);
-    this.voices.add(burst);
-    burst.onended = () => { this.voices.delete(burst); out.disconnect(); };
-  }
-
-  /** Une note : oscillateur principal + halo légèrement désaccordé, filtre passe-bas, vibrato sur les tenues. */
-  private strike(note: Note, when: number): void {
-    const context = this.context!;
-    const peak = 0.2 * (note.velocity / 127) * (note.gain ?? 1);
-    if (peak <= 0.001) return;
-    if (note.channel === 9) { this.drum(note, when, peak); return; }
-    const program = note.program ?? 0;
-    const family = program >> 3;
-    const f0 = noteToFrequency(note.note);
-    const length = Math.max(0.03, note.duration);
-    const filter = context.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = Math.min(9500, Math.max(900, f0 * 5 + (note.velocity / 127) * 2200));
-    filter.Q.value = 0.4;
-    const out = context.createGain();
-    filter.connect(out);
-    if (note.pan) {
-      const panner = context.createStereoPanner();
-      panner.pan.value = Math.max(-1, Math.min(1, note.pan));
-      out.connect(panner);
-      panner.connect(this.gain!);
-    } else {
-      out.connect(this.gain!);
-    }
-    const main = context.createOscillator();
-    main.type = waveformFor(program);
-    main.frequency.value = f0;
-    const halo = context.createOscillator();
-    halo.type = 'sine';
-    halo.frequency.value = f0;
-    halo.detune.value = 5;
-    const haloGain = context.createGain();
-    haloGain.gain.value = 0.45;
-    main.connect(filter);
-    halo.connect(haloGain);
-    haloGain.connect(filter);
-    let lfo: OscillatorNode | null = null;
-    if (length > 0.35 && (family === 5 || family === 6 || family === 7 || family === 8 || family === 9)) {
-      lfo = context.createOscillator();
-      lfo.frequency.value = 5.2;
-      const depth = context.createGain();
-      depth.gain.value = 4;
-      lfo.connect(depth);
-      depth.connect(main.detune);
-      depth.connect(halo.detune);
-      lfo.start(when + 0.12);
-      lfo.stop(when + length + 0.08);
-    }
-    const attack = family === 5 || family === 6 ? 0.07 : 0.008;
-    out.gain.setValueAtTime(0, when);
-    out.gain.linearRampToValueAtTime(peak, when + attack);
-    out.gain.exponentialRampToValueAtTime(0.001, when + length);
-    main.start(when);
-    main.stop(when + length + 0.08);
-    halo.start(when);
-    halo.stop(when + length + 0.08);
-    this.voices.add(main);
-    this.voices.add(halo);
-    if (lfo) this.voices.add(lfo);
-    main.onended = () => {
-      this.voices.delete(main);
-      this.voices.delete(halo);
-      if (lfo) this.voices.delete(lfo);
-      filter.disconnect();
-      out.disconnect();
-    };
-  }
-
-  private killVoices(): void {
-    for (const voice of this.voices) {
-      try { voice.stop(); } catch { /* déjà arrêtée */ }
-      voice.disconnect();
-    }
-    this.voices.clear();
+  private stopSource(): void {
+    if (!this.source) return;
+    try { this.source.stop(); } catch { /* déjà arrêtée */ }
+    this.source.disconnect();
+    this.source = null;
   }
 
   togglePause(): void {
@@ -319,16 +206,9 @@ export class BackgroundMusic {
 
   update(): void {
     const context = this.context;
-    if (!context || !this.notes.length || this.paused || !this.enabled || document.hidden) return;
+    if (!context || !this.buffer || this.paused || !this.enabled || document.hidden) return;
     if (context.state !== 'running') return;
-    if (this.position() >= this.trackDuration) { this.next(); return; }
-    const horizon = this.position() + LOOKAHEAD;
-    while (this.nextIdx < this.notes.length && this.notes[this.nextIdx].time < horizon) {
-      const note = this.notes[this.nextIdx++];
-      const when = Math.max(this.startCtxTime + (note.time - this.offsetBase), context.currentTime);
-      this.strike(note, when);
-      this.scheduledTotal++;
-    }
+    if (this.position() >= this.trackDuration) this.next();
   }
 
   dispose(): void {
@@ -337,8 +217,8 @@ export class BackgroundMusic {
     window.removeEventListener('pointerdown', this.gesture);
     window.removeEventListener('keydown', this.gesture);
     document.removeEventListener('visibilitychange', this.visibility);
-    this.killVoices();
-    this.notes = [];
+    this.stopSource();
+    this.buffer = null;
     this.channel = null;
     if (this.context) void this.context.close();
   }
