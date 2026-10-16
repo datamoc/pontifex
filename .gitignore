@@ -4,3 +4,7 @@ e2e/out
 preview/
 assets/garbage/
 comparaisons/
+
+# dossiers de coordination des agents (verrous, sessions)
+.opencode/
+.coord-session

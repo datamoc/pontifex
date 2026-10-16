@@ -11,12 +11,12 @@ Ce document décrit les éléments SVG à créer pour enrichir Pontifex, en s'in
 | **Citadine**         | Voiture standard (déjà existante : `car.svg`).                                                  | 62x24            | Rouge, gris                        | 4 roues, design simple.                                                                                 |
 | **Jeep**             | Véhicule tout-terrain (déjà existant : `jeep.svg`).                                             | 70x28            | Vert, noir                         | 4 roues, design robuste.                                                                                 |
 | **Jeep 4x4**         | Version plus large du Jeep (déjà existant : `truck.svg`).                                       | 78x32            | Bleu, noir                         | 4 roues, design imposant.                                                                               |
-| **Bus**             | Bus urbain (à créer : `bus.svg`).                                                                | 80x40            | Jaune, gris                        | 6 roues, design allongé.                                                                                 |
-| **Train**            | Locomotive (à créer : `train.svg`).                                                              | 120x40           | Rouge, noir                        | 8 roues, design long et segmenté.                                                                       |
+| **Bus**             | Bus urbain (créé : `bus.svg`).                                                                | 80x40            | Jaune, gris                        | 6 roues, design allongé.                                                                                 |
+| **Train**            | Locomotive (créé : `train.svg`).                                                              | 120x40           | Rouge, noir                        | 8 roues, design long et segmenté.                                                                       |
 | **Vélo**            | Vélo (déjà existant : `bicycle.svg`).                                                            | 20x30            | Noir, gris                         | 2 roues, design minimaliste.                                                                            |
-| **Bateau**           | Bateau (à créer : `boat.svg`).                                                                   | 60x30            | Blanc, bleu                        | Coque, mât, et détails nautiques.                                                                       |
+| **Bateau**           | Bateau (créé : `boat.svg`).                                                                   | 60x30            | Blanc, bleu                        | Coque, mât, et détails nautiques.                                                                       |
 
-### **Exemples de SVG à créer**
+### **Exemples de SVG (modèles de départ, déjà réalisés dans assets/)**
 #### **Bus (`bus.svg`)**
 ```xml
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40">
@@ -84,11 +84,11 @@ Ce document décrit les éléments SVG à créer pour enrichir Pontifex, en s'in
 ### **Types de navires**
 | Nom du navire       | Description                                                                                     | Dimensions (px) | Couleurs principales               | Détails spécifiques                                                                                     |
 |----------------------|-------------------------------------------------------------------------------------------------|------------------|------------------------------------|---------------------------------------------------------------------------------------------------------|
-| **Petit navire**    | Bateau de plaisance (à créer : `ship_small.svg`).                                               | 40x20            | Blanc, bleu                        | Coque simple, mât optionnel.                                                                            |
-| **Navire moyen**    | Cargo ou ferry (à créer : `ship_medium.svg`).                                                   | 60x25            | Rouge, blanc                       | Coque segmentée, cheminée.                                                                              |
-| **Grand navire**    | Paquebot ou navire de croisière (à créer : `ship_large.svg`).                                   | 80x30            | Blanc, bleu                        | Plusieurs ponts, cheminées, détails complexes.                                                          |
+| **Petit navire**    | Bateau de plaisance (créé : `ship_small.svg`).                                               | 40x20            | Blanc, bleu                        | Coque simple, mât optionnel.                                                                            |
+| **Navire moyen**    | Cargo ou ferry (créé : `ship_medium.svg`).                                                   | 60x25            | Rouge, blanc                       | Coque segmentée, cheminée.                                                                              |
+| **Grand navire**    | Paquebot ou navire de croisière (créé : `ship_large.svg`).                                   | 80x30            | Blanc, bleu                        | Plusieurs ponts, cheminées, détails complexes.                                                          |
 
-### **Exemples de SVG à créer**
+### **Exemples de SVG (modèles de départ, déjà réalisés dans assets/)**
 #### **Petit navire (`ship_small.svg`)**
 ```xml
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 20">
@@ -143,14 +143,14 @@ Ce document décrit les éléments SVG à créer pour enrichir Pontifex, en s'in
 ### **Icônes des matériaux**
 | Matériau       | Description                                                                                     | Dimensions (px) | Couleur principale                 | Détails spécifiques                                                                                     |
 |----------------|-------------------------------------------------------------------------------------------------|------------------|------------------------------------|---------------------------------------------------------------------------------------------------------|
-| **Bois**       | Icône pour le matériau bois (à créer : `icon_wood.svg`).                                        | 24x24            | Marron                             | Texture de bois, grain visible.                                                                         |
-| **Acier**      | Icône pour le matériau acier (à créer : `icon_steel.svg`).                                      | 24x24            | Gris                               | Texture métallique, reflet.                                                                             |
-| **Béton**      | Icône pour le matériau béton (à créer : `icon_concrete.svg`).                                    | 24x24            | Gris clair                         | Texture granuleuse.                                                                                      |
-| **Câble**      | Icône pour le câble fin (à créer : `icon_cable.svg`).                                            | 24x24            | Noir                               | Ligne fine et tendue.                                                                                   |
-| **Câble porteur** | Icône pour le câble porteur (à créer : `icon_rope.svg`).                                        | 24x24            | Noir                               | Ligne épaisse et légèrement courbée.                                                                    |
-| **Hydraulique** | Icône pour l'hydraulique (à créer : `icon_hydraulics.svg`).                                      | 24x24            | Bleu                               | Cylindre avec piston.                                                                                   |
+| **Bois**       | Icône pour le matériau bois (créé sous le nom `mat_wood.svg` dans `assets/ui/`).                                        | 24x24            | Marron                             | Texture de bois, grain visible.                                                                         |
+| **Acier**      | Icône pour le matériau acier (créé sous le nom `mat_steel.svg` dans `assets/ui/`).                                      | 24x24            | Gris                               | Texture métallique, reflet.                                                                             |
+| **Béton**      | Icône pour le matériau béton (créé : `icon_concrete.svg`).                                    | 24x24            | Gris clair                         | Texture granuleuse.                                                                                      |
+| **Câble**      | Icône pour le câble fin (créé sous le nom `mat_cable.svg` dans `assets/ui/`).                                            | 24x24            | Noir                               | Ligne fine et tendue.                                                                                   |
+| **Câble porteur** | Icône pour le câble porteur (créé sous le nom `mat_rope.svg` dans `assets/ui/`).                                        | 24x24            | Noir                               | Ligne épaisse et légèrement courbée.                                                                    |
+| **Hydraulique** | Icône pour l'hydraulique (créé : `icon_hydraulics.svg`).                                      | 24x24            | Bleu                               | Cylindre avec piston.                                                                                   |
 
-### **Exemples de SVG à créer**
+### **Exemples de SVG (modèles de départ, déjà réalisés dans assets/)**
 #### **Icône Bois (`icon_wood.svg`)**
 ```xml
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -211,10 +211,10 @@ Ce document décrit les éléments SVG à créer pour enrichir Pontifex, en s'in
 | **Arbres**           | Arbres de différentes formes (déjà existants : `tree_round.svg`, `tree_fir.svg`).              | 40x60            | Vert, marron                       | Variété de formes et couleurs.                                                                          |
 | **Rochers**          | Rochers de différentes tailles (déjà existants : `rock1.svg`, `rock2.svg`, `rock3.svg`).       | 30x30            | Gris, marron                       | Textures réalistes.                                                                                     |
 | **Nuages**           | Nuages pour l'arrière-plan (déjà existants : `cloud1.svg`, `cloud2.svg`).                      | 60x30            | Blanc                              | Formes organiques.                                                                                      |
-| **Eau**             | Animation ou texture pour l'eau (à créer : `water.svg`).                                        | 100x50           | Bleu                               | Ondulations ou vagues.                                                                                  |
-| **Pont basculant**   | Élément de pont qui s'ouvre (à créer : `bridge_open.svg`).                                      | 100x50           | Gris                               | Mécanisme visible.                                                                                       |
+| **Eau**             | Animation ou texture pour l'eau (créé : `water.svg`).                                        | 100x50           | Bleu                               | Ondulations ou vagues.                                                                                  |
+| **Pont basculant**   | Élément de pont qui s'ouvre (créé : `bridge_open.svg`).                                      | 100x50           | Gris                               | Mécanisme visible.                                                                                       |
 
-### **Exemples de SVG à créer**
+### **Exemples de SVG (modèles de départ, déjà réalisés dans assets/)**
 #### **Eau (`water.svg`)**
 ```xml
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50">
@@ -246,14 +246,14 @@ Ce document décrit les éléments SVG à créer pour enrichir Pontifex, en s'in
 ### **Types d'icônes**
 | Icône                | Description                                                                                     | Dimensions (px) | Couleurs principales               | Détails spécifiques                                                                                     |
 |-----------------------|-------------------------------------------------------------------------------------------------|------------------|------------------------------------|---------------------------------------------------------------------------------------------------------|
-| **Play**             | Icône pour démarrer un niveau (à créer : `icon_play.svg`).                                      | 24x24            | Vert                               | Triangle pointant vers la droite.                                                                       |
-| **Pause**            | Icône pour mettre en pause (à créer : `icon_pause.svg`).                                        | 24x24            | Jaune                              | Deux barres verticales.                                                                                 |
-| **Réinitialiser**    | Icône pour réinitialiser un niveau (à créer : `icon_reset.svg`).                                | 24x24            | Rouge                              | Flèche circulaire.                                                                                      |
-| **Succès**           | Icône pour indiquer un niveau réussi (à créer : `icon_success.svg`).                            | 24x24            | Vert                               | Coche.                                                                                                  |
-| **Échec**            | Icône pour indiquer un niveau échoué (à créer : `icon_failure.svg`).                            | 24x24            | Rouge                              | Croix.                                                                                                  |
-| **Événement navire** | Icône pour indiquer un passage de navire (à créer : `icon_ship_event.svg`).                     | 24x24            | Bleu                               | Silhouette de navire.                                                                                   |
+| **Play**             | Icône pour démarrer un niveau (créé : `icon_play.svg`).                                      | 24x24            | Vert                               | Triangle pointant vers la droite.                                                                       |
+| **Pause**            | Icône pour mettre en pause (créé : `icon_pause.svg`).                                        | 24x24            | Jaune                              | Deux barres verticales.                                                                                 |
+| **Réinitialiser**    | Icône pour réinitialiser un niveau (créé : `icon_reset.svg`).                                | 24x24            | Rouge                              | Flèche circulaire.                                                                                      |
+| **Succès**           | Icône pour indiquer un niveau réussi (créé : `icon_success.svg`).                            | 24x24            | Vert                               | Coche.                                                                                                  |
+| **Échec**            | Icône pour indiquer un niveau échoué (créé : `icon_failure.svg`).                            | 24x24            | Rouge                              | Croix.                                                                                                  |
+| **Événement navire** | Icône pour indiquer un passage de navire (créé : `icon_ship_event.svg`).                     | 24x24            | Bleu                               | Silhouette de navire.                                                                                   |
 
-### **Exemples de SVG à créer**
+### **Exemples de SVG (modèles de départ, déjà réalisés dans assets/)**
 #### **Icône Play (`icon_play.svg`)**
 ```xml
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">

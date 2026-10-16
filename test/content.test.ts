@@ -127,3 +127,9 @@ test('player JSON converts to buildable MWL, preserving geometry, text and solut
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('identifiants de niveaux : stables (les étoiles sauvegardées y sont rattachées) et sous ceux des niveaux personnalisés', () => {
+  // Ne jamais renuméroter : la progression des joueurs est stockée par identifiant. Ajouter à la fin, avec un nouvel id < 100.
+  assert.deepEqual(BUILTIN_SPECS.map((level) => level.id), [1, 8, 2, 3, 4, 5, 6, 7, 9]);
+  assert.ok(BUILTIN_SPECS.every((level) => level.id < 100), 'les niveaux personnalisés commencent à 101');
+});
