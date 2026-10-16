@@ -38,6 +38,14 @@ Les matériaux arrivent progressivement (✦ = nouveau) : 1 chaussée seule, une
 Un câble fin s'accroche **n'importe où sur un câble porteur** : le câble porteur est alors coupé en deux et un nœud est créé.
 Les niveaux intégrés sont écrits en MWL dans `content/levels.mwl`, puis compilés en données TypeScript.
 
+## Navires
+
+Un niveau peut déclarer des événements `<event type="ship" time="1" shipType="medium">` (`small`, `medium` ou `large`, au plus 10 par niveau ;
+format JSON : `events: [{ type: 'ship', time, shipType }]`). À l'heure `time`, le navire sort de la roche à gauche et traverse le canal
+à la ligne d'eau (sprites `assets/common/ship_*.svg`). Son gabarit — largeur et hauteur au-dessus de l'eau, voir `SHIPS` dans `src/data.ts` —
+brise toute poutre qu'il touche ; en construction, une ligne pointillée jaune montre la hauteur à laisser libre.
+Le niveau 9 « Le Passage du Cargo » l'introduit ; les tests sont dans `test/ships.test.ts` et `e2e/ships.mjs`.
+
 ## Éditeur de niveaux
 
 Menu des niveaux → **＋ Nouveau niveau** (ou ✎ Éditer). Outils **Ancre / Pylône / Îlot** (clic pour poser, re-clic pour retirer),
@@ -48,7 +56,7 @@ glisser un `.json` sur la page, ou *Importer (presse-papiers)*, l'ajoute. Un fic
 
 ## Contenu MWL et échanges JSON
 
-`content/levels.mwl` décrit les huit niveaux avec le tag propre à Pontifex `bridge_level` et ses enfants
+`content/levels.mwl` décrit les neuf niveaux avec le tag propre à Pontifex `bridge_level` et ses enfants
 `anchor`, `tower`, `island`, `view`. Les noms et indices portent le marqueur de traduction `_("…")`.
 `content/catalog.mwl` contient les tables typées des matériaux et véhicules ; chaque niveau référence leurs identifiants.
 Les identifiants des niveaux servent aux étoiles sauvegardées : conserver leur valeur et l'ordre des niveaux.
