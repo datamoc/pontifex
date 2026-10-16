@@ -1,7 +1,7 @@
 import { buildPopulation, type Population } from './population.ts';
 import { BIOMES, randomBiome, type Biome } from './biomes.ts';
 import {
-  Game, Scene2D, Button, Label, Sprite2D, Bar, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt,
+  Game, Scene2D, Button, Label, Sprite2D, Bar, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt, Tooltip,
 } from '@datamoc/mwg/two-d';
 import { texture } from '@datamoc/mwg/assets';
 import { Camera } from '@datamoc/mwg/two-d/render';
@@ -114,9 +114,14 @@ export class PontifexScene extends Scene2D {
   private btnMusic!: Button;
   private btnMusicPause!: Button;
   private btnMusicNext!: Button;
-  private musicLabel = '';
   private btnFullscreen!: Button;
   private buttonIcons = new Map<Button, Sprite2D>();
+  /** explication des boutons à icône, affichée quand le pointeur s'y attarde */
+  private tooltip = new Tooltip({ delay: 0.6, maxWidth: 260 });
+  private tips = new Map<Button, () => string>();
+  /** position du pointeur (souris ou stylet) dans le repère de l'écran, ou null hors du canevas */
+  private screenPointer: Pt | null = null;
+  private hoverHandler = (event: PointerEvent) => this.trackScreenPointer(event);
   private btnTest!: Button;
   private btnBack!: Button;
   private vw = 0;
@@ -170,9 +175,10 @@ export class PontifexScene extends Scene2D {
     this.buildHud();
     this.editor = new LevelEditor(this.editorHost());
     for (const it of this.editor.items) this.stage.addChild(it);
-    this.stage.addChild(this.effects, this.windows);
+    this.stage.addChild(this.effects, this.windows, this.tooltip);
     // clic droit = effacer : pas de menu contextuel du navigateur par-dessus le jeu
     Game.current.app.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    for (const type of ['pointermove', 'pointerdown', 'pointerleave']) canvas.addEventListener(type, this.hoverHandler as EventListener);
     window.addEventListener('keydown', this.keyHandler);
     window.addEventListener('fullscreenchange', this.fullscreenHandler);
     Input.onAction.add(this.actionHandler);
@@ -190,6 +196,7 @@ export class PontifexScene extends Scene2D {
     }
     this.touches.clear();
     this.cancelBuild();
+    for (const type of ['pointermove', 'pointerdown', 'pointerleave']) Game.current.app.canvas.removeEventListener(type, this.hoverHandler as EventListener);
     window.removeEventListener('keydown', this.keyHandler);
     window.removeEventListener('fullscreenchange', this.fullscreenHandler);
     Input.onAction.remove(this.actionHandler);
@@ -670,14 +677,15 @@ export class PontifexScene extends Scene2D {
     if (icon) icon.texture = texture(`ui/${name}.svg`);
   }
 
-  private iconButton(name: string, text: string, onClick: () => void, width: number): Button {
+  /** Bouton à icône seule : son rôle s'explique dans une infobulle (`tip` est relu à chaque survol, il suit l'état). */
+  private iconButton(name: string, tip: () => string, onClick: () => void, size = { width: 44, height: 34 }): Button {
     const icon = new Sprite2D(texture(`ui/${name}.svg`));
     icon.width = 20;
     icon.height = 20;
     icon.eventMode = 'none';
-    const button = new Button({ width: width + 28, height: 34, text, icon, label: { size: 12 },
-      onClick: () => { this.sfx.onClick(); onClick(); } });
+    const button = new Button({ ...size, icon, onClick: () => { this.sfx.onClick(); onClick(); } });
     this.buttonIcons.set(button, icon);
+    this.tips.set(button, tip);
     return button;
   }
 
@@ -685,23 +693,24 @@ export class PontifexScene extends Scene2D {
     this.btnLevel = this.button('', () => this.showLevels(), 190);
     for (const id of MATERIAL_ORDER) {
       const name = id === 'concrete' || id === 'hydraulics' ? `icon_${id}` : `mat_${id}`;
-      const b = this.iconButton(name, '', () => this.setTool(id), 150);
-      this.matButtons.set(id, b);
+      this.matButtons.set(id, this.iconButton(name, () => this.materialTip(id), () => this.setTool(id)));
     }
-    this.btnDelete = this.iconButton('tool_delete', 'Effacer', () => this.setTool('delete'), 80);
+    this.btnDelete = this.iconButton('tool_delete', () => 'Effacer une poutre (touche Suppr. ou X, ou clic droit)', () => this.setTool('delete'));
     this.matButtons.set('delete', this.btnDelete);
-    this.btnUndo = this.iconButton('tool_undo', 'Annuler', () => this.undo(), 80);
-    this.btnRedo = this.iconButton('tool_redo', 'Rétablir', () => this.redo(), 80);
-    this.btnClear = this.iconButton('tool_clear', 'Vider', () => this.clearAll(), 66);
-    this.btnSpeed = this.iconButton('speed_slow', '', () => { this.speed = this.speed === 0.5 ? 1 : 0.5; this.refreshHud(); }, 126);
-    this.btnGrid = this.iconButton('grid_on', '', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); }, 90);
-    this.btnSound = this.iconButton('sound_on', '', () => { this.sfx.enabled = !this.sfx.enabled; this.music.setEnabled(this.sfx.enabled); this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
-    this.btnMusic = this.iconButton('music', 'Musique', () => this.showMusic(), 86);
-    this.btnMusicPause = this.iconButton('music_pause', 'Pause', () => this.music.togglePause(), 96);
-    this.btnMusicNext = this.iconButton('music_next', 'Suivant', () => this.music.next(), 80);
-    this.btnFullscreen = this.iconButton('fullscreen_enter', '', () => this.toggleFullscreen(), 24);
-    this.btnBack = this.iconButton('editor', '↩ Éditeur', () => this.backToEditor(), 110);
-    this.btnTest = new Button({ width: 130, height: 40, text: '▶  TESTER', label: { size: 14, bold: true }, onClick: () => { this.sfx.onClick(); this.toggleSim(); } });
+    this.btnUndo = this.iconButton('tool_undo', () => 'Annuler (Ctrl+Z)', () => this.undo());
+    this.btnRedo = this.iconButton('tool_redo', () => 'Rétablir (Ctrl+Y)', () => this.redo());
+    this.btnClear = this.iconButton('tool_clear', () => 'Vider : retire toutes les poutres', () => this.clearAll());
+    this.btnSpeed = this.iconButton('speed_slow', () => this.speed === 1
+      ? 'Temps réel : cliquer pour ralentir ×½'
+      : 'Ralenti ×½ : cliquer pour revenir au temps réel', () => { this.speed = this.speed === 0.5 ? 1 : 0.5; this.refreshHud(); });
+    this.btnGrid = this.iconButton('grid_on', () => `Grille ${this.snapOn ? 'activée' : 'désactivée'} : aimante les points (touche G)`, () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); });
+    this.btnSound = this.iconButton('sound_on', () => this.sfx.enabled ? 'Son activé : cliquer pour couper bruitages et musique' : 'Son coupé : cliquer pour le réactiver', () => { this.sfx.enabled = !this.sfx.enabled; this.music.setEnabled(this.sfx.enabled); this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); });
+    this.btnMusic = this.iconButton('music', () => this.musicTip(), () => this.showMusic());
+    this.btnMusicPause = this.iconButton('music_pause', () => this.music.paused ? 'Reprendre la musique' : 'Mettre la musique en pause', () => this.music.togglePause());
+    this.btnMusicNext = this.iconButton('music_next', () => 'Morceau suivant (tiré au hasard)', () => this.music.next());
+    this.btnFullscreen = this.iconButton('fullscreen_enter', () => document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran', () => this.toggleFullscreen());
+    this.btnBack = this.iconButton('editor', () => 'Retour à l’éditeur de niveau', () => this.backToEditor());
+    this.btnTest = this.iconButton('sim_play', () => this.sim ? 'Arrêter l’essai et modifier le pont (Espace)' : 'Tester le pont (Espace)', () => this.toggleSim(), { width: 64, height: 40 });
     this.stage.addChild(this.topBar, this.botBar);
     for (const o of [this.lblTitle, this.btnLevel, this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblHint, this.lblToast,
       ...this.matButtons.values(), this.btnBack, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.lblCarSpeed, this.btnGrid, this.btnSound, this.btnMusic, this.btnMusicPause, this.btnMusicNext, this.btnFullscreen, this.btnTest]) this.stage.addChild(o);
@@ -734,30 +743,49 @@ export class PontifexScene extends Scene2D {
     this.barBudget.setColor(over ? 0xf43f5e : cost > this.level.budget * 0.8 ? 0xf59e0b : 0x10b981);
     for (const [t, b] of this.matButtons) {
       const sel = t === this.tool;
-      b.setText(this.labelFor(t));
       b.setSelected(sel);
     }
     this.btnUndo.setDisabled(!!this.sim || !this.history.canUndo);
     this.btnRedo.setDisabled(!!this.sim || !this.history.canRedo);
     this.btnClear.setDisabled(!!this.sim);
-    this.btnSpeed.setText(this.speed === 1 ? 'Temps réel' : 'Ralenti ×½');
-    this.btnGrid.setText(`Grille ${this.snapOn ? 'ON' : 'OFF'}`);
-    this.btnSound.setText(this.sfx.enabled ? 'Son ON' : 'Son OFF');
     this.setButtonIcon(this.btnFullscreen, document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen_enter');
     this.setButtonIcon(this.btnSpeed, this.speed === 1 ? 'speed_real' : 'speed_slow');
     this.setButtonIcon(this.btnGrid, this.snapOn ? 'grid_on' : 'grid_off');
     this.setButtonIcon(this.btnSound, this.sfx.enabled ? 'sound_on' : 'sound_off');
     this.setButtonIcon(this.btnTest, this.sim ? 'sim_stop' : 'sim_play');
-    this.btnFullscreen.label = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
-    this.btnTest.setText(this.sim ? '🛠  ÉDITER' : '▶  TESTER');
     if (!this.sim) this.setStress(0);
   }
-  private labelFor(t: Tool): string {
-    if (t === 'delete') return 'Effacer';
-    const m = MATERIALS[t];
-    const i = this.levels.findIndex((l) => l.id === this.level.id);
-    const isNew = i > 0 && i < this.builtinCount && !this.levels[i - 1].materials.includes(t);
-    return `${isNew ? '✦ ' : ''}${m.name}  ${m.cost}€/m`;
+  /** Infobulle d'un matériau : nom, prix, portée maximale d'une poutre et raccourci clavier. */
+  private materialTip(id: MaterialId): string {
+    const material = MATERIALS[id];
+    const i = this.levels.findIndex((level) => level.id === this.level.id);
+    const isNew = i > 0 && i < this.builtinCount && !this.levels[i - 1].materials.includes(id);
+    return `${isNew ? '✦ Nouveau : ' : ''}${material.name} · ${material.cost} €/m · poutre de ${material.maxLen / 10} m max (touche ${material.key})`;
+  }
+  private musicTip(): string {
+    if (this.music.error) return 'Musique indisponible : cliquer pour choisir un morceau';
+    if (this.music.loading) return 'Musique : préparation du morceau…';
+    return this.music.selected ? 'Choisir la musique' : 'Musique coupée : cliquer pour choisir un morceau';
+  }
+  private trackScreenPointer(event: PointerEvent): void {
+    if (event.pointerType === 'touch') return;
+    if (event.type === 'pointerleave' || event.type === 'pointerdown') { this.screenPointer = null; return; }
+    const bounds = Game.current.app.canvas.getBoundingClientRect();
+    this.screenPointer = { x: (event.clientX - bounds.left) * this.vw / bounds.width, y: (event.clientY - bounds.top) * this.vh / bounds.height };
+  }
+  /**
+   * Montre l'explication du bouton sous le pointeur une fois qu'il s'y est arrêté ; jamais sous une fenêtre ouverte.
+   * Les bornes sont testées ici plutôt que par les événements du bouton : un bouton désactivé n'en reçoit plus,
+   * et c'est justement celui dont on veut savoir à quoi il servira.
+   */
+  private updateTooltip(dt: number): void {
+    const pointer = this.screenPointer;
+    const hovered = pointer && this.windows.isEmpty
+      ? [...this.tips].find(([button]) => button.visible && button.getBounds().containsPoint(pointer.x, pointer.y))
+      : undefined;
+    if (hovered && pointer) this.tooltip.hover(hovered[1](), pointer.x, pointer.y);
+    else this.tooltip.leave();
+    this.tooltip.update(dt);
   }
   private setStress(r: number): void {
     const pct = Math.min(100, Math.round(r * 100));
@@ -825,6 +853,7 @@ export class PontifexScene extends Scene2D {
     this.vw = w; this.vh = h;
     this.effects.setViewport(w, h);
     this.windows.setViewport(w, h);
+    this.tooltip.setViewport(w, h);
     this.layoutHud();
   }
 
@@ -846,12 +875,8 @@ export class PontifexScene extends Scene2D {
   override update(dt: number): void {
     this.music.update();
     this.setButtonIcon(this.btnMusicPause, this.music.paused ? 'music_play' : 'music_pause');
-    this.btnMusicPause.setText(this.music.paused ? 'Reprendre' : 'Pause');
-    const musicLabel = this.music.error ? 'Musique !' : this.music.loading ? 'Musique…' : this.music.selected ? 'Musique' : 'Mus. OFF';
-    if (musicLabel !== this.musicLabel) {
-      this.musicLabel = musicLabel;
-      this.btnMusic.setText(musicLabel);
-    }
+    this.setButtonIcon(this.btnMusicPause, this.music.paused ? 'music_play' : 'music_pause');
+    this.updateTooltip(dt);
     this.time += dt;
     if (this.sim) {
       const sim = this.sim;
