@@ -13,33 +13,80 @@ d'oscillateurs écrits à la main). Ce mécanisme existe et marche très bien, m
 35. **Documenter la chaîne MIDI → SoundFont** là où on la cherche (README, « Audio ») : `data/microgm-opt.sf2` est fourni, le build le réduit tout seul
     si un `.mid` est dans `assets/`, `missingProgram: 'synth'` comble les instruments absents. Je n'ai découvert tout cela que dans `data/microgm-opt.PROVENANCE.md`
     et `compile-resources.d.mts`, et j'ai écrit dans le point 34 (ci-dessus) que MWG ne fournissait aucun échantillon : c'était faux.
+    **Contournement dans Pontifex** : aucun code à retirer, mais la configuration est répartie entre
+    `C:\Users\miche\dev\pontifex\tools\runtime-assets.ts` l.6-14 (liste des fichiers livrés, `music/` et `soundfonts/` inclus pour que MWG réduise le `.sf2`),
+    `C:\Users\miche\dev\pontifex\src\music-catalog.ts` l.1-2 (`SOUNDFONT_FILE`) et `C:\Users\miche\dev\pontifex\vite.config.mts` l.1-10 (`mwgPage`, réduction du SoundFont par défaut).
+
+
 36. **Un lecteur de musique prêt à l'emploi** : `MidiPlayer` / `MusicPlayer` (charger, jouer, pause, reprise, position, `seek`, fin de morceau, enchaînement, volume).
     J'ai dû écrire ces 200 lignes autour de `renderMidiToBufferAsync` (la doc dit « prêt pour un `Channel` » mais aucun exemple ne montre le chemin complet).
     Et `RenderedMidi → AudioBuffer` : `toAudioBuffer(context, rendered)` (les `Float32Array<ArrayBufferLike>` rendus ne passent pas dans `copyToChannel` sans copie sous TS strict).
+    **Contournement dans Pontifex** (à remplacer par le lecteur de MWG) : tout `C:\Users\miche\dev\pontifex\src\music.ts` (225 lignes), dont
+    `BackgroundMusic` l.32 (état, pause, reprise), `position()` l.76 et `seek()` (relancer la source à un décalage), `createAudioGraph()` l.119
+    (gain, analyseur, compresseur, réverbération), `start()` l.145 (chargement + rendu + copie), `playFrom()` l.174, `togglePause()` l.194, `update()` l.207
+    (fin de morceau → suivant), et la conversion `RenderedMidi → AudioBuffer` avec copie forcée aux l.162-163 (`copyToChannel(new Float32Array(...))`).
+    Le tirage au sort du morceau suivant (`drawTrackId`, l.7) est propre au jeu et reste.
+
+
 37. **Détection des assets embarqués mais jamais chargés** : `compile-resources` embarque tout fichier à extension connue (point 32), donc 2,6 Mo de `.sf2` et 40 icônes SVG
     sont restés dans la page sans que rien ne le signale. Un rapport « jamais passé à `load()`/`loadBinary()` » (analyse statique ou `--check` avec la liste des chemins du code),
     et un budget `mwgPage({ maxPageBytes })` qui fait échouer le build, auraient attrapé les 4 Mo dès le premier jour.
+    **Contournement dans Pontifex** : aucun ; le problème est passé inaperçu. Le seul filtre existant est
+    `C:\Users\miche\dev\pontifex\tools\runtime-assets.ts` l.10-11 (exclusion de `garbage/` et des anciens cycles de marche). Le rapport de poids se lance à la main avec
+    `npm run assets:report` (`C:\Users\miche\dev\pontifex\tools\report-assets.ts`) et ne signale pas les assets jamais chargés. À remplacer par la détection et le budget de MWG.
+
+
 38. **XPBD** : (a) `XpbdWorld.breakLink(index)` public : pour un navire qui brise une poutre au contact, j'ai dû mettre `link.broken = true` et appeler
     `world.onBreak.dispatch` à la main ; (b) un type générique `XpbdLink<T>` (ou `userData`) : j'attache le matériau et l'index source avec `Object.assign` ;
     (c) requêtes géométriques de base (`linksInBox`, `linksNear`) ; (d) `snapshot()`/`hash()` pour les tests de déterminisme (je compare tous les nœuds à la main) ;
     (e) un exemple de « charge mobile » (véhicule qui roule sur des poutres via `applyForce`), c'est le cas d'usage central d'un jeu de pont.
+    **Contournements dans Pontifex** (à remplacer par l'API de MWG) :
+    (a) rupture forcée au contact d'un navire : `C:\Users\miche\dev\pontifex\src\physics.ts` l.216-217 (`link.broken = true` puis `world.onBreak.dispatch(...)`), dans `sailShips()` l.201-221 ;
+    (b) données attachées aux poutres : `C:\Users\miche\dev\pontifex\src\physics.ts` l.19 (type `Link = XpbdLink & { mat; src }`) et l.134 (`Object.assign(this.world.links[index], { mat, src })`) ;
+    (c) requête géométrique segment/rectangle : `C:\Users\miche\dev\pontifex\src\physics.ts` l.31-51 (`segmentInBox`, Liang-Barsky) ;
+    (d) comparaison d'état pour le déterminisme, nœud par nœud : `C:\Users\miche\dev\pontifex\test\physics.test.ts` l.36 et `C:\Users\miche\dev\pontifex\test\ships.test.ts` l.71 ;
+    (e) charge mobile du véhicule sur les poutres (`applyForce` par roue) : `C:\Users\miche\dev\pontifex\src\physics.ts`, méthode `settleOnRoad()` (fin de la classe).
+
+
 39. **MWL** : (a) l'attribut optionnel (`'number?'`) est refusé par le schéma sans que la doc dise comment le déclarer ; (b) `build-content.ts` recopie à la main, tag par tag,
     les attributs d'un nœud compilé vers un objet JSON typé (`events`, `anchors`...) : un `nodesToObjects(roots, schema)` générique supprimerait ces 80 lignes et les erreurs
     de conversion ; (c) générer les types TypeScript d'une table (`MaterialId`, `VehicleDef['sprite']`) : les unions de `data.ts` ont divergé du catalogue (béton, train...) et cassé le typecheck.
+    **Contournements dans Pontifex** :
+    (a) « optionnel » : `C:\Users\miche\dev\pontifex\tools\mwl-schema.ts` l.13 — attributs déclarés obligatoires faute de syntaxe documentée (`'number?'` est refusé) ;
+    (b) conversion nœud compilé → objet, à la main : `C:\Users\miche\dev\pontifex\tools\build-content.ts` l.39-42 (`numericAttributes`), l.43 (niveaux), l.55 (`events`), l.56 (assemblage du `spec`) ;
+    et sa réciproque `C:\Users\miche\dev\pontifex\tools\convert-level.ts` l.24 et l.30 ;
+    (c) unions TypeScript tenues à la main et qui ont divergé du catalogue : `C:\Users\miche\dev\pontifex\src\data.ts` l.3 (`MaterialId`), l.28 (`MATERIAL_ORDER`), l.39 (`VehicleDef['sprite']`),
+    revalidées par `C:\Users\miche\dev\pontifex\tools\build-content.ts` l.22.
+
+
 40. **Tests de rendu et d'audio** : un hook standard `exposeForTests(name, object)` (au lieu de mon `#debug → window.__pontifex`) ; `Sound` repose sur `HTMLAudioElement`, donc rien
     d'observable côté Web Audio : exposer un compteur de lectures (`Sound.stats`) pour vérifier un bruitage sans micro (mon e2e patche `HTMLMediaElement.prototype.play`).
     Trouver Chrome (`CHROME` ou chemin par défaut selon l'OS) pourrait être dans `BrowserDriver`, comme dans mes trois scripts `e2e/`.
+    **Contournements dans Pontifex** :
+    (a) hook de test `#debug → window.__pontifex` : `C:\Users\miche\dev\pontifex\src\scene.ts` l.186 ;
+    (b) comptage des lectures audio par surcharge de `HTMLMediaElement.prototype.play` : `C:\Users\miche\dev\pontifex\e2e\sfx.mjs` l.14-20 et `C:\Users\miche\dev\pontifex\e2e\ships.mjs` l.22-26 ;
+    (c) recherche du chemin de Chrome, recopiée dans chaque script : `C:\Users\miche\dev\pontifex\e2e\run.mjs` l.16, `C:\Users\miche\dev\pontifex\e2e\music.mjs` l.6, `C:\Users\miche\dev\pontifex\e2e\mobile.mjs` l.7, `C:\Users\miche\dev\pontifex\e2e\sfx.mjs` l.5, `C:\Users\miche\dev\pontifex\e2e\ships.mjs` l.9.
+
+
 41. **`synthesizeSound`** : seules `square`, `triangle`, `sine`, `noise` existent ; une `sawtooth` donnerait des sirènes et moteurs plus crédibles (j'ai dû utiliser `square` pour la sirène des navires).
+    **Contournement dans Pontifex** : `C:\Users\miche\dev\pontifex\src\audio.ts` l.13 (sirène des navires en `square` grave, `onShip()` l.24) et l.4 (`make`, fabrique de sons à pool).
+
 
 ### À enlever ou simplifier
 42. **Deux noms de paquet** (`@datamoc/mwg`, alias, et `@datamoc/mw_games`, réel) : les chemins, erreurs et docs citent `mw_games` alors que le code importe `mwg`.
     Les fichiers de données (`@datamoc/mw_games/data/...`) ne sont atteignables que par le vrai nom. Un seul nom, ou aucune référence à l'autre dans les messages.
+    **Contournement dans Pontifex** : aucun code ; c'est une règle à retenir (importer `@datamoc/mwg/...`, chercher les fichiers sous `node_modules\@datamoc\mw_games\...`,
+    ex. `node_modules\@datamoc\mw_games\data\microgm-opt.sf2`).
+
+
 43. **Outils sans rapport avec un jeu de construction dans `tools/` du paquet** (`build-tablebases`, `compile-openings`, `benchmark-*`, `audit-adoptions`) : bruit pour qui lit
     `node_modules/@datamoc/mw_games/tools` ; les ranger sous un sous-dossier (`tools/dev/`) ou ne pas les publier.
 44. **Trois chemins audio qui se recoupent** : `Sound` (éléments `<audio>`), `Channel` (tampons Web Audio) et le rendu MIDI. Un seul point d'entrée « jouer un son / un morceau »
     avec les mêmes options (gain, hauteur, pan, boucle) éviterait de choisir selon des détails d'implémentation.
 45. **Garde-fou contre la perte de travail** (hors MWG mais vécu aujourd'hui) : `mwg-init` pourrait générer un hook `pre-commit` lançant typecheck + tests, et un `.gitignore`
     qui exclut les dossiers d'outils d'agents (`.opencode/`, `.coord-session`) : 46 fichiers de verrous traînent dans le dépôt de Pontifex.
+    **Contournement dans Pontifex** : aucun hook ; `.opencode/` et `.coord-session` sont suivis par git (voir `C:\Users\miche\dev\pontifex\BILAN.md`, problème 6).
+
 
 ## Suivi après mise à jour vers 0.41.0 (16 octobre 2026)
 
