@@ -79,11 +79,9 @@ d'oscillateurs écrits à la main). Ce mécanisme existe et marche très bien, m
     ex. `node_modules\@datamoc\mw_games\data\microgm-opt.sf2`).
 
 
-43. **Outils sans rapport avec un jeu de construction dans `tools/` du paquet** (`build-tablebases`, `compile-openings`, `benchmark-*`, `audit-adoptions`) : bruit pour qui lit
-    `node_modules/@datamoc/mw_games/tools` ; les ranger sous un sous-dossier (`tools/dev/`) ou ne pas les publier.
-44. **Trois chemins audio qui se recoupent** : `Sound` (éléments `<audio>`), `Channel` (tampons Web Audio) et le rendu MIDI. Un seul point d'entrée « jouer un son / un morceau »
+43. **Trois chemins audio qui se recoupent** : `Sound` (éléments `<audio>`), `Channel` (tampons Web Audio) et le rendu MIDI. Un seul point d'entrée « jouer un son / un morceau »
     avec les mêmes options (gain, hauteur, pan, boucle) éviterait de choisir selon des détails d'implémentation.
-45. **Garde-fou contre la perte de travail** (hors MWG mais vécu aujourd'hui) : `mwg-init` pourrait générer un hook `pre-commit` lançant typecheck + tests, et un `.gitignore`
+44. **Garde-fou contre la perte de travail** (hors MWG mais vécu aujourd'hui) : `mwg-init` pourrait générer un hook `pre-commit` lançant typecheck + tests, et un `.gitignore`
     qui exclut les dossiers d'outils d'agents (`.opencode/`, `.coord-session`) : 46 fichiers de verrous traînent dans le dépôt de Pontifex.
     **Contournement dans Pontifex** : aucun hook ; `.opencode/` et `.coord-session` sont suivis par git (voir `C:\Users\miche\dev\pontifex\BILAN.md`, problème 6).
 
