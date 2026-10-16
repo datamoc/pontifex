@@ -6,6 +6,7 @@ import { CustomLevels, parseLevelFile } from '../src/custom-levels.ts';
 import { beamExists, beamNear, distToSegment, snapPoint } from '../src/structure.ts';
 import { isInsideWorld, type LevelSpec } from '../src/level.ts';
 import { BUILTIN_SPECS } from '../src/levels.ts';
+import { accessibleIndexes, isLevelUnlocked, navigationTargets } from '../src/level-navigation.ts';
 import { LEVELS } from './helpers.ts';
 
 function memoryStore(initial: Record<string, string> = {}): SettingsStore & { data: Record<string, string> } {
@@ -142,4 +143,21 @@ test('zone constructible : dans le monde, sous la barre du haut, au plus 30 px s
   assert.equal(isInsideWorld(level, { x: 400, y: level.waterY + 31 }), false);
   assert.equal(isInsideWorld(level, { x: -1, y: 300 }), false);
   assert.equal(isInsideWorld(level, { x: 400, y: 19 }), false);
+});
+
+// ---------------------------------------------------------------- navigation entre niveaux
+test('niveaux ouvrables : le premier, ceux dont le précédent a une étoile, et tous ceux du joueur', () => {
+  const stars: Record<number, number> = { 0: 2, 1: 1 };
+  const unlocked = (index: number) => isLevelUnlocked(index, 5, (previous) => stars[previous] ?? 0);
+  assert.deepEqual(accessibleIndexes(8, unlocked), [0, 1, 2, 5, 6, 7], '0 ouvert, 1 et 2 grâce aux étoiles, 3-4 verrouillés, 5-7 sont à la fin (niveaux du joueur)');
+  assert.deepEqual(accessibleIndexes(3, (index) => isLevelUnlocked(index, 3, () => 0)), [0], 'sans étoile : seulement le premier');
+});
+
+test('navigation : premier, précédent, suivant, dernier ; null quand on y est ou qu’il n’y en a pas', () => {
+  const accessible = [0, 1, 2, 5, 6];
+  assert.deepEqual(navigationTargets(accessible, 0), { first: null, previous: null, next: 1, last: 6 });
+  assert.deepEqual(navigationTargets(accessible, 2), { first: 0, previous: 1, next: 5, last: 6 }, 'saute les niveaux verrouillés');
+  assert.deepEqual(navigationTargets(accessible, 6), { first: 0, previous: 5, next: null, last: null });
+  assert.deepEqual(navigationTargets([0], 0), { first: null, previous: null, next: null, last: null });
+  assert.deepEqual(navigationTargets([], 0), { first: null, previous: null, next: null, last: null });
 });

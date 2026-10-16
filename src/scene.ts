@@ -1,7 +1,7 @@
 import { buildPopulation, type Population } from './population.ts';
 import { BIOMES, randomBiome, type Biome } from './biomes.ts';
 import {
-  Game, Scene2D, Button, Label, Sprite2D, Bar, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt, Tooltip,
+  Game, Scene2D, Button, Label, Sprite2D, Bar, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt, Tooltip, DropdownView,
 } from '@datamoc/mwg/two-d';
 import { texture } from '@datamoc/mwg/assets';
 import { Camera } from '@datamoc/mwg/two-d/render';
@@ -16,6 +16,7 @@ import { BackgroundMusic, drawTrackId } from './music.ts';
 import { LEVELS as BUILTIN_LEVELS } from './levels.ts';
 import { deriveLevel, isInsideWorld, isSolid, slug, type LevelSpec } from './level.ts';
 import { ProgressStore, rateAttempt } from './progress.ts';
+import { accessibleIndexes, isLevelUnlocked, navigationTargets, type NavigationTargets } from './level-navigation.ts';
 import { buildConfirmWindow, buildLevelsWindow, buildMusicWindow, buildResultWindow } from './dialogs.ts';
 import { CustomLevels, parseLevelFile } from './custom-levels.ts';
 import { LevelEditor } from './editor-ui.ts';
@@ -28,6 +29,8 @@ type Tool = MaterialId | 'delete';
 const SNAP_R = 14;
 /** aimantation au clic : le point d'accroche proche du curseur brut l'emporte, même hors case de grille */
 const MAGNET_R = 22;
+/** largeur de la liste déroulante des niveaux, assez pour « 3. Le Fleuve profond  (verrouillé) » */
+const PICKER_WIDTH = 290;
 
 const clone = (s: Structure): Structure => JSON.parse(JSON.stringify(s));
 
@@ -95,7 +98,16 @@ export class PontifexScene extends Scene2D {
   private topBar = new Shape2D();
   private botBar = new Shape2D();
   private lblTitle = new Label({ text: 'PONTIFEX', size: 18, bold: true, color: 0xfbbf24 });
+  /** « Éditeur » / « Essai du brouillon » : ouvre la fenêtre de gestion des niveaux */
   private btnLevel!: Button;
+  /** premier · précédent · liste déroulante · suivant · dernier, pour jouer */
+  private levelNav = new Node2D();
+  private levelPicker!: DropdownView;
+  private navButtons!: Record<keyof NavigationTargets, Button>;
+  private navTargets: NavigationTargets = { first: null, previous: null, next: null, last: null };
+  private syncingPicker = false;
+  /** fond opaque sous la liste ouverte : les lignes de MWG sont translucides et le décor les traverserait */
+  private pickerBackdrop = new Shape2D();
   private lblBudget = new Label({ text: '', size: 13 });
   private barBudget = new Bar({ width: 150, height: 10, color: 0x10b981, background: 0x1e293b, max: 1 });
   private lblStress = new Label({ text: '', size: 13 });
@@ -206,7 +218,7 @@ export class PontifexScene extends Scene2D {
   // ------------------------------------------------------------------ progression
   private get builtinCount(): number { return BUILTIN_LEVELS.length; }
   /** Un niveau intégré s'ouvre dès que le précédent a au moins une étoile ; les niveaux du joueur sont toujours ouverts. */
-  private unlocked(idx: number): boolean { return idx === 0 || idx >= this.builtinCount || this.progress.starsOf(this.levels[idx - 1].id) > 0; }
+  private unlocked(idx: number): boolean { return isLevelUnlocked(idx, this.builtinCount, (previous) => this.progress.starsOf(this.levels[previous].id)); }
 
   // ------------------------------------------------------------------ niveau
   private loadLevel(idx: number): void {
@@ -256,7 +268,13 @@ export class PontifexScene extends Scene2D {
     for (const o of [this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblCarSpeed]) o.visible = play;
     this.btnBack.visible = play && this.testingSpec !== null;
     for (const it of this.editor?.items ?? []) it.visible = this.editing;
-    this.btnLevel?.setText(this.editing ? '▾ Éditeur' : this.testingSpec ? '▾ Essai du brouillon' : `▾ ${this.level.label}. ${this.level.name}`);
+    const navigating = !this.editing && this.testingSpec === null;
+    this.levelNav.visible = navigating;
+    if (this.btnLevel) {
+      this.btnLevel.visible = !navigating;
+      this.btnLevel.setText(this.editing ? '▾ Éditeur' : '▾ Essai du brouillon');
+    }
+    this.refreshLevelNav();
   }
 
   // ------------------------------------------------------------------ édition
@@ -377,6 +395,7 @@ export class PontifexScene extends Scene2D {
   }
 
   private onDown(e: FederatedPointerEvent): void {
+    this.closeLevelPicker();
     if (this.sim || !this.windows.isEmpty || this.pinching) return;
     const raw = this.toWorld(e);
     this.pointer = raw;
@@ -531,7 +550,7 @@ export class PontifexScene extends Scene2D {
     const rating = rateAttempt({ won, cost, budget: this.level.budget, maxRatio: sim.maxRatio });
     const testing = this.testingSpec;
     if (won && testing) testing.solution = clone(this.structure);
-    else if (won) this.progress.record(this.level.id, rating.stars);
+    else if (won) { this.progress.record(this.level.id, rating.stars); this.refreshLevelNav(); }
     const custom = this.levelIdx >= this.builtinCount;
     const lastBuiltin = this.levelIdx >= this.builtinCount - 1;
     const nextLabel = !won ? 'Revoir la chute' : testing ? '↩ Éditeur' : custom ? 'Niveaux' : lastBuiltin ? 'Recommencer' : 'Suivant →';
@@ -578,6 +597,7 @@ export class PontifexScene extends Scene2D {
   // ------------------------------------------------------------------ niveaux personnalisés
   private rebuildLevels(): void {
     this.levels = [...BUILTIN_LEVELS, ...this.customLevels.levels()];
+    this.refreshLevelNav();
   }
 
   private importText(text: string): void {
@@ -691,6 +711,7 @@ export class PontifexScene extends Scene2D {
 
   private buildHud(): void {
     this.btnLevel = this.button('', () => this.showLevels(), 190);
+    this.buildLevelNav();
     for (const id of MATERIAL_ORDER) {
       const name = id === 'concrete' || id === 'hydraulics' ? `icon_${id}` : `mat_${id}`;
       this.matButtons.set(id, this.iconButton(name, () => this.materialTip(id), () => this.setTool(id)));
@@ -712,8 +733,70 @@ export class PontifexScene extends Scene2D {
     this.btnBack = this.iconButton('editor', () => 'Retour à l’éditeur de niveau', () => this.backToEditor());
     this.btnTest = this.iconButton('sim_play', () => this.sim ? 'Arrêter l’essai et modifier le pont (Espace)' : 'Tester le pont (Espace)', () => this.toggleSim(), { width: 64, height: 40 });
     this.stage.addChild(this.topBar, this.botBar);
-    for (const o of [this.lblTitle, this.btnLevel, this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblHint, this.lblToast,
+    for (const o of [this.lblTitle, this.btnLevel, this.levelNav, this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblHint, this.lblToast,
       ...this.matButtons.values(), this.btnBack, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.lblCarSpeed, this.btnGrid, this.btnSound, this.btnMusic, this.btnMusicPause, this.btnMusicNext, this.btnFullscreen, this.btnTest]) this.stage.addChild(o);
+  }
+
+  private buildLevelNav(): void {
+    const step = (text: string, tip: () => string, key: keyof NavigationTargets): Button => {
+      const button = this.button(text, () => { const target = this.navTargets[key]; if (target !== null) this.loadLevel(target); }, 36, 16);
+      this.tips.set(button, tip);
+      return button;
+    };
+    const named = (prefix: string, key: keyof NavigationTargets) => () => {
+      const target = this.navTargets[key];
+      return target === null ? `${prefix} : aucun` : `${prefix} : ${this.levels[target].label}. ${this.levels[target].name}`;
+    };
+    this.navButtons = {
+      first: step('«', named('Premier niveau', 'first'), 'first'),
+      previous: step('‹', named('Niveau précédent', 'previous'), 'previous'),
+      next: step('›', named('Niveau suivant', 'next'), 'next'),
+      last: step('»', named('Dernier niveau ouvert', 'last'), 'last'),
+    };
+    this.levelPicker = new DropdownView({ width: PICKER_WIDTH, rowHeight: 34, options: [] });
+    this.levelPicker.model.onChange.add(({ option, index }) => {
+      if (this.syncingPicker) return;
+      if (option.id === 'manage') { this.showLevels(); this.refreshLevelNav(); } else this.loadLevel(index);
+    });
+    const { first, previous, next, last } = this.navButtons;
+    previous.x = 40;
+    this.levelPicker.x = 80;
+    next.x = 80 + PICKER_WIDTH + 4;
+    last.x = next.x + 40;
+    this.levelNav.addChild(first, previous, next, last, this.pickerBackdrop, this.levelPicker);
+  }
+
+  /** Boutons et liste des niveaux : état d'ouverture, étoiles et niveau courant. */
+  private refreshLevelNav(): void {
+    if (!this.levelPicker || !this.level) return;
+    const accessible = accessibleIndexes(this.levels.length, (index) => this.unlocked(index));
+    this.navTargets = navigationTargets(accessible, this.levelIdx);
+    for (const key of Object.keys(this.navButtons) as (keyof NavigationTargets)[]) this.navButtons[key].setDisabled(this.navTargets[key] === null);
+    const options = this.levels.map((level, index) => {
+      const open = this.unlocked(index);
+      const stars = index < this.builtinCount ? this.progress.starsOf(level.id) : 0;
+      const rating = index >= this.builtinCount ? '' : open ? `  ${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}` : '  (verrouillé)';
+      return { id: String(index), label: `${level.label}. ${level.name}${rating}`, disabled: !open };
+    });
+    options.push({ id: 'manage', label: 'Mes niveaux : éditer, importer…', disabled: false });
+    this.syncingPicker = true;
+    this.levelPicker.model.close();
+    this.levelPicker.model.setOptions(options);
+    this.levelPicker.model.setHighlight(this.levelIdx);
+    this.levelPicker.model.confirm();
+    this.syncingPicker = false;
+    this.levelPicker.refresh();
+  }
+  private drawPickerBackdrop(): void {
+    const backdrop = this.pickerBackdrop.clear();
+    const model = this.levelPicker?.model;
+    if (!model?.isOpen) return;
+    backdrop.rect(this.levelPicker.x, 34, PICKER_WIDTH, model.options.length * 34).fill({ color: 0x0f172a, alpha: 1 });
+  }
+  private closeLevelPicker(): void {
+    if (!this.levelPicker?.model.isOpen) return;
+    this.levelPicker.model.close();
+    this.levelPicker.refresh();
   }
 
   private showMusic(): void {
@@ -810,13 +893,14 @@ export class PontifexScene extends Scene2D {
       return y + rowH + pad;
     };
     // barre haute : titre, niveau, jauges (label au-dessus de la barre)
-    const topItems = [this.lblTitle, this.btnLevel];
+    const levelItem = this.btnLevel.visible ? this.btnLevel : this.levelNav;
+    const topItems = [this.lblTitle, levelItem];
     let topH = place(topItems, 12, 10, 208);
-    let x = this.btnLevel.x + this.btnLevel.width + 24;
+    let x = levelItem.x + levelItem.width + 24;
     const gy = 8;
-    const right = vw - 10 - (this.btnLevel.y === 10 ? 208 : 0);
+    const right = vw - 10 - (levelItem.y === 10 ? 208 : 0);
     if (x + 330 > right) { x = 10; }
-    const hudY = x === 10 ? topH : Math.max(gy, this.btnLevel.y);
+    const hudY = x === 10 ? topH : Math.max(gy, levelItem.y);
     this.lblBudget.position.set(x, hudY); this.barBudget.position.set(x, hudY + 20);
     const x2 = x + 210;
     this.lblStress.position.set(x2, hudY); this.barStress.position.set(x2, hudY + 20);
@@ -858,7 +942,7 @@ export class PontifexScene extends Scene2D {
   }
 
   private onKey(e: KeyboardEvent): void {
-    if (e.code === 'Escape') this.cancelBuild();
+    if (e.code === 'Escape') { this.cancelBuild(); this.closeLevelPicker(); }
     if (e.repeat || this.editing) return;
     if (e.code === 'Space') { e.preventDefault(); if (this.windows.isEmpty) this.toggleSim(); }
     else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); }
@@ -877,6 +961,7 @@ export class PontifexScene extends Scene2D {
     this.setButtonIcon(this.btnMusicPause, this.music.paused ? 'music_play' : 'music_pause');
     this.setButtonIcon(this.btnMusicPause, this.music.paused ? 'music_play' : 'music_pause');
     this.updateTooltip(dt);
+    this.drawPickerBackdrop();
     this.time += dt;
     if (this.sim) {
       const sim = this.sim;
