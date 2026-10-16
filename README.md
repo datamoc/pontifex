@@ -31,7 +31,9 @@ mais le build les exclut de la page publiée. Le manifeste conserve leurs métad
 
 ## Progression et matériaux
 
-Les matériaux arrivent progressivement (✦ = nouveau) : 1 chaussée seule, une poutre entre 2 points (6 cases) · 1bis + bois, 10 cases, la chaussée tendue casse vite · 2 + bois · 3 + acier ·
+Les rives des niveaux intégrés sont espacées par multiples de 12 m, pour poser une chaussée plate en tronçons complets. Un nouveau niveau commence à 24 m ; les boutons Écart de l’éditeur ajoutent ou retirent 12 m.
+
+Les matériaux arrivent progressivement (✦ = nouveau) : 1 chaussée seule, une poutre entre 2 points (6 cases) · 1bis + bois, 12 cases, la chaussée tendue casse vite · 2 + bois · 3 + acier ·
 6 + **câble fin** (traction seule : haubans, suspentes) · 7 + **câble porteur** (câble épais tendu entre pylônes).
 Un câble fin s'accroche **n'importe où sur un câble porteur** : le câble porteur est alors coupé en deux et un nœud est créé.
 Les niveaux intégrés sont écrits en MWL dans `content/levels.mwl`, puis compilés en données TypeScript.
@@ -115,7 +117,23 @@ Test Windows : `e2e/win-smoke.mjs` (Node + Chrome Windows).
 ## Crédits
 
 Graphismes : **SVG dessinés pour le jeu**, dans `assets/` (licences et découpage : `assets/README.md`).
-Rien n'est emprunté à un pack tiers ; le jeu et ses assets sont donc entièrement redistribuables.
+Musique : **huit morceaux**, avec enchaînement automatique et commandes **Pause / Reprendre** et **Suivant**. Le menu **Musique** affiche les auteurs et licences ; sa liste défile avec la molette ou les boutons ↑/↓. **Sans musique** arrête la lecture et **Son OFF** suspend aussi l'accompagnement. Le choix, la pause et la visibilité de l'onglet sont indépendants de la vitesse de simulation.
+
+- Gymnopédie n° 1 — Satie, Mutopia (domaine public), morceau par défaut.
+- Méditation de Thaïs — Massenet, fichier MIDI (d’après Massenet), CC BY-SA 4.0.
+- Marche turque, K. 331 — Mozart, Mutopia (domaine public).
+- Les Sauvages — Rameau, version clavier des Nouvelles Suites (domaine public), dont le thème est repris dans Les Indes galantes ; ce fichier n'est pas l'opéra complet.
+- Symphonie n° 7, II. Allegretto et Symphonie n° 5, I — Beethoven, mouvements complets orchestraux, Mutopia (domaine public).
+- Ancient Mysteries — Sperry Lion, LLC (2024), CC0 ; Theme Song [8-bit] — nene, CC0.
+
+Les sources, auteurs des saisies et licences sont conservés dans `assets/credits.json` et `dist/assets/CREDITS.txt`. Les compositions du domaine public restent sous leur licence de saisie ; la Méditation conserve sa licence CC BY-SA 4.0, jouée en MIDI par synthèse.
+
+Les huit MIDI tiennent dans `assets/music/` (~230 Ko au total) et sont embarqués en base64 dans le bundle via `npm run music:embed` (sortie versionnée : `src/generated/music.ts`). Le jeu les joue **en direct** avec l'API publique MWG (`parseMidi` + `scheduleMidi`) : un ordonnanceur léger crée chaque note sur l'horloge audio (timbre par famille General MIDI, percussions sur le canal 10), sans échantillon ni décodage. Les symphonies sont jouées jusqu'au bout. La page autonome reste sous le Mo. Tout est embarqué et fonctionne hors ligne.
+
+Après avoir ajouté ou remplacé un MIDI dans `assets/music/`, relancer `npm run music:embed` : le test `musique` vérifie que le module généré est synchronisé avec les fichiers.
+
+Simulation : départ arrêté, plafond de **50 km/h**, pente prise en compte, gravité de 9,81 m/s² pour le véhicule. Le moteur injecte une **puissance constante**, déduite du temps de 0 à 100 km/h de chaque véhicule (`zeroTo100` dans `content/catalog.mwl` : 10 s, 13 s, 17 s) : a(v) = 5000 / (t100 · v) en km/h/s, plafonnée à 20 km/h/s par l'adhérence à basse vitesse — on accélère donc fort au démarrage, puis de moins en moins en approchant du plafond. Sans appui, aucune motricité : élan horizontal conservé et chute sous gravité. **Temps réel** et **Ralenti ×½** partagent les mêmes pas de physique ; le ralenti prend deux fois plus de temps à les lire. Les roues tournent selon la distance réellement parcourue.
+
 
 
 ### MWG et poids des assets
@@ -124,3 +142,5 @@ Le jeu utilise `@datamoc/mwg` 0.39.1. Le build sélectionne les fichiers avec `a
 les brouillons de `assets/garbage/` et les anciens cycles de marche/vélo ne sont pas embarqués.
 Après `npm run build`, lancer `npm run assets:report` pour produire
 `e2e/out/assets-report.json` (poids brut/gzip/brotli et doublons des assets sélectionnés).
+
+Vérification audio locale après compilation : `npm run e2e:music` (lecture des huit morceaux, pause, enchaînement, sourdine et visibilité).

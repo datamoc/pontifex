@@ -109,9 +109,9 @@ check('niveau 1 réussi', (await sc(() => window.__pontifex.sim.status)) === 'wo
 // 1bis. niveau 1bis : poinçon en chaussée + bois, à la souris
 await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.loadLevel(1); });
 await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());
-await drag([300, 340], [400, 340]); await drag([400, 340], [500, 340]);
+await drag([280, 340], [400, 340]); await drag([400, 340], [520, 340]);
 await sc(() => window.__pontifex.matButtons.get('wood').onClick.dispatch());
-await drag([300, 340], [400, 400]); await drag([400, 400], [500, 340]); await drag([400, 340], [400, 400]);
+await drag([280, 340], [400, 380]); await drag([400, 380], [520, 340]); await drag([400, 340], [400, 380]);
 await page.screenshot({ path: `${out}/1c-niveau1bis.png` });
 await click('btnTest'); await waitEnd();
 check('niveau 1bis réussi', (await sc(() => window.__pontifex.sim.status)) === 'won');
@@ -119,11 +119,19 @@ check('niveau 1bis réussi', (await sc(() => window.__pontifex.sim.status)) === 
 // 2. niveau 2 : treillis en chaussée + bois, à la souris
 await sc(() => { const s = window.__pontifex; s.windows.closeAll(); s.stopSim(); s.loadLevel(2); });
 await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());
-const roadX = [180, 280, 400, 520, 620];
+const roadX = [160, 280, 400, 520, 640];
 for (let i = 0; i < 4; i++) await drag([roadX[i], 340], [roadX[i + 1], 340]);
 await sc(() => window.__pontifex.matButtons.get('wood').onClick.dispatch());
-for (const [a, b, c, d] of [[180,340,240,440],[240,440,280,340],[280,340,340,440],[340,440,400,340],[400,340,460,440],[460,440,520,340],[520,340,560,440],[560,440,620,340],[240,440,340,440],[340,440,460,440],[460,440,560,440]]) await drag([a, b], [c, d]);
+for (const [a, b, c, d] of [[160,340,240,420],[240,420,280,340],[280,340,340,420],[340,420,400,340],[400,340,460,420],[460,420,520,340],[520,340,560,420],[560,420,640,340],[240,420,340,420],[340,420,460,420],[460,420,560,420]]) await drag([a, b], [c, d]);
 check('niveau 2 : 15 poutres posées à la souris', (await sc(() => window.__pontifex.structure.beams.length)) === 15);
+check('niveau 2 : quatre tronçons plats de 12 m relient les rives', await sc(() => {
+  const { structure, level } = window.__pontifex;
+  const roads = structure.beams.filter((beam) => beam.mat === 'road');
+  return level.x1 - level.x0 === 480 && roads.length === 4 && roads.every((beam) => {
+    const a = structure.nodes[beam.a], b = structure.nodes[beam.b];
+    return a.y === level.deckY && b.y === level.deckY && Math.abs(b.x - a.x) === 120;
+  });
+}));
 await click('btnTest'); await sleep(3500); await page.screenshot({ path: `${out}/2-simulation.png` });
 await waitEnd(); check('niveau 2 réussi', (await sc(() => window.__pontifex.sim.status)) === 'won');
 
@@ -158,16 +166,16 @@ check('éditeur ouvert', await sc(() => window.__pontifex.editing));
 const clickEd = async (t) => { const pos = await sc((t) => { const b = window.__pontifex.editor.items.find((i) => i.children.some((c) => c.text?.includes?.(t)));
   const g = b.getGlobalPosition(); return [g.x + b.width / 2, g.y + b.height / 2]; }, t); await page.mouse.click(...pos); };
 const draft = () => sc(() => JSON.parse(JSON.stringify(window.__pontifex.editor.draft)));
-await clickEd('Écart +'); check('écart + : 12 cases', ((d) => (d.x1 - d.x0) / 20 === 12)(await draft()));
+await clickEd('Écart +'); check('écart + : 18 cases', ((d) => (d.x1 - d.x0) / 20 === 18)(await draft()));
 await clickEd('Îlot'); { const [x, y] = await w2s(400, 440); await page.mouse.click(x, y); }
 check('îlot posé à la souris (+1 ancrage)', ((d) => d.islands.length === 1 && d.anchors.length === 3)(await draft()));
-await clickEd('Pylône'); { const [x, y] = await w2s(240, 160); await page.mouse.click(x, y); }
+await clickEd('Pylône'); { const [x, y] = await w2s(200, 160); await page.mouse.click(x, y); }
 check('pylône posé à la souris', ((d) => d.towers.length === 1)(await draft()));
 await page.screenshot({ path: `${out}/7-editeur.png` });
 { const [x, y] = await w2s(400, 440); await clickEd('Îlot'); await page.mouse.click(x, y); }
-{ const [x, y] = await w2s(240, 160); await clickEd('Pylône'); await page.mouse.click(x, y); }
+{ const [x, y] = await w2s(200, 160); await clickEd('Pylône'); await page.mouse.click(x, y); }
 await clickEd('Écart −');
-check('retour à 10 cases sans îlot ni pylône', ((d) => (d.x1 - d.x0) / 20 === 10 && d.islands.length === 0 && d.towers.length === 0 && d.anchors.length === 2)(await draft()));
+check('retour à 12 cases sans îlot ni pylône', ((d) => (d.x1 - d.x0) / 20 === 12 && d.islands.length === 0 && d.towers.length === 0 && d.anchors.length === 2)(await draft()));
 await clickEd('Budget +'); await clickEd('Bois');
 check('bois retiré puis…', ((d) => !d.materials.includes('wood'))(await draft()));
 await clickEd('Bois');
@@ -175,9 +183,9 @@ check('…remis', ((d) => d.materials.includes('wood'))(await draft()));
 await clickEd('Tester');
 check('essai du brouillon : niveau chargé', await sc(() => window.__pontifex.testingSpec !== null && !window.__pontifex.editing));
 await sc(() => window.__pontifex.matButtons.get('road').onClick.dispatch());
-await drag([300, 340], [400, 340]); await drag([400, 340], [500, 340]);
+await drag([280, 340], [400, 340]); await drag([400, 340], [520, 340]);
 await sc(() => window.__pontifex.matButtons.get('wood').onClick.dispatch());
-await drag([300, 340], [400, 400]); await drag([400, 400], [500, 340]); await drag([400, 340], [400, 400]);
+await drag([280, 340], [400, 380]); await drag([400, 380], [520, 340]); await drag([400, 340], [400, 380]);
 await click('btnTest'); await waitEnd(); await page.screenshot({ path: `${out}/8-essai.png` });
 check('essai réussi : la solution est validée', (await sc(() => window.__pontifex.sim.status)) === 'won' && (await sc(() => !!window.__pontifex.testingSpec.solution)));
 await sc(() => { window.__pontifex.windows.closeAll(); window.__pontifex.backToEditor(); });

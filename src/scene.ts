@@ -1,7 +1,7 @@
 import { buildPopulation, type Population } from './population.ts';
 import { BIOMES, randomBiome, type Biome } from './biomes.ts';
 import {
-  Game, Scene2D, Button, Label, Bar, Window, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt,
+  Game, Scene2D, Button, Label, Bar, Window, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt, ScrollBox,
 } from '@datamoc/mwg/two-d';
 import { Camera } from '@datamoc/mwg/two-d/render';
 import { Settings, UndoHistory, Input, FixedStepper } from '@datamoc/mwg/core';
@@ -11,6 +11,7 @@ import {
 } from './data.ts';
 import { BridgeSim, FRAME_DT, SETTLE, WHEEL_R, structureCost, type Structure } from './physics.ts';
 import { Sfx } from './audio.ts';
+import { BackgroundMusic, MUSIC_TRACKS, drawTrackId } from './music.ts';
 import { LEVELS as BUILTIN_LEVELS } from './levels.ts';
 import { deriveLevel, isSolid, parseSpec, slug, type LevelSpec } from './level.ts';
 import { LevelEditor } from './editor-ui.ts';
@@ -40,6 +41,7 @@ interface BuildStart { from: Pt; fromIdx: number; fromRope: RopeHit | null }
 export class PontifexScene extends Scene2D {
   private settings = new Settings({ namespace: 'pontifex' });
   private sfx = new Sfx();
+  private music = new BackgroundMusic();
   private progress: Progress = { stars: {} };
 
   // --- état de jeu
@@ -60,7 +62,9 @@ export class PontifexScene extends Scene2D {
   private snapOn = true;
   private sim: BridgeSim | null = null;
   private stepper = new FixedStepper(FRAME_DT, 12);
-  private speed = 1;
+  /** Vitesse de lecture ; les unités physiques restent celles du temps réel. */
+  private speed = 0.5;
+  private carDistance = 0;
   private overBudgetFlash = 0;
 
   // --- interaction
@@ -108,8 +112,13 @@ export class PontifexScene extends Scene2D {
   private btnRedo!: Button;
   private btnClear!: Button;
   private btnSpeed!: Button;
+  private lblCarSpeed = new Label({ text: '0 km/h', size: 13, color: 0xcbd5e1 });
   private btnGrid!: Button;
   private btnSound!: Button;
+  private btnMusic!: Button;
+  private btnMusicPause!: Button;
+  private btnMusicNext!: Button;
+  private musicLabel = '';
   private btnFullscreen!: Button;
   private fullscreenIcon = new Shape2D();
   private btnTest!: Button;
@@ -125,6 +134,10 @@ export class PontifexScene extends Scene2D {
     this.loadCustoms();
     const saved = this.settings.getCustom('level2', 0);
     this.sfx.enabled = this.settings.getCustom('sound', true) !== false;
+    this.music.setEnabled(this.sfx.enabled);
+    // Tirage au sort au lancement, sauf « Sans musique » déjà choisi.
+    const savedMusic = String(this.settings.getCustom('music', '__unset__'));
+    this.music.select(savedMusic === '' ? '' : drawTrackId());
     this.snapOn = this.settings.getCustom('grid', true) !== false;
 
     this.world = this.camera.world;
@@ -174,6 +187,7 @@ export class PontifexScene extends Scene2D {
   }
 
   override teardown(): void {
+    this.music.dispose();
     for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {
       Game.current.app.canvas.removeEventListener(type, this.touchHandler as EventListener, true);
     }
@@ -237,8 +251,8 @@ export class PontifexScene extends Scene2D {
     this.cancelBuild();
     const play = !this.editing;
     for (const [t, b] of this.matButtons) b.visible = play && (t === 'delete' || this.level.materials.includes(t));
-    for (const b of [this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnFullscreen, this.btnTest]) b.visible = play;
-    for (const o of [this.lblBudget, this.barBudget, this.lblStress, this.barStress]) o.visible = play;
+    for (const b of [this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnMusic, this.btnMusicPause, this.btnMusicNext, this.btnFullscreen, this.btnTest]) b.visible = play;
+    for (const o of [this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblCarSpeed]) o.visible = play;
     this.btnBack.visible = play && this.testingSpec !== null;
     for (const it of this.editor?.items ?? []) it.visible = this.editing;
     this.btnLevel?.setText(this.editing ? '▾ Éditeur' : this.testingSpec ? '▾ Essai du brouillon' : `▾ ${this.level.label}. ${this.level.name}`);
@@ -484,6 +498,7 @@ export class PontifexScene extends Scene2D {
     if (this.sim) { this.stopSim(); return; }
     if (this.structure.beams.length === 0) { this.reject('Construis d’abord un pont !'); return; }
     this.sim = new BridgeSim(this.level, clone(this.structure));
+    this.carDistance = 0;
     this.stepper.reset();
     this.cancelBuild();
     this.debris.clear(); this.spray.clear();
@@ -771,9 +786,12 @@ export class PontifexScene extends Scene2D {
     this.btnUndo = this.button('Annuler', () => this.undo(), 80);
     this.btnRedo = this.button('Rétablir', () => this.redo(), 80);
     this.btnClear = this.button('Vider', () => this.clearAll(), 66);
-    this.btnSpeed = this.button('1×', () => { this.speed = this.speed === 1 ? 2 : this.speed === 2 ? 0.5 : 1; this.refreshHud(); }, 52);
+    this.btnSpeed = this.button('', () => { this.speed = this.speed === 0.5 ? 1 : 0.5; this.refreshHud(); }, 126);
     this.btnGrid = this.button('', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); }, 90);
-    this.btnSound = this.button('', () => { this.sfx.enabled = !this.sfx.enabled; this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
+    this.btnSound = this.button('', () => { this.sfx.enabled = !this.sfx.enabled; this.music.setEnabled(this.sfx.enabled); this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
+    this.btnMusic = this.button('Musique', () => this.showMusic(), 86);
+    this.btnMusicPause = this.button('Pause', () => this.music.togglePause(), 96);
+    this.btnMusicNext = this.button('Suivant', () => this.music.next(), 80);
     this.drawFullscreenIcon();
     this.btnFullscreen = new Button({
       width: 52, height: 34, icon: this.fullscreenIcon,
@@ -783,7 +801,47 @@ export class PontifexScene extends Scene2D {
     this.btnTest = new Button({ width: 130, height: 40, text: '▶  TESTER', label: { size: 14, bold: true }, onClick: () => { this.sfx.onClick(); this.toggleSim(); } });
     this.stage.addChild(this.topBar, this.botBar);
     for (const o of [this.lblTitle, this.btnLevel, this.lblBudget, this.barBudget, this.lblStress, this.barStress, this.lblHint, this.lblToast,
-      ...this.matButtons.values(), this.btnBack, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnFullscreen, this.btnTest]) this.stage.addChild(o);
+      ...this.matButtons.values(), this.btnBack, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.lblCarSpeed, this.btnGrid, this.btnSound, this.btnMusic, this.btnMusicPause, this.btnMusicNext, this.btnFullscreen, this.btnTest]) this.stage.addChild(o);
+  }
+
+  private showMusic(): void {
+    this.cancelBuild();
+    this.windows.closeAll();
+    const win = new Window({ width: Math.min(520, this.vw - 16), height: Math.min(600, this.vh - 20), title: 'Musique', modal: true, closable: true, closeButton: true, blocker: true });
+    const current = MUSIC_TRACKS.find((track) => track.id === this.music.selected);
+    const now = new Label({ text: current ? `En écoute : ${current.composer}\n${current.title}` : 'Musique arrêtée', size: 12, wrapWidth: win.contentWidth - 20 });
+    now.position.set(8, 4);
+    win.content.addChild(now);
+    const listHeight = win.contentHeight - 96;
+    const list = new ScrollBox({ width: win.contentWidth - 48, height: listHeight, contentHeight: MUSIC_TRACKS.length * 96 });
+    list.position.set(4, 44);
+    win.content.addChild(list);
+    const choose = (id: string) => {
+      this.music.select(id);
+      this.settings.setCustom('music', id);
+      win.close();
+    };
+    MUSIC_TRACKS.forEach((track, i) => {
+      const y = i * 96;
+      const button = this.button(track.title, () => choose(track.id), win.contentWidth - 66);
+      button.setSelected(this.music.selected === track.id);
+      button.position.set(8, y);
+      const credit = new Label({ text: `${track.composer} · ${track.license} ↗\n${track.author}`, size: 11, color: 0xcbd5e1, wrapWidth: win.contentWidth - 66 });
+      credit.position.set(10, y + 37);
+      credit.eventMode = 'static';
+      credit.cursor = 'pointer';
+      credit.on('pointertap', () => window.open(track.url, '_blank', 'noopener,noreferrer'));
+      list.content.addChild(button, credit);
+    });
+    const up = this.button('↑', () => list.scrollBy(-160), 32);
+    const down = this.button('↓', () => list.scrollBy(160), 32);
+    up.position.set(win.contentWidth - 36, 44);
+    down.position.set(win.contentWidth - 36, 44 + listHeight - 34);
+    const off = this.button('Sans musique', () => choose(''), win.contentWidth - 16);
+    off.position.set(8, win.contentHeight - 40);
+    off.setSelected(!this.music.selected);
+    win.content.addChild(off, up, down);
+    this.windows.push(win);
   }
   private undo(): void { if (!this.sim) this.restore(this.history.undo()); }
   private redo(): void { if (!this.sim) this.restore(this.history.redo()); }
@@ -809,7 +867,7 @@ export class PontifexScene extends Scene2D {
     this.btnUndo.setDisabled(!!this.sim || !this.history.canUndo);
     this.btnRedo.setDisabled(!!this.sim || !this.history.canRedo);
     this.btnClear.setDisabled(!!this.sim);
-    this.btnSpeed.setText(`${this.speed === 0.5 ? '½' : this.speed}×`);
+    this.btnSpeed.setText(this.speed === 1 ? 'Temps réel' : 'Ralenti ×½');
     this.btnGrid.setText(`Grille ${this.snapOn ? 'ON' : 'OFF'}`);
     this.btnSound.setText(this.sfx.enabled ? 'Son ON' : 'Son OFF');
     this.drawFullscreenIcon();
@@ -861,7 +919,7 @@ export class PontifexScene extends Scene2D {
     this.topH = topH;
     // barre basse
     const botItems: Container[] = this.editing ? this.editor.items
-      : [...(this.testingSpec ? [this.btnBack] : []), ...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!).filter((b) => b.visible), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.btnGrid, this.btnSound, this.btnFullscreen, this.btnTest];
+      : [...(this.testingSpec ? [this.btnBack] : []), ...MATERIAL_ORDER.map((m) => this.matButtons.get(m)!).filter((b) => b.visible), this.btnDelete, this.btnUndo, this.btnRedo, this.btnClear, this.btnSpeed, this.lblCarSpeed, this.btnGrid, this.btnSound, this.btnMusic, this.btnMusicPause, this.btnMusicNext, this.btnFullscreen, this.btnTest];
     const h = place(botItems, 8, 8);
     const oy = vh - h;
     for (const it of botItems) it.y += oy;
@@ -909,6 +967,13 @@ export class PontifexScene extends Scene2D {
 
   // ------------------------------------------------------------------ boucle
   override update(dt: number): void {
+    this.music.update();
+    this.btnMusicPause.setText(this.music.paused ? 'Reprendre' : 'Pause');
+    const musicLabel = this.music.error ? 'Musique !' : this.music.loading ? 'Musique…' : this.music.selected ? 'Musique' : 'Mus. OFF';
+    if (musicLabel !== this.musicLabel) {
+      this.musicLabel = musicLabel;
+      this.btnMusic.setText(musicLabel);
+    }
     this.time += dt;
     if (this.sim) {
       const sim = this.sim;
@@ -960,6 +1025,10 @@ export class PontifexScene extends Scene2D {
     const car = this.car;
     if (!car) return;
     const lv = this.level, sim = this.sim;
+    this.lblCarSpeed.visible = !this.editing;
+    this.lblCarSpeed.setText(`${String(Math.round(sim?.speedKmh ?? 0)).padStart(2, '0')} km/h`);
+    const distance = sim ? sim.distance - this.carDistance : 0;
+    this.carDistance = sim?.distance ?? 0;
     if (!sim) {
       this.setCar('idle');
       car.position.set(lv.x0 - lv.vehicle.width, lv.deckY - WHEEL_R);
@@ -969,6 +1038,6 @@ export class PontifexScene extends Scene2D {
       car.position.set(sim.carX, sim.carY);
       car.rotation = sim.angle;
     }
-    car.update(dt * (sim ? this.speed : 1));
+    car.update(dt * (sim ? this.speed : 1), distance);
   }
 }

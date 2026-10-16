@@ -1,0 +1,6 @@
+common/bird_swallow.svg
+common/walker_man_short_hair_trousers.svg
+euro_city/gull.svg
+common/walker_woman_ponytail_trousers.svg
+mountain/eagle.svg
+common/walker_man_bald_shorts.svg

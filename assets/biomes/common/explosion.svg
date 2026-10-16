@@ -1,7 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="60" height="60">
-  <rect x="0" y="0" width="60" height="60" fill="#f9fafb" />
-  
-      <path d="M30,10 Q40,20 50,20 Q55,30 50,40 Q40,40 30,50 Q20,40 10,40 Q5,30 10,20 Q20,20 30,10 Z" fill="#dc2626" stroke="#1e293b" />
-    
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><path fill="#f9fafb" d="M0 0h60v60H0z"/><path fill="#dc2626" stroke="#1e293b" d="M30 10q10 10 20 10 5 10 0 20-10 0-20 10-10-10-20-10-5-10 0-20 10 0 20-10Z"/></svg>

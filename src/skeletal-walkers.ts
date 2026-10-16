@@ -2,10 +2,9 @@ import { get, getBinary, loadBinary, sanitizeSvg } from '@datamoc/mwg/assets';
 import { Node2D } from '@datamoc/mwg/two-d';
 import { SkeletalSprite, loadSvgSkeleton } from '@datamoc/mwg/two-d/render';
 import * as Skeleton from '@datamoc/mwg/skeleton';
-import { WALKERS, WALK_PARTS, WALK_CLIP, createWalkerSkeleton, walkerPivot, isWalkerLimb, type WalkerArt } from './walker-rig.ts';
+import { WALKERS, WALK_PARTS, WALK_CLIP, createWalkerSkeleton, walkerPivot, isWalkerLimb, walkerCycleDistance, type WalkerArt } from './walker-rig.ts';
 import type { AnimatedResident } from './resident-animation.ts';
 
-const WALK_STRIDE = 28;
 type WalkerTextures = Awaited<ReturnType<typeof loadSvgSkeleton>>['textures'];
 const texturesOf = new Map<string, WalkerTextures>();
 
@@ -41,6 +40,7 @@ export async function loadWalkerSkeletons(): Promise<void> {
 
 export function makeSkeletalWalker(name: string): AnimatedResident {
   const artwork = get<Record<string, WalkerArt>>('manifest.json')[name];
+  const cycleDistance = walkerCycleDistance(artwork);
   const bones = createWalkerSkeleton(artwork);
   const mixer = Skeleton.createMixer(bones, WALK_CLIP);
   const rig = new SkeletalSprite(bones, mixer);
@@ -57,7 +57,7 @@ export function makeSkeletalWalker(name: string): AnimatedResident {
   return {
     node,
     update(time, speed, scale) {
-      mixer.base.rate = speed / (WALK_STRIDE * scale);
+      mixer.base.rate = speed * WALK_CLIP.duration / (cycleDistance * scale);
       if (previousTime === null) mixer.base.time = time % WALK_CLIP.duration;
       rig.update(previousTime === null ? 0 : Math.max(0, time - previousTime));
       previousTime = time;

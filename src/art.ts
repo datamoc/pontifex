@@ -25,6 +25,7 @@ const VEHICLES = ['car.svg', 'jeep.svg', 'truck.svg'].map((f) => `${DIR}/${f}`);
 const SCENERY = [
   'tree_round.svg', 'tree_fir.svg', 'bush.svg', 'rock1.svg', 'rock2.svg', 'rock3.svg',
   'cloud1.svg', 'cloud2.svg', 'explosion.svg', 'flame.svg',
+  'ship_small.svg', 'ship_medium.svg', 'ship_large.svg', // Nouveaux sprites pour les navires
 ].map((f) => `${DIR}/${f}`);
 
 const vehicleParts = new Map<string, Readonly<Record<string, Texture2D>>>();
@@ -77,7 +78,18 @@ export async function loadArt(): Promise<void> {
 
 export type CarState = 'idle' | 'ride' | 'destroyed';
 
-const SPRITE_OF: Record<VehicleDef['sprite'], string> = { citadine: 'car', jeep1: 'jeep', jeep2: 'truck' };
+const SPRITE_OF: Record<VehicleDef['sprite'], string> = {
+  citadine: 'car',
+  jeep1: 'jeep',
+  jeep2: 'truck',
+  train: 'train',
+  bike: 'bicycle',
+  bus: 'bus',
+  boat: 'boat',
+  ship_small: 'ship_small',
+  ship_medium: 'ship_medium',
+  ship_large: 'ship_large'
+};
 
 /**
  * Un véhicule recomposé depuis les groupes de son SVG : le point d'attelage (milieu de
@@ -85,7 +97,6 @@ const SPRITE_OF: Record<VehicleDef['sprite'], string> = { citadine: 'car', jeep1
  * et `rotation = sim.angle` suffent à le poser sur la chaussée.
  */
 export class Vehicle extends Node2D {
-  private readonly def: VehicleDef;
   private readonly art: VehicleArt;
   /** échelle du dessin : l'empattement du SVG devient l'empattement de la physique */
   private readonly k: number;
@@ -101,7 +112,6 @@ export class Vehicle extends Node2D {
 
   constructor(def: VehicleDef) {
     super();
-    this.def = def;
     const a = vehicleArtOf(SPRITE_OF[def.sprite]);
     this.art = a;
     this.k = (0.6 * def.width) / a.wheelbase;
@@ -156,11 +166,11 @@ export class Vehicle extends Node2D {
     if (state === 'destroyed') { this.blast.alpha = 1; this.blast.scale.set(this.blastScale * 0.4); }
   }
 
-  update(dt: number): void {
+  update(dt: number, distance = 0): void {
     this.t += dt;
     if (this.state === 'ride') {
       // roulement sans glissement : longueur d'arc parcourue / rayon de la roue
-      const roll = (this.def.speed * dt) / (this.art.wheelRadius * this.k);
+      const roll = distance / (this.art.wheelRadius * this.k);
       for (const w of this.wheels) w.rotation += roll;
     }
     const target = this.state === 'destroyed' ? 1 : 0;

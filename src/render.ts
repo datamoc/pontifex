@@ -50,10 +50,10 @@ export const drawScene = {
       b.moveTo(X0, y).lineTo(lv.x0, y).moveTo(lv.x1, y).lineTo(X1, y).stroke({ width: 1, color: 0x4a3b2e, alpha: 0.6 });
     }
     // herbe + route
-    b.rect(X0, lv.deckY, lv.x0 - X0, 5).fill(biome.ground).rect(lv.x1, lv.deckY, X1 - lv.x1, 5).fill(biome.ground);
-    b.rect(X0, lv.deckY - 5, lv.x0 - X0, 5).fill(0x334155).rect(lv.x1, lv.deckY - 5, X1 - lv.x1, 5).fill(0x334155);
-    for (let x = X0; x < lv.x0 - 20; x += 40) b.rect(x, lv.deckY - 3, 18, 1.5).fill(0xe2e8f0);
-    for (let x = lv.x1 + 10; x < X1; x += 40) b.rect(x, lv.deckY - 3, 18, 1.5).fill(0xe2e8f0);
+    b.rect(X0, lv.deckY + 5, lv.x0 - X0, 5).fill(biome.ground).rect(lv.x1, lv.deckY + 5, X1 - lv.x1, 5).fill(biome.ground);
+    b.rect(X0, lv.deckY - 5, lv.x0 - X0, 10).fill(0x334155).rect(lv.x1, lv.deckY - 5, X1 - lv.x1, 10).fill(0x334155);
+    for (let x = X0; x < lv.x0 - 20; x += 40) b.rect(x, lv.deckY - 0.75, 18, 1.5).fill(0xe2e8f0);
+    for (let x = lv.x1 + 10; x < X1; x += 40) b.rect(x, lv.deckY - 0.75, 18, 1.5).fill(0xe2e8f0);
     // pylônes
     for (const t of lv.towers ?? []) {
       b.rect(t.x - 7, t.top, 14, t.base - t.top).fill(0x94a3b8).stroke({ width: 2, color: 0x334155 });

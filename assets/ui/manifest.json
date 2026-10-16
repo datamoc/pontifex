@@ -1,0 +1,288 @@
+{
+  "sim_play": {
+    "file": "sim_play.svg",
+    "group": "simulation",
+    "label": "Tester",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "sim_stop": {
+    "file": "sim_stop.svg",
+    "group": "simulation",
+    "label": "Arrêter",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "music_play": {
+    "file": "music_play.svg",
+    "group": "music",
+    "label": "Lecture",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "music_stop": {
+    "file": "music_stop.svg",
+    "group": "music",
+    "label": "Arrêt",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "music_pause": {
+    "file": "music_pause.svg",
+    "group": "music",
+    "label": "Pause",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "music_next": {
+    "file": "music_next.svg",
+    "group": "music",
+    "label": "Musique suivante",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "music": {
+    "file": "music.svg",
+    "group": "music",
+    "label": "Choisir la musique",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "sound_on": {
+    "file": "sound_on.svg",
+    "group": "music",
+    "label": "Son activé",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "sound_off": {
+    "file": "sound_off.svg",
+    "group": "music",
+    "label": "Son coupé",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "mat_road": {
+    "file": "mat_road.svg",
+    "group": "material",
+    "label": "Route",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "mat_wood": {
+    "file": "mat_wood.svg",
+    "group": "material",
+    "label": "Bois",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "mat_steel": {
+    "file": "mat_steel.svg",
+    "group": "material",
+    "label": "Acier",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "mat_rope": {
+    "file": "mat_rope.svg",
+    "group": "material",
+    "label": "Corde",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "mat_cable": {
+    "file": "mat_cable.svg",
+    "group": "material",
+    "label": "Câble",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "tool_delete": {
+    "file": "tool_delete.svg",
+    "group": "tool",
+    "label": "Effacer",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "tool_clear": {
+    "file": "tool_clear.svg",
+    "group": "tool",
+    "label": "Tout vider",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "tool_undo": {
+    "file": "tool_undo.svg",
+    "group": "tool",
+    "label": "Annuler",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "tool_redo": {
+    "file": "tool_redo.svg",
+    "group": "tool",
+    "label": "Rétablir",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "editor": {
+    "file": "editor.svg",
+    "group": "tool",
+    "label": "Éditeur",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "grid_on": {
+    "file": "grid_on.svg",
+    "group": "view",
+    "label": "Grille activée",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "grid_off": {
+    "file": "grid_off.svg",
+    "group": "view",
+    "label": "Grille désactivée",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "speed_real": {
+    "file": "speed_real.svg",
+    "group": "view",
+    "label": "Temps réel",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "speed_slow": {
+    "file": "speed_slow.svg",
+    "group": "view",
+    "label": "Ralenti",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "fullscreen_enter": {
+    "file": "fullscreen_enter.svg",
+    "group": "view",
+    "label": "Plein écran",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "fullscreen_exit": {
+    "file": "fullscreen_exit.svg",
+    "group": "view",
+    "label": "Quitter le plein écran",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "levels": {
+    "file": "levels.svg",
+    "group": "view",
+    "label": "Niveaux",
+    "width": 48,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  }
+}

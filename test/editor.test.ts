@@ -21,23 +21,33 @@ test('nouveau niveau : valide et jouable avec un pont à poinçon', () => {
   const spec = fresh();
   assert.equal(ed.problems(spec), null);
   const lv = deriveLevel(spec);
-  const s = build(lv, [[400, 340], [400, 400]], [[0, 2, 'road'], [2, 1, 'road'], [0, 3, 'wood'], [3, 1, 'wood'], [2, 3, 'wood']]);
+  const s = build(lv, [[400, 340], [400, 380]], [[0, 2, 'road'], [2, 1, 'road'], [0, 3, 'wood'], [3, 1, 'wood'], [2, 3, 'wood']]);
   assert.equal(run(lv, s).status, 'won');
 });
 
 test('écart : les rives et leurs ancrages suivent, ', () => {
   const w = ok(ed.widen(fresh(), 1));
-  assert.equal(w.x0, 280); assert.equal(w.x1, 520);
-  assert.deepEqual(w.anchors.map((a) => a.x).sort(), [280, 520]);
+  assert.equal(w.x0, 220); assert.equal(w.x1, 580);
+  assert.deepEqual(w.anchors.map((a) => a.x).sort(), [220, 580]);
 });
 test('écart : minimum 6 cases, maximum 30', () => {
   let s = fresh();
-  s = ok(ed.widen(s, -1)); s = ok(ed.widen(s, -1));       // 10 → 6
+  s = ok(ed.widen(s, -1));                              // 12 → 6
   assert.equal((s.x1 - s.x0) / 20, 6);
   assert.equal(ed.widen(s, -1), null);
   let t = fresh();
   for (let i = 0; i < 20; i++) { const n = ed.widen(t, 1); if (!n) break; t = n; }
   assert.ok((t.x1 - t.x0) / 20 <= 30);
+});
+
+test('écart : pas de 12 m et recalage des anciens niveaux à écart irrégulier', () => {
+  const irregular = { ...fresh(), x0: 180, x1: 620, anchors: [{ x: 180, y: 340 }, { x: 620, y: 340 }] };
+  const wider = ok(ed.widen(irregular, 1));
+  const narrower = ok(ed.widen(irregular, -1));
+  assert.equal(wider.x1 - wider.x0, 480);
+  assert.equal(narrower.x1 - narrower.x0, 360);
+  assert.deepEqual(wider.anchors, [{ x: wider.x0, y: 340 }, { x: wider.x1, y: 340 }]);
+  assert.deepEqual(ok(ed.widen(ok(ed.widen(fresh(), 1)), -1)), fresh());
 });
 
 test('route et eau : les ancrages de rive suivent la route ; l’eau reste sous la route', () => {
@@ -58,7 +68,7 @@ test('ancre : ajout, retrait, refus dans la roche', () => {
 
 test('îlot : crée l’îlot et son ancrage ; le retirer retire aussi l’ancrage', () => {
   let s = fresh();
-  s = ok(ed.widen(s, 3));                                      // 16 cases
+  s = ok(ed.widen(s, 1));                                      // 18 cases
   s = ok(ed.toggleIsland(s, { x: 400, y: 440 }));
   assert.equal(s.islands.length, 1);
   assert.ok(s.anchors.some((a) => a.x === 400 && a.y === 440));
@@ -69,25 +79,25 @@ test('îlot : crée l’îlot et son ancrage ; le retirer retire aussi l’ancra
 });
 
 test('pylône : sur une rive ou un îlot seulement, sommet au-dessus', () => {
-  let s = ok(ed.widen(fresh(), 3));
+  let s = ok(ed.widen(fresh(), 1));
   assert.equal(ed.toggleTower(s, { x: 400, y: 200 }), null);     // au-dessus du vide
-  s = ok(ed.toggleTower(s, { x: 220, y: 160 }));
+  s = ok(ed.toggleTower(s, { x: 200, y: 160 }));
   assert.equal(s.towers.length, 1);
   const tower = deriveLevel(s).towers[0];
   assert.ok(tower);
   assert.equal(tower.base, s.deckY);
   assert.equal(ed.toggleTower(s, { x: 260, y: 330 }), null);     // sommet trop bas
-  s = ok(ed.toggleTower(s, { x: 220, y: 160 }));
+  s = ok(ed.toggleTower(s, { x: 200, y: 160 }));
   assert.equal(s.towers.length, 0);
   assert.equal(s.anchors.length, 2);
 });
 
 test('l’élargissement emporte les pylônes de rive et supprime les îlots qui sortent du canyon', () => {
-  let s = ok(ed.widen(fresh(), 3));
-  s = ok(ed.toggleTower(s, { x: 220, y: 160 }));
+  let s = ok(ed.widen(fresh(), 1));
+  s = ok(ed.toggleTower(s, { x: 200, y: 160 }));
   s = ok(ed.toggleIsland(s, { x: 400, y: 440 }));
   const n = ok(ed.widen(s, 1));
-  assert.equal(n.towers[0]?.x, 200);
+  assert.equal(n.towers[0]?.x, 140);
   let r = n;
   for (let i = 0; i < 3; i++) r = ed.widen(r, -1) ?? r;
   assert.ok(r.islands.every((i) => i.x >= r.x0 + 60 && i.x <= r.x1 - 60));

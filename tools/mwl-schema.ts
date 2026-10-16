@@ -6,8 +6,13 @@ export const schemas: Record<string, MwlTagSchema> = {
   bridge_level: {
     attributes: { id: 'integer', label: 'string', name: 'string', hint: 'string', budget: 'integer', materials: 'string', car: 'string', x0: 'integer', x1: 'integer', deckY: 'integer', waterY: 'integer' },
     required: ['id', 'label', 'name', 'hint', 'budget', 'materials', 'car', 'x0', 'x1', 'deckY', 'waterY'],
-    children: ['anchor', 'tower', 'island', 'view', 'bridge_solution'],
-    cardinality: { anchor: { min: 2, max: 24 }, view: { max: 1 }, bridge_solution: { max: 1 } },
+    children: ['anchor', 'tower', 'island', 'view', 'bridge_solution', 'event'],
+    cardinality: { anchor: { min: 2, max: 24 }, view: { max: 1 }, bridge_solution: { max: 1 }, event: { max: 10 } },
+  },
+  event: {
+    attributes: { type: 'string', time: 'number', duration: 'number?', shipType: 'string?', waterY: 'number?' },
+    required: ['type', 'time'],
+    children: []
   },
   bridge_solution: { children: ['bridge_node', 'bridge_beam'] },
   bridge_node: { attributes: { x: 'number', y: 'number', fixed: 'boolean' }, required: ['x', 'y', 'fixed'], children: [] },

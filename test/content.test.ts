@@ -9,11 +9,32 @@ import { MATERIALS, CARS } from '../src/data.ts';
 import { parseSpec } from '../src/level.ts';
 import { BUILTIN_SPECS } from '../src/levels.ts';
 
-test('MWL preserves every authored level, vehicle and physics parameter', () => {
+test('MWL préserve le catalogue et les niveaux après recalage des rives sur 12 m', () => {
   const before = JSON.parse(readFileSync(new URL('./fixtures/content-before-mwl.json', import.meta.url), 'utf8'));
   // La consigne du premier niveau a depuis été adaptée à la construction tactile.
   before.levels.find((level: { id: number }) => level.id === 1).hint = 'Relie les deux points orange : touche le départ, puis l’arrivée, ou glisse de l’un à l’autre.';
+  const spans: Record<number, number> = { 8: 240, 2: 480, 3: 480, 4: 480, 6: 480, 7: 480 };
+  for (const level of before.levels) {
+    const span = spans[level.id];
+    if (!span) continue;
+    const x0 = (level.x0 + level.x1 - span) / 2;
+    const x1 = x0 + span;
+    for (const anchor of level.anchors) {
+      if (anchor.x === level.x0) anchor.x = x0;
+      else if (anchor.x === level.x1) anchor.x = x1;
+    }
+    level.x0 = x0;
+    level.x1 = x1;
+  }
   assert.deepEqual({ materials: MATERIALS, vehicles: CARS, levels: BUILTIN_SPECS.filter(level => before.levels.some((original: { id: number }) => original.id === level.id)) }, before);
+});
+
+test('niveaux intégrés : chaussée plate réalisable en tronçons complets de 12 m', () => {
+  for (const spec of BUILTIN_SPECS) {
+    assert.equal((spec.x1 - spec.x0) % MATERIALS.road.maxLen, 0, spec.name);
+    assert.ok(spec.anchors.some((a) => a.x === spec.x0 && a.y === spec.deckY), spec.name);
+    assert.ok(spec.anchors.some((a) => a.x === spec.x1 && a.y === spec.deckY), spec.name);
+  }
 });
 
 test('MWL translation catalog includes level names, hints, materials and vehicles', () => {

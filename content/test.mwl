@@ -1,0 +1,20 @@
+[
+  {
+    "tag": "bridge_level",
+    "id": 1,
+    "label": "1",
+    "name": "Test Level",
+    "hint": "This is a test level.",
+    "budget": 150,
+    "car": "citadine",
+    "x0": 340,
+    "x1": 460,
+    "deckY": 340,
+    "waterY": 470,
+    "materials": "road",
+    "children": [
+      { "tag": "anchor", "x": 340, "y": 340 },
+      { "tag": "anchor", "x": 460, "y": 340 }
+    ]
+  }
+]

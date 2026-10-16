@@ -1,0 +1,42 @@
+// Tutoriel : Construisez votre premier pont
+[
+  {
+    "tag": "level",
+    "id": "tutorial",
+    "title": "Tutoriel : Votre premier pont",
+    "hint": "Utilisez le bois pour construire un pont simple. Le véhicule doit traverser sans tomber !",
+    "budget": 100,
+    "width": 12,
+    "height": 6,
+    "anchors": [
+      {"x": 0, "y": 3},
+      {"x": 12, "y": 3}
+    ],
+    "materials": [
+      {
+        "id": "wood",
+        "name": "Bois",
+        "cost": 1,
+        "strength": 10,
+        "max_length": 6,
+        "icon": "mat_wood"
+      }
+    ],
+    "vehicles": [
+      {
+        "id": "car",
+        "name": "Voiture",
+        "speed": 1,
+        "weight": 1,
+        "icon": "common/car"
+      }
+    ],
+    "solution": {
+      "budget": 50,
+      "steps": [
+        {"type": "beam", "from": {"x": 0, "y": 3}, "to": {"x": 6, "y": 3}, "material": "wood"},
+        {"type": "beam", "from": {"x": 6, "y": 3}, "to": {"x": 12, "y": 3}, "material": "wood"}
+      ]
+    }
+  }
+]

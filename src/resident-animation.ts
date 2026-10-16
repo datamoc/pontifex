@@ -80,7 +80,10 @@ export function makeFlyingBird(name: string): AnimatedResident {
     node,
     update(time) {
       const drop = wingTipDrop(time);
+      const rise = -drop / 10;
+      body.y = rise;
       for (const { plane, original, points, tipY } of wings) {
+        plane.y = rise;
         for (const point of points) point.y = wingVertexY(original[point.index].y, tipY, drop);
         plane.dragVertices(points);
       }

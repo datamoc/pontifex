@@ -1,6 +1,6 @@
 // Opérations d'édition d'un niveau (LevelSpec) : pures, sans rendu, testées avec `npm test`.
 // Chaque opération renvoie une nouvelle spécification, ou `null` si elle est refusée (le message est dans `lastError`).
-import { GRID, MATERIAL_ORDER, WORLD_W, WORLD_H, type MaterialId, type Pt } from './data.ts';
+import { GRID, MATERIALS, MATERIAL_ORDER, WORLD_W, WORLD_H, type MaterialId, type Pt } from './data.ts';
 import { deriveLevel, isSolid, ISLAND_HALF, type CarId, type LevelSpec } from './level.ts';
 
 export const MIN_GAP = 6 * GRID;
@@ -17,14 +17,17 @@ const invalidate = (s: LevelSpec): LevelSpec => { delete s.solution; return s; }
 export function newSpec(): LevelSpec {
   return {
     id: 0, label: '', name: 'Nouveau niveau', hint: 'Relie les deux rives.', budget: 400,
-    materials: ['road', 'wood'], car: 'citadine', x0: 300, x1: 500, deckY: 340, waterY: 470,
-    anchors: [{ x: 300, y: 340 }, { x: 500, y: 340 }], towers: [], islands: [],
+    materials: ['road', 'wood'], car: 'citadine', x0: 280, x1: 520, deckY: 340, waterY: 470,
+    anchors: [{ x: 280, y: 340 }, { x: 520, y: 340 }], towers: [], islands: [],
   };
 }
 
-/** Écarte (ou rapproche) les deux rives de `cells` cases chacune ; tout ce qui est sur une rive suit. */
-export function widen(spec: LevelSpec, cells: number): LevelSpec | null {
-  const d = cells * GRID;
+/** Écart par tronçons de chaussée complets ; les appuis sur les rives suivent. */
+export function widen(spec: LevelSpec, steps: number): LevelSpec | null {
+  const span = MATERIALS.road.maxLen;
+  const panels = (spec.x1 - spec.x0) / span;
+  const count = steps > 0 ? Math.floor(panels) + steps : Math.ceil(panels) + steps;
+  const d = (count * span - (spec.x1 - spec.x0)) / 2;
   const x0 = spec.x0 - d, x1 = spec.x1 + d;
   if (x1 - x0 < MIN_GAP) return refuse('Écart minimum : 6 cases');
   if (x1 - x0 > MAX_GAP || x0 < 60 || x1 > WORLD_W - 60) return refuse('Écart maximum atteint (30 cases)');

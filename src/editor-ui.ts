@@ -88,7 +88,7 @@ export class LevelEditor {
     const sol = d.solution
       ? `solution ✔ ${Math.round(structureCost(d.solution))} €${structureCost(d.solution) > d.budget ? ' (> budget !)' : ''}`
       : 'solution ✖ à valider : ▶ Tester puis traverse le niveau';
-    return `Éditeur · ${d.name} · ${gap} cases · ${sol}`;
+    return `Éditeur · ${d.name} · ${gap} cases (${(d.x1 - d.x0) / 10} m) · ${sol}`;
   }
 
   /** Clic dans le monde (déjà aimanté sur la grille). */

@@ -19,7 +19,7 @@ const materialRows = rows('materials');
 const vehicleRows = rows('vehicles');
 const materialIds = materialRows.map(row => String(row.id));
 const vehicleIds = vehicleRows.map(row => String(row.id));
-const sprites: VehicleDef['sprite'][] = ['citadine', 'jeep1', 'jeep2'];
+const sprites: VehicleDef['sprite'][] = ['citadine', 'jeep1', 'jeep2', 'train', 'bike', 'bus', 'boat'];
 function validateRows(rows: Record<string, unknown>[], expectedIds: readonly string[], positive: string[]): void {
   const ids = rows.map(row => String(row.id));
   if (new Set(ids).size !== ids.length || ids.length !== expectedIds.length || expectedIds.some(id => !ids.includes(id))) {
@@ -32,7 +32,7 @@ function validateRows(rows: Record<string, unknown>[], expectedIds: readonly str
   }
 }
 validateRows(materialRows, MATERIAL_ORDER, ['cost', 'maxLen', 'stiffness', 'strength', 'tensionStrength', 'density']);
-validateRows(vehicleRows, sprites, ['mass', 'speed', 'width', 'height']);
+validateRows(vehicleRows, sprites, ['mass', 'zeroTo100', 'width', 'height']);
 for (const row of vehicleRows) {
   if (row.sprite !== row.id) throw new Error(`${row.id}: sprite must match the vehicle id`);
 }

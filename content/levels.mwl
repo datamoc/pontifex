@@ -1,10 +1,53 @@
 [
   {
     "tag": "bridge_level",
-    "id": 1,
+    "id": 301,
+    "label": "301",
+    "name": "Le Pylône",
+    "hint": "Utilise des câbles pour suspendre le tablier du pont.",
+    "budget": 1200,
+    "car": "jeep1",
+    "x0": 160,
+    "x1": 640,
+    "deckY": 340,
+    "waterY": 510,
+    "materials": "road,wood,steel,cable",
+    "children": [
+      { "tag": "anchor", "x": 160, "y": 340 },
+      { "tag": "anchor", "x": 640, "y": 340 },
+      { "tag": "anchor", "x": 400, "y": 160 },
+      { "tag": "tower", "x": 400, "top": 160 },
+      { "tag": "island", "x": 400, "top": 480 }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 302,
+    "label": "302",
+    "name": "La Traversée",
+    "hint": "Construis un pont avec des îlots pour économiser des matériaux.",
+    "budget": 800,
+    "car": "jeep2",
+    "x0": 100,
+    "x1": 700,
+    "deckY": 320,
+    "waterY": 500,
+    "materials": "road,wood,steel",
+    "children": [
+      { "tag": "anchor", "x": 100, "y": 320 },
+      { "tag": "anchor", "x": 300, "y": 400 },
+      { "tag": "anchor", "x": 500, "y": 400 },
+      { "tag": "anchor", "x": 700, "y": 320 },
+      { "tag": "island", "x": 300, "top": 400 },
+      { "tag": "island", "x": 500, "top": 400 }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 1001,
     "label": "1",
-    "name": _("Premiers pas"),
-    "hint": _("Relie les deux points orange : touche le départ, puis l’arrivée, ou glisse de l’un à l’autre."),
+    "name": "Premiers pas",
+    "hint": "Relie les deux points orange : touche le départ, puis l’arrivée, ou glisse de l’un à l’autre.",
     "budget": 150,
     "car": "citadine",
     "x0": 340,
@@ -13,172 +56,96 @@
     "waterY": 470,
     "materials": "road",
     "children": [
-      {
-        "tag": "anchor",
-        "x": 340,
-        "y": 340
-      },
-      {
-        "tag": "anchor",
-        "x": 460,
-        "y": 340
-      },
-      {
-        "tag": "view",
-        "x": 190,
-        "y": 190,
-        "w": 420,
-        "h": 290
-      }
+      { "tag": "anchor", "x": 340, "y": 340 },
+      { "tag": "anchor", "x": 460, "y": 340 },
+      { "tag": "view", "x": 190, "y": 190, "w": 420, "h": 290 }
     ]
   },
   {
     "tag": "bridge_level",
     "id": 8,
     "label": "1bis",
-    "name": _("Le Petit Gué"),
-    "hint": _("Nouveau : le bois. La chaussée tendue casse vite : soutiens-la par en dessous avec un triangle."),
+    "name": "Le Petit Gué",
+    "hint": "Nouveau : le bois. La chaussée tendue casse vite : soutiens-la par en dessous avec un triangle.",
     "budget": 400,
     "car": "citadine",
-    "x0": 300,
-    "x1": 500,
+    "x0": 280,
+    "x1": 520,
     "deckY": 340,
     "waterY": 470,
     "materials": "road,wood",
     "children": [
-      {
-        "tag": "anchor",
-        "x": 300,
-        "y": 340
-      },
-      {
-        "tag": "anchor",
-        "x": 500,
-        "y": 340
-      },
-      {
-        "tag": "view",
-        "x": 150,
-        "y": 190,
-        "w": 500,
-        "h": 290
-      }
+      { "tag": "anchor", "x": 280, "y": 340 },
+      { "tag": "anchor", "x": 520, "y": 340 },
+      { "tag": "view", "x": 150, "y": 190, "w": 500, "h": 290 }
     ]
   },
   {
     "tag": "bridge_level",
     "id": 2,
     "label": "2",
-    "name": _("La Ravine"),
-    "hint": _("Le bois est léger et bon marché : un triangle ne se déforme pas."),
+    "name": "La Ravine",
+    "hint": "Le bois est léger et bon marché : un triangle ne se déforme pas.",
     "budget": 800,
     "car": "citadine",
-    "x0": 180,
-    "x1": 620,
+    "x0": 160,
+    "x1": 640,
     "deckY": 340,
     "waterY": 480,
     "materials": "road,wood",
     "children": [
-      {
-        "tag": "anchor",
-        "x": 180,
-        "y": 340
-      },
-      {
-        "tag": "anchor",
-        "x": 620,
-        "y": 340
-      }
+      { "tag": "anchor", "x": 160, "y": 340 },
+      { "tag": "anchor", "x": 640, "y": 340 }
     ]
   },
   {
     "tag": "bridge_level",
     "id": 3,
     "label": "3",
-    "name": _("Le Fleuve profond"),
-    "hint": _("L’acier coûte cher mais encaisse : réserve-le aux appuis."),
+    "name": "Le Fleuve profond",
+    "hint": "L’acier coûte cher mais encaisse : réserve-le aux appuis.",
     "budget": 1250,
     "car": "jeep1",
-    "x0": 140,
-    "x1": 660,
+    "x0": 160,
+    "x1": 640,
     "deckY": 320,
     "waterY": 490,
     "materials": "road,wood,steel",
     "children": [
-      {
-        "tag": "anchor",
-        "x": 140,
-        "y": 320
-      },
-      {
-        "tag": "anchor",
-        "x": 140,
-        "y": 420
-      },
-      {
-        "tag": "anchor",
-        "x": 660,
-        "y": 320
-      },
-      {
-        "tag": "anchor",
-        "x": 660,
-        "y": 420
-      }
+      { "tag": "anchor", "x": 160, "y": 320 },
+      { "tag": "anchor", "x": 160, "y": 420 },
+      { "tag": "anchor", "x": 640, "y": 320 },
+      { "tag": "anchor", "x": 640, "y": 420 }
     ]
   },
   {
     "tag": "bridge_level",
     "id": 4,
     "label": "4",
-    "name": _("Le Canyon périlleux"),
-    "hint": _("Un îlot au milieu : appuie-toi dessus."),
+    "name": "Le Canyon périlleux",
+    "hint": "Un îlot au milieu : appuie-toi dessus.",
     "budget": 1800,
     "car": "jeep2",
-    "x0": 120,
-    "x1": 680,
+    "x0": 160,
+    "x1": 640,
     "deckY": 280,
     "waterY": 510,
     "materials": "road,wood,steel",
     "children": [
-      {
-        "tag": "anchor",
-        "x": 120,
-        "y": 280
-      },
-      {
-        "tag": "anchor",
-        "x": 120,
-        "y": 440
-      },
-      {
-        "tag": "anchor",
-        "x": 400,
-        "y": 480
-      },
-      {
-        "tag": "anchor",
-        "x": 680,
-        "y": 280
-      },
-      {
-        "tag": "anchor",
-        "x": 680,
-        "y": 440
-      },
-      {
-        "tag": "island",
-        "x": 400,
-        "top": 480
-      }
+      { "tag": "anchor", "x": 160, "y": 280 },
+      { "tag": "anchor", "x": 160, "y": 440 },
+      { "tag": "anchor", "x": 400, "y": 480 },
+      { "tag": "anchor", "x": 640, "y": 280 },
+      { "tag": "anchor", "x": 640, "y": 440 },
+      { "tag": "island", "x": 400, "top": 480 }
     ]
   },
   {
     "tag": "bridge_level",
     "id": 5,
     "label": "5",
-    "name": _("Les Deux Îlots"),
-    "hint": _("Deux piliers naturels : répartis la charge entre eux."),
+    "name": "Les Deux Îlots",
+    "hint": "Deux piliers naturels : répartis la charge entre eux.",
     "budget": 2300,
     "car": "jeep2",
     "x0": 100,
@@ -187,132 +154,240 @@
     "waterY": 520,
     "materials": "road,wood,steel",
     "children": [
-      {
-        "tag": "anchor",
-        "x": 100,
-        "y": 300
-      },
-      {
-        "tag": "anchor",
-        "x": 100,
-        "y": 420
-      },
-      {
-        "tag": "anchor",
-        "x": 300,
-        "y": 480
-      },
-      {
-        "tag": "anchor",
-        "x": 500,
-        "y": 480
-      },
-      {
-        "tag": "anchor",
-        "x": 700,
-        "y": 300
-      },
-      {
-        "tag": "anchor",
-        "x": 700,
-        "y": 420
-      },
-      {
-        "tag": "island",
-        "x": 300,
-        "top": 480
-      },
-      {
-        "tag": "island",
-        "x": 500,
-        "top": 480
-      }
+      { "tag": "anchor", "x": 100, "y": 300 },
+      { "tag": "anchor", "x": 100, "y": 420 },
+      { "tag": "anchor", "x": 300, "y": 480 },
+      { "tag": "anchor", "x": 500, "y": 480 },
+      { "tag": "anchor", "x": 700, "y": 300 },
+      { "tag": "anchor", "x": 700, "y": 420 },
+      { "tag": "island", "x": 300, "top": 480 },
+      { "tag": "island", "x": 500, "top": 480 }
     ]
   },
   {
     "tag": "bridge_level",
     "id": 6,
     "label": "6",
-    "name": _("Le Pylône"),
-    "hint": _("Nouveau : le câble fin ne travaille qu’en traction. Suspends le tablier au sommet du pylône."),
+    "name": "Le Pylône",
+    "hint": "Nouveau : le câble fin ne travaille qu’en traction. Suspends le tablier au sommet du pylône.",
     "budget": 1000,
     "car": "jeep1",
-    "x0": 140,
-    "x1": 660,
+    "x0": 160,
+    "x1": 640,
     "deckY": 340,
     "waterY": 510,
     "materials": "road,wood,steel,cable",
     "children": [
-      {
-        "tag": "anchor",
-        "x": 140,
-        "y": 340
-      },
-      {
-        "tag": "anchor",
-        "x": 660,
-        "y": 340
-      },
-      {
-        "tag": "anchor",
-        "x": 400,
-        "y": 160
-      },
-      {
-        "tag": "tower",
-        "x": 400,
-        "top": 160
-      },
-      {
-        "tag": "island",
-        "x": 400,
-        "top": 480
-      }
+      { "tag": "anchor", "x": 160, "y": 340 },
+      { "tag": "anchor", "x": 640, "y": 340 },
+      { "tag": "anchor", "x": 400, "y": 160 },
+      { "tag": "tower", "x": 400, "top": 160 },
+      { "tag": "island", "x": 400, "top": 480 }
     ]
   },
   {
     "tag": "bridge_level",
     "id": 7,
     "label": "7",
-    "name": _("Le Grand Viaduc"),
-    "hint": _("Nouveau : le câble porteur. Tends-le entre les pylônes en le laissant s’affaisser, puis accroche-y des câbles fins (n’importe où sur le câble)."),
+    "name": "Le Grand Viaduc",
+    "hint": "Nouveau : le câble porteur. Tends-le entre les pylônes en le laissant s’affaisser, puis accroche-y des câbles fins (n’importe où sur le câble).",
     "budget": 1300,
     "car": "jeep2",
-    "x0": 140,
-    "x1": 660,
+    "x0": 160,
+    "x1": 640,
     "deckY": 340,
     "waterY": 500,
     "materials": "road,wood,steel,rope,cable",
     "children": [
+      { "tag": "anchor", "x": 160, "y": 340 },
+      { "tag": "anchor", "x": 640, "y": 340 },
+      { "tag": "anchor", "x": 120, "y": 150 },
+      { "tag": "anchor", "x": 680, "y": 150 },
+      { "tag": "tower", "x": 120, "top": 150 },
+      { "tag": "tower", "x": 680, "top": 150 }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 303,
+    "label": "303",
+    "name": "Le Canyon",
+    "hint": "Construis un pont en arc pour résister à la tension.",
+    "budget": 1500,
+    "car": "jeep2",
+    "x0": 160,
+    "x1": 640,
+    "deckY": 280,
+    "waterY": 520,
+    "materials": "road,steel",
+    "children": [
+      { "tag": "anchor", "x": 160, "y": 280 },
+      { "tag": "anchor", "x": 160, "y": 440 },
+      { "tag": "anchor", "x": 400, "y": 480 },
+      { "tag": "anchor", "x": 640, "y": 280 },
+      { "tag": "anchor", "x": 640, "y": 440 },
+      { "tag": "island", "x": 400, "top": 480 }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 304,
+    "label": "304",
+    "name": "Le Pont Suspendu",
+    "hint": "Construis un pont suspendu pour laisser passer un navire.",
+    "budget": 2000,
+    "car": "bus",
+    "x0": 120,
+    "x1": 680,
+    "deckY": 300,
+    "waterY": 500,
+    "materials": "road,steel,rope,cable",
+    "children": [
+      { "tag": "anchor", "x": 120, "y": 300 },
+      { "tag": "anchor", "x": 680, "y": 300 },
+      { "tag": "anchor", "x": 120, "y": 150 },
+      { "tag": "anchor", "x": 680, "y": 150 },
+      { "tag": "tower", "x": 120, "top": 150 },
+      { "tag": "tower", "x": 680, "top": 150 },
       {
-        "tag": "anchor",
-        "x": 140,
-        "y": 340
-      },
+        "tag": "event",
+        "type": "ship",
+        "time": 8,
+        "shipType": "medium"
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 305,
+    "label": "305",
+    "name": "Mode Bac à Sable",
+    "hint": "Construis librement avec tous les matériaux disponibles.",
+    "budget": 5000,
+    "car": "train",
+    "x0": 100,
+    "x1": 700,
+    "deckY": 340,
+    "waterY": 500,
+    "materials": "road,wood,steel,rope,cable,concrete,hydraulics",
+    "children": [
+      { "tag": "anchor", "x": 100, "y": 340 },
+      { "tag": "anchor", "x": 700, "y": 340 }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 306,
+    "label": "306",
+    "name": "La Falaise",
+    "hint": "Construis un pont avec un dénivelé important.",
+    "budget": 1800,
+    "car": "jeep2",
+    "x0": 160,
+    "x1": 640,
+    "deckY": 300,
+    "waterY": 520,
+    "materials": "road,wood,steel",
+    "children": [
+      { "tag": "anchor", "x": 160, "y": 300 },
+      { "tag": "anchor", "x": 160, "y": 450 },
+      { "tag": "anchor", "x": 640, "y": 300 },
+      { "tag": "anchor", "x": 640, "y": 450 }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 307,
+    "label": "307",
+    "name": "Le Saut d'Îlot",
+    "hint": "Utilise plusieurs îlots pour économiser des matériaux.",
+    "budget": 1000,
+    "car": "jeep1",
+    "x0": 100,
+    "x1": 700,
+    "deckY": 320,
+    "waterY": 500,
+    "materials": "road,wood,steel",
+    "children": [
+      { "tag": "anchor", "x": 100, "y": 320 },
+      { "tag": "anchor", "x": 250, "y": 400 },
+      { "tag": "anchor", "x": 400, "y": 400 },
+      { "tag": "anchor", "x": 550, "y": 400 },
+      { "tag": "anchor", "x": 700, "y": 320 },
+      { "tag": "island", "x": 250, "top": 400 },
+      { "tag": "island", "x": 400, "top": 400 },
+      { "tag": "island", "x": 550, "top": 400 }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 308,
+    "label": "308",
+    "name": "Le Pont Trop Long",
+    "hint": "Construis un pont très long avec des câbles pour résister.",
+    "budget": 2500,
+    "car": "train",
+    "x0": 100,
+    "x1": 700,
+    "deckY": 300,
+    "waterY": 520,
+    "materials": "road,steel,rope,cable",
+    "children": [
+      { "tag": "anchor", "x": 100, "y": 300 },
+      { "tag": "anchor", "x": 700, "y": 300 },
+      { "tag": "anchor", "x": 200, "y": 200 },
+      { "tag": "anchor", "x": 600, "y": 200 },
+      { "tag": "tower", "x": 200, "top": 200 },
+      { "tag": "tower", "x": 600, "top": 200 }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 309,
+    "label": "309",
+    "name": "Le Barrage",
+    "hint": "Construis un pont résistant à la montée des eaux.",
+    "budget": 2200,
+    "car": "bus",
+    "x0": 160,
+    "x1": 640,
+    "deckY": 300,
+    "waterY": 450,
+    "materials": "road,concrete,steel",
+    "children": [
+      { "tag": "anchor", "x": 160, "y": 300 },
+      { "tag": "anchor", "x": 640, "y": 300 },
       {
-        "tag": "anchor",
-        "x": 660,
-        "y": 340
-      },
+        "tag": "event",
+        "type": "waterRise",
+        "time": 10,
+        "duration": 5,
+        "waterY": 400
+      }
+    ]
+  },
+  {
+    "tag": "bridge_level",
+    "id": 310,
+    "label": "310",
+    "name": "L'Inondation",
+    "hint": "Construis un pont qui résiste à une montée soudaine des eaux.",
+    "budget": 2000,
+    "car": "bus",
+    "x0": 100,
+    "x1": 700,
+    "deckY": 320,
+    "waterY": 480,
+    "materials": "road,concrete,steel",
+    "children": [
+      { "tag": "anchor", "x": 100, "y": 320 },
+      { "tag": "anchor", "x": 700, "y": 320 },
       {
-        "tag": "anchor",
-        "x": 120,
-        "y": 150
-      },
-      {
-        "tag": "anchor",
-        "x": 680,
-        "y": 150
-      },
-      {
-        "tag": "tower",
-        "x": 120,
-        "top": 150
-      },
-      {
-        "tag": "tower",
-        "x": 680,
-        "top": 150
+        "tag": "event",
+        "type": "waterRise",
+        "time": 8,
+        "duration": 7,
+        "waterY": 420
       }
     ]
   }

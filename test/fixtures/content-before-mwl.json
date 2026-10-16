@@ -72,7 +72,7 @@
       "name": "Citadine",
       "sprite": "citadine",
       "mass": 9,
-      "speed": 70,
+      "zeroTo100": 10,
       "width": 62,
       "height": 24
     },
@@ -80,7 +80,7 @@
       "name": "Jeep",
       "sprite": "jeep1",
       "mass": 15,
-      "speed": 64,
+      "zeroTo100": 13,
       "width": 70,
       "height": 28
     },
@@ -88,7 +88,7 @@
       "name": "Jeep 4x4",
       "sprite": "jeep2",
       "mass": 21,
-      "speed": 56,
+      "zeroTo100": 17,
       "width": 78,
       "height": 32
     }

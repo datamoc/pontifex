@@ -52,6 +52,14 @@ export function createWalkerSkeleton(art: WalkerArt): Skeleton.SkeletonBones {
   ]);
 }
 
+const THIGH_SWING = 24;
+
+/** Distance parcourue en un cycle : deux appuis, chacun couvrant l'amplitude du pied. */
+export function walkerCycleDistance(art: WalkerArt): number {
+  const legLength = art.rig.walk.thigh + art.rig.walk.shin;
+  return 4 * legLength * Math.sin(THIGH_SWING * Math.PI / 180);
+}
+
 /** Angles locaux en degrés : les tibias et avant-bras héritent de leur membre parent. */
 export const WALK_CLIP: Skeleton.Clip = {
   id: 'walk', duration: 1, loop: true,
@@ -61,8 +69,8 @@ export const WALK_CLIP: Skeleton.Clip = {
     return {
       time: frame / 8,
       rotations: {
-        'leg-near': swing * 24,
-        'leg-far': -swing * 24,
+        'leg-near': swing * THIGH_SWING,
+        'leg-far': -swing * THIGH_SWING,
         'shin-near': Math.max(0, Math.sin(phase)) * 42,
         'shin-far': Math.max(0, -Math.sin(phase)) * 42,
         'arm-near': -swing * 18,

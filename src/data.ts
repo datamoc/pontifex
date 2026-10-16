@@ -25,14 +25,14 @@ export interface MaterialDef {
 }
 
 export { MATERIALS, CARS } from './generated/content.ts';
-export const MATERIAL_ORDER: MaterialId[] = ['road', 'wood', 'steel', 'rope', 'cable'];
+export const MATERIAL_ORDER: MaterialId[] = ['road', 'wood', 'steel', 'rope', 'cable', 'concrete', 'hydraulics'];
 
 export interface VehicleDef {
   name: string;
   /** masse totale (répartie sur 2 roues) */
   mass: number;
-  /** px/s */
-  speed: number;
+  /** temps du 0 à 100 km/h (s) : il définit la puissance constante du moteur (voir physics.ts) */
+  zeroTo100: number;
   width: number;
   height: number;
   /** planche de sprites utilisée (voir art.ts) */

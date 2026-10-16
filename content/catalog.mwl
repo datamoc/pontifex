@@ -78,13 +78,43 @@
         "isRoad": false,
         "tensionOnly": true,
         "key": "5"
+      },
+      {
+        "tag": "row",
+        "id": "concrete",
+        "name": _("Béton"),
+        "cost": 50,
+        "maxLen": 100,
+        "color": 0x808080,
+        "stiffness": 1000000,
+        "strength": 80000,
+        "tensionStrength": 20000,
+        "density": 2.0,
+        "isRoad": false,
+        "tensionOnly": false,
+        "key": "6"
+      },
+      {
+        "tag": "row",
+        "id": "hydraulics",
+        "name": _("Hydraulique"),
+        "cost": 120,
+        "maxLen": 80,
+        "color": 0x0000FF,
+        "stiffness": 1500000,
+        "strength": 100000,
+        "tensionStrength": 100000,
+        "density": 1.5,
+        "isRoad": false,
+        "tensionOnly": false,
+        "key": "7"
       }
     ]
   },
   {
     "tag": "table",
     "id": "vehicles",
-    "columns": "id:string|name:string|sprite:string|mass:number|speed:number|width:number|height:number",
+    "columns": "id:string|name:string|sprite:string|mass:number|zeroTo100:number|width:number|height:number",
     "children": [
       {
         "tag": "row",
@@ -92,7 +122,7 @@
         "name": _("Citadine"),
         "sprite": "citadine",
         "mass": 9,
-        "speed": 70,
+        "zeroTo100": 10,
         "width": 62,
         "height": 24
       },
@@ -102,7 +132,7 @@
         "name": _("Jeep"),
         "sprite": "jeep1",
         "mass": 15,
-        "speed": 64,
+        "zeroTo100": 13,
         "width": 70,
         "height": 28
       },
@@ -112,9 +142,49 @@
         "name": _("Jeep 4x4"),
         "sprite": "jeep2",
         "mass": 21,
-        "speed": 56,
+        "zeroTo100": 17,
         "width": 78,
         "height": 32
+      },
+      {
+        "tag": "row",
+        "id": "train",
+        "name": _("Train"),
+        "sprite": "train",
+        "mass": 5000,
+        "zeroTo100": 20.0,
+        "width": 120,
+        "height": 40
+      },
+      {
+        "tag": "row",
+        "id": "bike",
+        "name": _("Vélo"),
+        "sprite": "bike",
+        "mass": 100,
+        "zeroTo100": 5.0,
+        "width": 20,
+        "height": 30
+      },
+      {
+        "tag": "row",
+        "id": "bus",
+        "name": _("Bus"),
+        "sprite": "bus",
+        "mass": 3000,
+        "zeroTo100": 15.0,
+        "width": 80,
+        "height": 40
+      },
+      {
+        "tag": "row",
+        "id": "boat",
+        "name": _("Bateau"),
+        "sprite": "boat",
+        "mass": 2000,
+        "zeroTo100": 10.0,
+        "width": 60,
+        "height": 30
       }
     ]
   }

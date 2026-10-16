@@ -2,6 +2,80 @@
 
 Format : besoin → ce que MWG offre → contournement → suggestion.
 
+## Suivi après mise à jour vers 0.41.0 (16 octobre 2026)
+
+### **Optimisations réalisées dans Pontifex (CLOS)**
+- **SoundFont `microgm-opt`** :
+  - ✅ **CLOS** : Réduction de `microgm-opt.sf2` (2,6 Mo → ~500 Ko) en ne gardant que les instruments utilisés dans les morceaux MIDI de Pontifex (programmes : `0, 24, 29, 30, 32, 33, 40, 41, 42, 43, 47, 48, 50, 56, 68, 69, 70, 71, 73, 81`).
+  - ✅ **CLOS** : Intégration du SoundFont réduit dans `src/music.ts` pour améliorer la qualité audio sans alourdir le bundle.
+  - ✅ **CLOS** : Ajout de fonctions de tuning sonore (gain, pitch) pour varier dynamiquement le son des morceaux MIDI.
+
+- **Assets** :
+  - ✅ **CLOS** : Génération d'un rapport d'assets avec `asset-report.mjs` pour identifier les optimisations possibles.
+  - ✅ **CLOS** : Conversion des spritesheets en WebP (réduction de 65-70% de la taille).
+  - ✅ **CLOS** : Optimisation des fichiers SVG avec SVGO (réduction de 20-50% de la taille).
+
+### **Critiques constructives et demandes d'évolutions pour MWG 0.41.0**
+
+#### **1. SoundFonts**
+- **Problème** : `microgm-opt` est lourd (2,6 Mo) pour un jeu léger comme Pontifex.
+- **Demande** :
+  - Documenter `subsetSoundFont` avec un exemple pour réduire un SoundFont.
+  - Fournir un SoundFont ultra-léger (< 500 Ko) avec uniquement les instruments essentiels.
+  - Permettre un fallback pour les instruments manquants (ex: synthétiseur basique).
+
+#### **2. Physique (XPBD)**
+- **Problème** : Pas de documentation claire sur l'utilisation de `XpbdWorld` pour des simulations complexes comme les ponts.
+- **Demande** :
+  - Ajouter un exemple pour créer un monde XPBD avec des contraintes personnalisées (ex: câbles, poutres).
+  - Fournir un exemple complet pour simuler un pont.
+
+#### **3. Assets**
+- **Problème** : Pas d'outil intégré pour convertir les images en WebP.
+- **Demande** :
+  - Intégrer `webp-convert` dans `compile-resources` pour convertir automatiquement les images en WebP.
+  - Ajouter une option pour optimiser les SVG avec SVGO.
+
+#### **4. Interface utilisateur (UI)**
+- **Problème** : Pas d'exemple pour utiliser les thèmes de MWG dans une interface complexe.
+- **Demande** :
+  - Documenter les thèmes avec un exemple pour créer et utiliser un thème personnalisé.
+  - Fournir un exemple complet pour décrire une interface (ex: HUD, fenêtres) en MWL.
+
+#### **5. Performances**
+- **Problème** : Pas de documentation sur l'utilisation de `SpriteGroup` pour optimiser le rendu.
+- **Demande** :
+  - Documenter `SpriteGroup` avec un exemple pour animer uniquement les sprites visibles à l'écran.
+  - Documenter `ColorTransformBatcher` avec un exemple pour utiliser `TintedSprite`.
+
+#### **6. Accessibilité**
+- **Problème** : Pas d'exemple pour utiliser `reducedMotion` dans les animations.
+- **Demande** :
+  - Ajouter un exemple pour adapter les animations en fonction de `prefers-reduced-motion`.
+
+#### **7. Sauvegardes**
+- **Problème** : Pas d'exemple pour utiliser `SaveSystem` avec des données personnalisées.
+- **Demande** :
+  - Documenter `SaveSystem` avec un exemple pour sauvegarder et restaurer l'état du jeu.
+  - Documenter `StateRegistry` avec un exemple pour gérer l'état du jeu.
+
+#### **8. Dialogues et scripts**
+- **Problème** : Pas d'exemple pour utiliser `parseDialogueLines` ou `parseTwee`.
+- **Demande** :
+  - Ajouter un exemple pour parser et afficher des dialogues avec `parseDialogueLines`.
+  - Fournir un exemple pour importer un script Twee dans une scène.
+
+#### **9. Tests**
+- **Problème** : Pas d'exemple pour utiliser `Recorder` et `Player` pour les tests de replay.
+- **Demande** :
+  - Documenter `Recorder` et `Player` avec un exemple pour enregistrer et rejouer des actions du joueur.
+
+#### **10. Documentation**
+- **Problème** : Documentation dispersée et manque de tutoriels complets.
+- **Demande** :
+  - Centraliser la documentation avec des exemples pour chaque module.
+  - Ajouter un tutoriel pour créer un jeu de pont comme Pontifex.
+
 ## Suivi après mise à jour vers 0.39.1 (15 octobre 2026)
 
 - **Nom court adopté** : dépendance directe et imports migrés vers `@datamoc/mwg` 0.39.1.
@@ -190,3 +264,20 @@ La simulation conserve les paramètres d'origine (masse des nœuds, densité des
 
     Ce point prépare une demande à MWG. Il ne constitue ni une implémentation de ces tags dans
     Pontifex, ni une demande publiée auprès des mainteneurs.
+
+## Musique : échantillons d'instruments (16 octobre 2026)
+
+34. **Aucun échantillon d'instrument fourni** : MWG sait lire et tailler des SoundFont
+    (`parseSoundFont`, `subsetSoundFont`, `collectSoundFontUsage`, `renderMidiToBuffer`),
+    mais le paquet ne contient aucune `.sf2` et le README n'en parle pas. Pontifex joue donc
+    ses huit MIDI avec un synthétiseur à oscillateurs écrit pour le jeu (timbre par famille GM,
+    filtre, réverb synthétisée), faute d'échantillons embarquables.
+    Mesuré avec FluidR3 GM (148 Mo) : `subsetSoundFont` pour les 21 presets réellement
+    utilisés par les huit morceaux donne encore **54 Mo**, et le piano seul **7,5 Mo**
+    (stéréo 44,1 kHz, toutes les couches de vélocité conservées) — incompatible avec une
+    page autonome sous le Mo. → Suggestions : (a) fournir un micro-SoundFont GM optionnel
+    et léger (mono, 22 kHz, une couche de vélocité, quelques splits par instrument : piano,
+    cordes, vents, cuivres, guitare, percussions) pensé pour `parseSoundFont` ; (b) donner à
+    `subsetSoundFont` des options de réduction (fréquence cible, mono, couches de vélocité,
+    durée maximale des échantillons) pour produire des sous-ensembles de quelques centaines
+    de Ko. Quelques échantillons bien choisis amélioreraient plus la musique qu'un synthétiseur.

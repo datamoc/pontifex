@@ -1,4 +1,8 @@
 import { runtimeAssetFiles } from '../tools/runtime-assets.ts';
+import { MUSIC_TRACKS } from '../src/music-catalog.ts';
+import { MUSIC_MIDI } from '../src/generated/music.ts';
+import { parseMidi, scheduleMidi } from '@datamoc/mwg/audio';
+import { drawTrackId } from '../src/music.ts';
 import { wingTipDrop, wingVertexY } from '../src/resident-animation.ts';
 import * as Skeleton from '@datamoc/mwg/skeleton';
 import { WALKERS, WALK_CLIP, createWalkerSkeleton } from '../src/walker-rig.ts';
@@ -23,6 +27,38 @@ const SCENERY = [
 const DIR = 'common';
 
 const manifest = JSON.parse(readFileSync(new URL('../assets/manifest.json', import.meta.url), 'utf8'));
+
+test('musique : chaque morceau est embarqué en MIDI et tient dans le build', () => {
+  const files = new Set(runtimeAssetFiles());
+  assert.ok(![...files].some((file) => file.startsWith('music/')), 'MIDI dans le bundle');
+  assert.equal(new Set(MUSIC_TRACKS.map((track) => track.id)).size, MUSIC_TRACKS.length);
+  const ALIAS: Record<string, string> = { 'meditation-thais': 'Meditation.mid' };
+  for (const track of MUSIC_TRACKS) {
+    assert.ok(track.composer && track.author && track.license && track.url);
+    const raw = MUSIC_MIDI[track.id];
+    assert.ok(raw && raw.length > 100, track.id);
+    const embedded = Buffer.from(raw, 'base64');
+    const file = ALIAS[track.id] ?? track.id + '.mid';
+    const disk = readFileSync(new URL('../assets/music/' + file, import.meta.url));
+    assert.ok(embedded.equals(disk), track.id + ' : relancer npm run music:embed');
+    const notes = scheduleMidi(parseMidi(embedded));
+    const duration = Math.max(...notes.map((note) => note.time + note.duration));
+    assert.ok(notes.length > 50 && duration > 30, track.id + ' : morceau entier attendu');
+  }
+});
+
+test('musique : le tirage au sort ne rejoue jamais le morceau en cours', () => {
+  const ids = new Set<string>(MUSIC_TRACKS.map((track) => track.id));
+  for (const except of [...ids, '']) {
+    for (let i = 0; i < 200; i++) {
+      const drawn = drawTrackId(except);
+      assert.ok(ids.has(drawn), drawn);
+      assert.notEqual(drawn, except);
+    }
+  }
+  assert.equal(drawTrackId('gymnopedie-1', () => 0), MUSIC_TRACKS[1].id);
+  assert.equal(drawTrackId('', () => 0.999), MUSIC_TRACKS[MUSIC_TRACKS.length - 1].id);
+});
 
 test('assets : chaque asset runtime a une entrée manifeste dont le fichier existe', () => {
   for (const name of [...VEHICLES, ...SCENERY]) {

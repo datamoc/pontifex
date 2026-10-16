@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as Skeleton from '@datamoc/mwg/skeleton';
-import { WALKERS, WALK_CLIP, WALK_PARTS, createWalkerSkeleton, walkerPivot, type WalkerArt } from '../src/walker-rig.ts';
+import { WALKERS, WALK_CLIP, WALK_PARTS, createWalkerSkeleton, walkerPivot, walkerCycleDistance, type WalkerArt } from '../src/walker-rig.ts';
 
 const manifest = JSON.parse(readFileSync(new URL('../assets/manifest.json', import.meta.url), 'utf8'));
 const artOf = (name: string): WalkerArt => manifest[name];
@@ -71,6 +71,25 @@ test('personnages : groupes articulés présents et pivotés dans chaque preset'
       const [x, y] = walkerPivot(art, part);
       assert.ok(Number.isFinite(x) && Number.isFinite(y), `${name} : pivot manquant pour ${part}`);
       assert.ok(x >= 0 && x <= art.width && y >= 0 && y <= art.height, `${name} : pivot ${part} hors cadre`);
+    }
+  }
+});
+
+
+test('marche : la translation pendant un appui compense le déplacement du pied', () => {
+  for (const name of WALKERS) {
+    const art = artOf(name);
+    const bones = createWalkerSkeleton(art);
+    const footX = (time: number): number => Skeleton.resolve(bones, Skeleton.samplePose(WALK_CLIP, time))
+      .find((bone) => bone.name === 'shin-near')!.tipX;
+    const travel = Math.abs(footX(1) - footX(0.5));
+    for (const scale of [0.4, 0.7, 1]) {
+      for (const speed of [8, 16, 24]) {
+        const cycleDuration = walkerCycleDistance(art) * scale / speed;
+        const bodyTravel = speed * cycleDuration / 2;
+        assert.ok(Math.abs(bodyTravel - travel * scale) < 1e-9,
+          `${name} : l'appui et la translation doivent parcourir la même distance`);
+      }
     }
   }
 });

@@ -8,7 +8,8 @@
     "build": "vite build",
     "typecheck": "tsc -p .",
     "e2e": "node e2e/run.mjs && node e2e/mobile.mjs",
-    "check": "npm run typecheck && npm test && npm run build && npm run e2e",
+    "e2e:music": "node e2e/music.mjs",
+    "check": "npm run typecheck && npm test && npm run build && npm run e2e && npm run e2e:music",
     "content": "tsx tools/build-content.ts",
     "gen:biomes": "tsx src/gen/biomes/index.ts",
     "gen:pontifex": "npm run gen:biomes",
@@ -17,19 +18,22 @@
     "pretypecheck": "npm run content",
     "dev": "npm run content && vite",
     "level:convert": "tsx tools/convert-level.ts",
-    "assets:report": "tsx tools/report-assets.ts"
+    "assets:report": "tsx tools/report-assets.ts",
+    "music:embed": "tsx tools/embed-music.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@datamoc/mwg": "^0.39.1",
+    "@datamoc/mwg": "^0.42.0",
     "pixi.js": "^8.22.0",
     "svg.js": "^2.7.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
     "puppeteer-core": "^25.13.0",
+    "sharp": "^0.35.5",
+    "svgo": "^4.1.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.4"
