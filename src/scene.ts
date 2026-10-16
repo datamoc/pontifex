@@ -5,7 +5,7 @@ import {
 } from '@datamoc/mwg/two-d';
 import { Camera } from '@datamoc/mwg/two-d/render';
 import { Settings, UndoHistory, Input, FixedStepper } from '@datamoc/mwg/core';
-import { Texture, FederatedPointerEvent, Rectangle, type Container } from 'pixi.js';
+import { Texture, FederatedPointerEvent, Rectangle, type Container, Sprite } from 'pixi.js';
 import {
   GRID, MATERIALS, MATERIAL_ORDER, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
 } from './data.ts';
@@ -121,13 +121,37 @@ export class PontifexScene extends Scene2D {
   private musicLabel = '';
   private btnFullscreen!: Button;
   private fullscreenIcon = new Shape2D();
-  private btnTest!: Button;
   private btnBack!: Button;
+  private btnTest!: Button;
   private vw = 0;
   private vh = 0;
   private keyHandler = (e: KeyboardEvent) => this.onKey(e);
   private fullscreenHandler = () => this.refreshHud();
   private actionHandler = (a: string) => { if (!this.windows.isEmpty) return this.windows.handleAction(a); };
+
+  /**
+   * Charge une icône depuis assets/ui/manifest.json et retourne un Sprite.
+   */
+  private async loadIcon(name: string): Promise<Sprite> {
+      const manifest = await (await fetch('/art/ui/manifest.json')).json();
+      const iconDef = manifest[name];
+      if (!iconDef) throw new Error("Icône introuvable : " + name);
+      
+      const texture = await Assets.load("/art/ui/" + iconDef.file);
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(...iconDef.anchor);
+      return sprite;
+  }
+
+  private async button(text: string, onClick: () => void, w = 96, size = 12): Promise<Button> {
+      // Si le texte correspond à une icône, charger l'icône
+      if (text.startsWith('icon_') || text.startsWith('tool_') || text.startsWith('music_') || text.startsWith('sound_') || text.startsWith('sim_') || text.startsWith('grid_') || text.startsWith('mat_')) {
+          const icon = await this.loadIcon(text);
+          return new Button({ width: w, height: 34, icon, onClick: () => { this.sfx.onClick(); onClick(); } });
+      }
+      // Sinon, utiliser du texte
+      return new Button({ width: w, height: 34, text, label: { size }, onClick: () => { this.sfx.onClick(); onClick(); } });
+  }
 
   create(): void {
     this.loadProgress();
@@ -753,45 +777,24 @@ export class PontifexScene extends Scene2D {
   }
 
   // ------------------------------------------------------------------ interface
-  private button(text: string, onClick: () => void, w = 96, size = 12): Button {
-    return new Button({ width: w, height: 34, text, label: { size }, onClick: () => { this.sfx.onClick(); onClick(); } });
-  }
-  private drawFullscreenIcon(): void {
-    const icon = this.fullscreenIcon.clear();
-    const fullscreen = !!document.fullscreenElement;
-    // Quatre coins vers l’extérieur pour agrandir, vers l’intérieur pour réduire.
-    for (const [x, y] of [[0, 0], [20, 0], [0, 20], [20, 20]]) {
-      const dx = x === 0 ? 1 : -1;
-      const dy = y === 0 ? 1 : -1;
-      const cornerX = fullscreen ? x + dx * 7 : x;
-      const cornerY = fullscreen ? y + dy * 7 : y;
-      const direction = fullscreen ? -1 : 1;
-      icon.moveTo(cornerX + dx * direction * 7, cornerY)
-        .lineTo(cornerX, cornerY)
-        .lineTo(cornerX, cornerY + dy * direction * 7);
-    }
-    icon.stroke({ color: 0xe2e8f0, width: 2, cap: 'round', join: 'round' });
-    icon.eventMode = 'none';
-  }
-
-  private buildHud(): void {
+  private async buildHud(): Promise<void> {
     this.btnLevel = this.button('', () => this.showLevels(), 190);
     for (const id of MATERIAL_ORDER) {
       const m = MATERIALS[id];
-      const b = this.button('', () => this.setTool(id), 150);
+      const b = await this.button('', () => this.setTool(id), 150);
       this.matButtons.set(id, b);
     }
-    this.btnDelete = this.button('Effacer', () => this.setTool('delete'), 80);
+    this.btnDelete = await this.button('tool_delete', () => this.setTool('delete'), 80);
     this.matButtons.set('delete', this.btnDelete);
-    this.btnUndo = this.button('Annuler', () => this.undo(), 80);
-    this.btnRedo = this.button('Rétablir', () => this.redo(), 80);
-    this.btnClear = this.button('Vider', () => this.clearAll(), 66);
-    this.btnSpeed = this.button('', () => { this.speed = this.speed === 0.5 ? 1 : 0.5; this.refreshHud(); }, 126);
-    this.btnGrid = this.button('', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); }, 90);
-    this.btnSound = this.button('', () => { this.sfx.enabled = !this.sfx.enabled; this.music.setEnabled(this.sfx.enabled); this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
-    this.btnMusic = this.button('Musique', () => this.showMusic(), 86);
-    this.btnMusicPause = this.button('Pause', () => this.music.togglePause(), 96);
-    this.btnMusicNext = this.button('Suivant', () => this.music.next(), 80);
+    this.btnUndo = await this.button('tool_undo', () => this.undo(), 80);
+    this.btnRedo = await this.button('tool_redo', () => this.redo(), 80);
+    this.btnClear = await this.button('tool_clear', () => this.clearAll(), 66);
+    this.btnSpeed = await this.button(this.speed === 1 ? 'speed_real' : 'speed_slow', () => { this.speed = this.speed === 0.5 ? 1 : 0.5; this.refreshHud(); }, 126);
+    this.btnGrid = await this.button(this.snapOn ? 'grid_on' : 'grid_off', () => { this.snapOn = !this.snapOn; this.settings.setCustom('grid', this.snapOn); drawScene.static(this.layers, this.level, this.snapOn, this.biome); this.refreshHud(); }, 90);
+    this.btnSound = await this.button(this.sfx.enabled ? 'sound_on' : 'sound_off', () => { this.sfx.enabled = !this.sfx.enabled; this.music.setEnabled(this.sfx.enabled); this.settings.setCustom('sound', this.sfx.enabled); this.refreshHud(); }, 74);
+    this.btnMusic = await this.button('music', () => this.showMusic(), 86);
+    this.btnMusicPause = await this.button('music_pause', () => this.music.togglePause(), 96);
+    this.btnMusicNext = await this.button('music_next', () => this.music.next(), 80);
     this.drawFullscreenIcon();
     this.btnFullscreen = new Button({
       width: 52, height: 34, icon: this.fullscreenIcon,
@@ -1038,6 +1041,5 @@ export class PontifexScene extends Scene2D {
       car.position.set(sim.carX, sim.carY);
       car.rotation = sim.angle;
     }
-    car.update(dt * (sim ? this.speed : 1), distance);
   }
 }
