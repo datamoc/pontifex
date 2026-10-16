@@ -156,97 +156,7 @@ export const CARS: Record<VehicleDef['sprite'], VehicleDef> = {
 };
 export const BUILTIN_SPECS: LevelSpec[] = [
   {
-    "id": 301,
-    "label": "301",
-    "name": "Le Pylône",
-    "hint": "Utilise des câbles pour suspendre le tablier du pont.",
-    "budget": 1200,
-    "car": "jeep1",
-    "x0": 160,
-    "x1": 640,
-    "deckY": 340,
-    "waterY": 510,
-    "materials": [
-      "road",
-      "wood",
-      "steel",
-      "cable"
-    ],
-    "anchors": [
-      {
-        "x": 160,
-        "y": 340
-      },
-      {
-        "x": 640,
-        "y": 340
-      },
-      {
-        "x": 400,
-        "y": 160
-      }
-    ],
-    "towers": [
-      {
-        "x": 400,
-        "top": 160
-      }
-    ],
-    "islands": [
-      {
-        "x": 400,
-        "top": 480
-      }
-    ]
-  },
-  {
-    "id": 302,
-    "label": "302",
-    "name": "La Traversée",
-    "hint": "Construis un pont avec des îlots pour économiser des matériaux.",
-    "budget": 800,
-    "car": "jeep2",
-    "x0": 100,
-    "x1": 700,
-    "deckY": 320,
-    "waterY": 500,
-    "materials": [
-      "road",
-      "wood",
-      "steel"
-    ],
-    "anchors": [
-      {
-        "x": 100,
-        "y": 320
-      },
-      {
-        "x": 300,
-        "y": 400
-      },
-      {
-        "x": 500,
-        "y": 400
-      },
-      {
-        "x": 700,
-        "y": 320
-      }
-    ],
-    "towers": [],
-    "islands": [
-      {
-        "x": 300,
-        "top": 400
-      },
-      {
-        "x": 500,
-        "top": 400
-      }
-    ]
-  },
-  {
-    "id": 1001,
+    "id": 1,
     "label": "1",
     "name": "Premiers pas",
     "hint": "Relie les deux points orange : touche le départ, puis l’arrivée, ou glisse de l’un à l’autre.",
@@ -570,351 +480,41 @@ export const BUILTIN_SPECS: LevelSpec[] = [
     "islands": []
   },
   {
-    "id": 303,
-    "label": "303",
-    "name": "Le Canyon",
-    "hint": "Construis un pont en arc pour résister à la tension.",
-    "budget": 1500,
-    "car": "jeep2",
-    "x0": 160,
-    "x1": 640,
-    "deckY": 280,
-    "waterY": 520,
-    "materials": [
-      "road",
-      "steel"
-    ],
-    "anchors": [
-      {
-        "x": 160,
-        "y": 280
-      },
-      {
-        "x": 160,
-        "y": 440
-      },
-      {
-        "x": 400,
-        "y": 480
-      },
-      {
-        "x": 640,
-        "y": 280
-      },
-      {
-        "x": 640,
-        "y": 440
-      }
-    ],
-    "towers": [],
-    "islands": [
-      {
-        "x": 400,
-        "top": 480
-      }
-    ]
-  },
-  {
-    "id": 304,
-    "label": "304",
-    "name": "Le Pont Suspendu",
-    "hint": "Construis un pont suspendu pour laisser passer un navire.",
-    "budget": 2000,
-    "car": "bus",
-    "x0": 120,
-    "x1": 680,
-    "deckY": 300,
-    "waterY": 500,
-    "materials": [
-      "road",
-      "steel",
-      "rope",
-      "cable"
-    ],
-    "anchors": [
-      {
-        "x": 120,
-        "y": 300
-      },
-      {
-        "x": 680,
-        "y": 300
-      },
-      {
-        "x": 120,
-        "y": 150
-      },
-      {
-        "x": 680,
-        "y": 150
-      }
-    ],
-    "towers": [
-      {
-        "x": 120,
-        "top": 150
-      },
-      {
-        "x": 680,
-        "top": 150
-      }
-    ],
-    "islands": []
-  },
-  {
-    "id": 305,
-    "label": "305",
-    "name": "Mode Bac à Sable",
-    "hint": "Construis librement avec tous les matériaux disponibles.",
-    "budget": 5000,
-    "car": "train",
-    "x0": 100,
-    "x1": 700,
-    "deckY": 340,
-    "waterY": 500,
-    "materials": [
-      "road",
-      "wood",
-      "steel",
-      "rope",
-      "cable",
-      "concrete",
-      "hydraulics"
-    ],
-    "anchors": [
-      {
-        "x": 100,
-        "y": 340
-      },
-      {
-        "x": 700,
-        "y": 340
-      }
-    ],
-    "towers": [],
-    "islands": []
-  },
-  {
-    "id": 306,
-    "label": "306",
-    "name": "La Falaise",
-    "hint": "Construis un pont avec un dénivelé important.",
-    "budget": 1800,
-    "car": "jeep2",
-    "x0": 160,
-    "x1": 640,
-    "deckY": 300,
-    "waterY": 520,
-    "materials": [
-      "road",
-      "wood",
-      "steel"
-    ],
-    "anchors": [
-      {
-        "x": 160,
-        "y": 300
-      },
-      {
-        "x": 160,
-        "y": 450
-      },
-      {
-        "x": 640,
-        "y": 300
-      },
-      {
-        "x": 640,
-        "y": 450
-      }
-    ],
-    "towers": [],
-    "islands": []
-  },
-  {
-    "id": 307,
-    "label": "307",
-    "name": "Le Saut d'Îlot",
-    "hint": "Utilise plusieurs îlots pour économiser des matériaux.",
-    "budget": 1000,
+    "id": 9,
+    "label": "9",
+    "name": "Le Passage du Cargo",
+    "hint": "Nouveau : un cargo passe sous le pont. Tout ce qui touche sa coque (5 m au-dessus de l’eau) casse : garde le passage libre.",
+    "budget": 500,
     "car": "jeep1",
-    "x0": 100,
-    "x1": 700,
-    "deckY": 320,
-    "waterY": 500,
+    "x0": 280,
+    "x1": 520,
+    "deckY": 340,
+    "waterY": 440,
     "materials": [
       "road",
       "wood",
-      "steel"
-    ],
-    "anchors": [
-      {
-        "x": 100,
-        "y": 320
-      },
-      {
-        "x": 250,
-        "y": 400
-      },
-      {
-        "x": 400,
-        "y": 400
-      },
-      {
-        "x": 550,
-        "y": 400
-      },
-      {
-        "x": 700,
-        "y": 320
-      }
-    ],
-    "towers": [],
-    "islands": [
-      {
-        "x": 250,
-        "top": 400
-      },
-      {
-        "x": 400,
-        "top": 400
-      },
-      {
-        "x": 550,
-        "top": 400
-      }
-    ]
-  },
-  {
-    "id": 308,
-    "label": "308",
-    "name": "Le Pont Trop Long",
-    "hint": "Construis un pont très long avec des câbles pour résister.",
-    "budget": 2500,
-    "car": "train",
-    "x0": 100,
-    "x1": 700,
-    "deckY": 300,
-    "waterY": 520,
-    "materials": [
-      "road",
       "steel",
       "rope",
       "cable"
     ],
     "anchors": [
       {
-        "x": 100,
-        "y": 300
-      },
-      {
-        "x": 700,
-        "y": 300
-      },
-      {
-        "x": 200,
-        "y": 200
-      },
-      {
-        "x": 600,
-        "y": 200
-      }
-    ],
-    "towers": [
-      {
-        "x": 200,
-        "top": 200
-      },
-      {
-        "x": 600,
-        "top": 200
-      }
-    ],
-    "islands": []
-  },
-  {
-    "id": 309,
-    "label": "309",
-    "name": "Le Barrage",
-    "hint": "Construis un pont résistant à la montée des eaux.",
-    "budget": 2200,
-    "car": "bus",
-    "x0": 160,
-    "x1": 640,
-    "deckY": 300,
-    "waterY": 450,
-    "materials": [
-      "road",
-      "concrete",
-      "steel"
-    ],
-    "anchors": [
-      {
-        "x": 160,
-        "y": 300
-      },
-      {
-        "x": 640,
-        "y": 300
-      }
-    ],
-    "towers": [],
-    "islands": []
-  },
-  {
-    "id": 310,
-    "label": "310",
-    "name": "L'Inondation",
-    "hint": "Construis un pont qui résiste à une montée soudaine des eaux.",
-    "budget": 2000,
-    "car": "bus",
-    "x0": 100,
-    "x1": 700,
-    "deckY": 320,
-    "waterY": 480,
-    "materials": [
-      "road",
-      "concrete",
-      "steel"
-    ],
-    "anchors": [
-      {
-        "x": 100,
-        "y": 320
-      },
-      {
-        "x": 700,
-        "y": 320
-      }
-    ],
-    "towers": [],
-    "islands": []
-  },
-  {
-    "id": 1,
-    "label": "1",
-    "name": "Test Level",
-    "hint": "This is a test level.",
-    "budget": 150,
-    "car": "citadine",
-    "x0": 340,
-    "x1": 460,
-    "deckY": 340,
-    "waterY": 470,
-    "materials": [
-      "road"
-    ],
-    "anchors": [
-      {
-        "x": 340,
+        "x": 280,
         "y": 340
       },
       {
-        "x": 460,
+        "x": 520,
         "y": 340
       }
     ],
     "towers": [],
-    "islands": []
+    "islands": [],
+    "events": [
+      {
+        "type": "ship",
+        "time": 1,
+        "shipType": "medium"
+      }
+    ]
   }
 ];

@@ -1,18 +1,5883 @@
 {
+  "common/car": {
+    "file": "common/car.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 100,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.9791666666666666
+    ],
+    "tints": {
+      "paint": "#f59e0b"
+    },
+    "wheelbase": 56,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ],
+    "hood": {
+      "pivot": [
+        78,
+        20
+      ],
+      "openAngle": -40
+    }
+  },
+  "common/jeep": {
+    "file": "common/jeep.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 110,
+    "height": 56,
+    "anchor": [
+      0.5,
+      0.9821428571428571
+    ],
+    "tints": {
+      "paint": "#14b8a6"
+    },
+    "wheelbase": 62,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ],
+    "hood": {
+      "pivot": [
+        80,
+        22
+      ],
+      "openAngle": -40
+    }
+  },
+  "common/truck": {
+    "file": "common/truck.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 150,
+    "height": 64,
+    "anchor": [
+      0.5,
+      0.984375
+    ],
+    "tints": {
+      "cargo": "#f8fafc",
+      "paint": "#0ea5e9"
+    },
+    "wheelbase": 92,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-mid",
+      "wheel-front"
+    ]
+  },
+  "common/cloud1": {
+    "file": "common/cloud1.svg",
+    "biome": "common",
+    "category": "cloud",
+    "width": 160,
+    "height": 70,
+    "anchor": [
+      0,
+      0
+    ]
+  },
+  "common/cloud2": {
+    "file": "common/cloud2.svg",
+    "biome": "common",
+    "category": "cloud",
+    "width": 160,
+    "height": 70,
+    "anchor": [
+      0,
+      0
+    ]
+  },
+  "common/tree_round": {
+    "file": "common/tree_round.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 100,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage": "#4d7c0f",
+      "foliage-dark": "#3f6212",
+      "foliage-light": "#65a30d"
+    }
+  },
+  "common/tree_fir": {
+    "file": "common/tree_fir.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/bush": {
+    "file": "common/bush.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 70,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/rock1": {
+    "file": "common/rock1.svg",
+    "biome": "common",
+    "category": "rock",
+    "width": 90,
+    "height": 56,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/rock2": {
+    "file": "common/rock2.svg",
+    "biome": "common",
+    "category": "rock",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/rock3": {
+    "file": "common/rock3.svg",
+    "biome": "common",
+    "category": "rock",
+    "width": 110,
+    "height": 38,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/explosion": {
+    "file": "common/explosion.svg",
+    "biome": "common",
+    "category": "effect",
+    "width": 140,
+    "height": 140,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "common/flame": {
+    "file": "common/flame.svg",
+    "biome": "common",
+    "category": "effect",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/cyclist": {
+    "file": "common/cyclist.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "wheel-rear": [
+        18,
+        64
+      ],
+      "wheel-front": [
+        66,
+        64
+      ],
+      "crank": [
+        38,
+        63
+      ],
+      "leg-near": [
+        33,
+        35
+      ],
+      "shin-near": [
+        42.28,
+        51.58
+      ],
+      "leg-far": [
+        33,
+        35
+      ],
+      "shin-far": [
+        50,
+        43.49
+      ]
+    },
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    },
+    "rig": {
+      "legs": {
+        "hip": [
+          33,
+          35
+        ],
+        "bb": [
+          38,
+          63
+        ],
+        "crank": 8,
+        "thigh": 19,
+        "shin": 19,
+        "baseAngle": 70
+      },
+      "note": "see docs/BIOME_ASSETS.md (rigs) and src/runtime/rig.ts legPose()"
+    },
+    "wheelbase": 48,
+    "foot": 0,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "common/cyclist_f0": {
+    "file": "common/cyclist_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    }
+  },
+  "common/cyclist_f1": {
+    "file": "common/cyclist_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    }
+  },
+  "common/cyclist_f2": {
+    "file": "common/cyclist_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    }
+  },
+  "common/cyclist_f3": {
+    "file": "common/cyclist_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    }
+  },
+  "common/cyclist_f4": {
+    "file": "common/cyclist_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    }
+  },
+  "common/cyclist_f5": {
+    "file": "common/cyclist_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    }
+  },
+  "common/cyclist_f6": {
+    "file": "common/cyclist_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    }
+  },
+  "common/cyclist_f7": {
+    "file": "common/cyclist_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "cloth-bottom": "#1f2937",
+      "paint": "#dc2626",
+      "cloth-top": "#3b82f6",
+      "skin": "#f1c27d",
+      "helmet": "#f59e0b"
+    }
+  },
+  "common/bicycle": {
+    "file": "common/bicycle.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 84,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "crank": [
+        38,
+        63
+      ]
+    },
+    "tints": {
+      "paint": "#dc2626"
+    },
+    "wheelbase": 48,
+    "foot": 0,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "common/delivery_van": {
+    "file": "common/delivery_van.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 112,
+    "height": 58,
+    "anchor": [
+      0.5,
+      0.9827586206896551
+    ],
+    "tints": {
+      "paint": "#f8fafc",
+      "stripe": "#0ea5e9",
+      "sign": "#fef9c3"
+    },
+    "wheelbase": 62,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "common/pickup_truck": {
+    "file": "common/pickup_truck.svg",
+    "biome": "common",
+    "category": "vehicle",
+    "width": 126,
+    "height": 58,
+    "anchor": [
+      0.5,
+      0.9827586206896551
+    ],
+    "tints": {
+      "paint": "#f59e0b",
+      "stripe": "#7c2d12"
+    },
+    "wheelbase": 70,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "common/walker_man_short_hair_trousers": {
+    "file": "common/walker_man_short_hair_trousers.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "average",
+        "chest": 0,
+        "hips": 0.1,
+        "hair": 0.25,
+        "lower": {
+          "kind": "trousers",
+          "length": 1
+        },
+        "sleeve": 0.45,
+        "colors": {
+          "skin": "#f1c27d",
+          "hair": "#4a2f1b",
+          "top": "#3b82f6",
+          "bottom": "#374151"
+        }
+      }
+    }
+  },
+  "common/walker_man_short_hair_trousers_f0": {
+    "file": "common/walker_man_short_hair_trousers_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    }
+  },
+  "common/walker_man_short_hair_trousers_f1": {
+    "file": "common/walker_man_short_hair_trousers_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    }
+  },
+  "common/walker_man_short_hair_trousers_f2": {
+    "file": "common/walker_man_short_hair_trousers_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    }
+  },
+  "common/walker_man_short_hair_trousers_f3": {
+    "file": "common/walker_man_short_hair_trousers_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    }
+  },
+  "common/walker_man_short_hair_trousers_f4": {
+    "file": "common/walker_man_short_hair_trousers_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    }
+  },
+  "common/walker_man_short_hair_trousers_f5": {
+    "file": "common/walker_man_short_hair_trousers_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    }
+  },
+  "common/walker_man_short_hair_trousers_f6": {
+    "file": "common/walker_man_short_hair_trousers_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    }
+  },
+  "common/walker_man_short_hair_trousers_f7": {
+    "file": "common/walker_man_short_hair_trousers_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#3b82f6",
+      "cloth-bottom": "#374151",
+      "shoe": "#e2e8f0",
+      "hair": "#4a2f1b"
+    }
+  },
+  "common/walker_man_bald_shorts": {
+    "file": "common/walker_man_bald_shorts.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "broad",
+        "chest": 0,
+        "hips": 0.1,
+        "hair": 0,
+        "lower": {
+          "kind": "trousers",
+          "length": 0.35
+        },
+        "sleeve": 0.4,
+        "colors": {
+          "skin": "#c68642",
+          "top": "#f59e0b",
+          "bottom": "#0ea5e9"
+        }
+      }
+    }
+  },
+  "common/walker_man_bald_shorts_f0": {
+    "file": "common/walker_man_bald_shorts_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_bald_shorts_f1": {
+    "file": "common/walker_man_bald_shorts_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_bald_shorts_f2": {
+    "file": "common/walker_man_bald_shorts_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_bald_shorts_f3": {
+    "file": "common/walker_man_bald_shorts_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_bald_shorts_f4": {
+    "file": "common/walker_man_bald_shorts_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_bald_shorts_f5": {
+    "file": "common/walker_man_bald_shorts_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_bald_shorts_f6": {
+    "file": "common/walker_man_bald_shorts_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_bald_shorts_f7": {
+    "file": "common/walker_man_bald_shorts_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#f59e0b",
+      "cloth-bottom": "#0ea5e9",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_long_hair_jeans": {
+    "file": "common/walker_man_long_hair_jeans.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "slim",
+        "chest": 0,
+        "hips": 0.1,
+        "hair": 0.8,
+        "lower": {
+          "kind": "trousers",
+          "length": 1
+        },
+        "sleeve": 1,
+        "colors": {
+          "skin": "#ffdbac",
+          "hair": "#d9a441",
+          "top": "#111827",
+          "bottom": "#2563eb"
+        }
+      }
+    }
+  },
+  "common/walker_man_long_hair_jeans_f0": {
+    "file": "common/walker_man_long_hair_jeans_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_long_hair_jeans_f1": {
+    "file": "common/walker_man_long_hair_jeans_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_long_hair_jeans_f2": {
+    "file": "common/walker_man_long_hair_jeans_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_long_hair_jeans_f3": {
+    "file": "common/walker_man_long_hair_jeans_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_long_hair_jeans_f4": {
+    "file": "common/walker_man_long_hair_jeans_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_long_hair_jeans_f5": {
+    "file": "common/walker_man_long_hair_jeans_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_long_hair_jeans_f6": {
+    "file": "common/walker_man_long_hair_jeans_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_long_hair_jeans_f7": {
+    "file": "common/walker_man_long_hair_jeans_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#111827",
+      "hair": "#d9a441",
+      "cloth-bottom": "#2563eb",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_ponytail_capri": {
+    "file": "common/walker_man_ponytail_capri.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "average",
+        "chest": 0,
+        "hips": 0.1,
+        "hair": 0.6,
+        "hairStyle": "ponytail",
+        "lower": {
+          "kind": "trousers",
+          "length": 0.75
+        },
+        "sleeve": 0.45,
+        "colors": {
+          "skin": "#8d5524",
+          "hair": "#161616",
+          "top": "#16a34a",
+          "bottom": "#a8a29e"
+        }
+      }
+    }
+  },
+  "common/walker_man_ponytail_capri_f0": {
+    "file": "common/walker_man_ponytail_capri_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_ponytail_capri_f1": {
+    "file": "common/walker_man_ponytail_capri_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_ponytail_capri_f2": {
+    "file": "common/walker_man_ponytail_capri_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_ponytail_capri_f3": {
+    "file": "common/walker_man_ponytail_capri_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_ponytail_capri_f4": {
+    "file": "common/walker_man_ponytail_capri_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_ponytail_capri_f5": {
+    "file": "common/walker_man_ponytail_capri_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_ponytail_capri_f6": {
+    "file": "common/walker_man_ponytail_capri_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_man_ponytail_capri_f7": {
+    "file": "common/walker_man_ponytail_capri_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-top": "#16a34a",
+      "hair": "#161616",
+      "cloth-bottom": "#a8a29e",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt": {
+    "file": "common/walker_woman_long_hair_midi_skirt.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "slim",
+        "chest": 0.7,
+        "hips": 0.7,
+        "hair": 0.8,
+        "lower": {
+          "kind": "skirt",
+          "length": 0.6,
+          "flare": 0.6
+        },
+        "sleeve": 0.45,
+        "colors": {
+          "skin": "#f1c27d",
+          "hair": "#8b5a2b",
+          "top": "#f472b6",
+          "bottom": "#7c3aed"
+        }
+      }
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt_f0": {
+    "file": "common/walker_woman_long_hair_midi_skirt_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt_f1": {
+    "file": "common/walker_woman_long_hair_midi_skirt_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt_f2": {
+    "file": "common/walker_woman_long_hair_midi_skirt_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt_f3": {
+    "file": "common/walker_woman_long_hair_midi_skirt_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt_f4": {
+    "file": "common/walker_woman_long_hair_midi_skirt_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt_f5": {
+    "file": "common/walker_woman_long_hair_midi_skirt_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt_f6": {
+    "file": "common/walker_woman_long_hair_midi_skirt_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    }
+  },
+  "common/walker_woman_long_hair_midi_skirt_f7": {
+    "file": "common/walker_woman_long_hair_midi_skirt_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#f472b6",
+      "hair": "#8b5a2b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#7c3aed"
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt": {
+    "file": "common/walker_woman_short_hair_mini_skirt.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "slim",
+        "chest": 0.5,
+        "hips": 0.5,
+        "hair": 0.3,
+        "lower": {
+          "kind": "skirt",
+          "length": 0.16,
+          "flare": 0.3
+        },
+        "sleeve": 0,
+        "colors": {
+          "skin": "#c68642",
+          "hair": "#b45309",
+          "top": "#fde047",
+          "bottom": "#dc2626"
+        }
+      }
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt_f0": {
+    "file": "common/walker_woman_short_hair_mini_skirt_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt_f1": {
+    "file": "common/walker_woman_short_hair_mini_skirt_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt_f2": {
+    "file": "common/walker_woman_short_hair_mini_skirt_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt_f3": {
+    "file": "common/walker_woman_short_hair_mini_skirt_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt_f4": {
+    "file": "common/walker_woman_short_hair_mini_skirt_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt_f5": {
+    "file": "common/walker_woman_short_hair_mini_skirt_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt_f6": {
+    "file": "common/walker_woman_short_hair_mini_skirt_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    }
+  },
+  "common/walker_woman_short_hair_mini_skirt_f7": {
+    "file": "common/walker_woman_short_hair_mini_skirt_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#dc2626",
+      "cloth-top": "#fde047",
+      "hair": "#b45309"
+    }
+  },
+  "common/walker_woman_ponytail_trousers": {
+    "file": "common/walker_woman_ponytail_trousers.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "slim",
+        "chest": 0.6,
+        "hips": 0.5,
+        "hair": 0.6,
+        "hairStyle": "ponytail",
+        "lower": {
+          "kind": "trousers",
+          "length": 1
+        },
+        "sleeve": 0.2,
+        "colors": {
+          "skin": "#5c3a1e",
+          "hair": "#161616",
+          "top": "#22d3ee",
+          "bottom": "#1f2937"
+        }
+      }
+    }
+  },
+  "common/walker_woman_ponytail_trousers_f0": {
+    "file": "common/walker_woman_ponytail_trousers_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_ponytail_trousers_f1": {
+    "file": "common/walker_woman_ponytail_trousers_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_ponytail_trousers_f2": {
+    "file": "common/walker_woman_ponytail_trousers_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_ponytail_trousers_f3": {
+    "file": "common/walker_woman_ponytail_trousers_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_ponytail_trousers_f4": {
+    "file": "common/walker_woman_ponytail_trousers_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_ponytail_trousers_f5": {
+    "file": "common/walker_woman_ponytail_trousers_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_ponytail_trousers_f6": {
+    "file": "common/walker_woman_ponytail_trousers_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_ponytail_trousers_f7": {
+    "file": "common/walker_woman_ponytail_trousers_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#22d3ee",
+      "hair": "#161616",
+      "cloth-bottom": "#1f2937",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt": {
+    "file": "common/walker_woman_bun_maxi_skirt.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "average",
+        "chest": 0.85,
+        "hips": 0.8,
+        "hair": 0.5,
+        "hairStyle": "bun",
+        "lower": {
+          "kind": "skirt",
+          "length": 1,
+          "flare": 0.7
+        },
+        "sleeve": 1,
+        "colors": {
+          "skin": "#ffdbac",
+          "hair": "#9ca3af",
+          "top": "#fef3c7",
+          "bottom": "#065f46"
+        }
+      }
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt_f0": {
+    "file": "common/walker_woman_bun_maxi_skirt_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt_f1": {
+    "file": "common/walker_woman_bun_maxi_skirt_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt_f2": {
+    "file": "common/walker_woman_bun_maxi_skirt_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt_f3": {
+    "file": "common/walker_woman_bun_maxi_skirt_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt_f4": {
+    "file": "common/walker_woman_bun_maxi_skirt_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt_f5": {
+    "file": "common/walker_woman_bun_maxi_skirt_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt_f6": {
+    "file": "common/walker_woman_bun_maxi_skirt_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    }
+  },
+  "common/walker_woman_bun_maxi_skirt_f7": {
+    "file": "common/walker_woman_bun_maxi_skirt_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#ffdbac",
+      "cloth-top": "#fef3c7",
+      "hair": "#9ca3af",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#065f46"
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts": {
+    "file": "common/walker_woman_buzz_cut_shorts.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "slim",
+        "chest": 0.3,
+        "hips": 0.4,
+        "hair": 0.1,
+        "lower": {
+          "kind": "trousers",
+          "length": 0.35
+        },
+        "sleeve": 0,
+        "colors": {
+          "skin": "#8d5524",
+          "hair": "#161616",
+          "top": "#ef4444",
+          "bottom": "#1e3a8a"
+        }
+      }
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts_f0": {
+    "file": "common/walker_woman_buzz_cut_shorts_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts_f1": {
+    "file": "common/walker_woman_buzz_cut_shorts_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts_f2": {
+    "file": "common/walker_woman_buzz_cut_shorts_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts_f3": {
+    "file": "common/walker_woman_buzz_cut_shorts_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts_f4": {
+    "file": "common/walker_woman_buzz_cut_shorts_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts_f5": {
+    "file": "common/walker_woman_buzz_cut_shorts_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts_f6": {
+    "file": "common/walker_woman_buzz_cut_shorts_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_woman_buzz_cut_shorts_f7": {
+    "file": "common/walker_woman_buzz_cut_shorts_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#8d5524",
+      "cloth-bottom": "#1e3a8a",
+      "shoe": "#e2e8f0",
+      "cloth-top": "#ef4444",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_woman_knee_skirt": {
+    "file": "common/walker_woman_knee_skirt.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "average",
+        "chest": 0.55,
+        "hips": 0.6,
+        "hair": 0.45,
+        "lower": {
+          "kind": "skirt",
+          "length": 0.35,
+          "flare": 0.5
+        },
+        "sleeve": 0.45,
+        "colors": {
+          "skin": "#f1c27d",
+          "hair": "#4a2f1b",
+          "top": "#ffffff",
+          "bottom": "#1d4ed8"
+        }
+      }
+    }
+  },
+  "common/walker_woman_knee_skirt_f0": {
+    "file": "common/walker_woman_knee_skirt_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    }
+  },
+  "common/walker_woman_knee_skirt_f1": {
+    "file": "common/walker_woman_knee_skirt_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    }
+  },
+  "common/walker_woman_knee_skirt_f2": {
+    "file": "common/walker_woman_knee_skirt_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    }
+  },
+  "common/walker_woman_knee_skirt_f3": {
+    "file": "common/walker_woman_knee_skirt_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    }
+  },
+  "common/walker_woman_knee_skirt_f4": {
+    "file": "common/walker_woman_knee_skirt_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    }
+  },
+  "common/walker_woman_knee_skirt_f5": {
+    "file": "common/walker_woman_knee_skirt_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    }
+  },
+  "common/walker_woman_knee_skirt_f6": {
+    "file": "common/walker_woman_knee_skirt_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    }
+  },
+  "common/walker_woman_knee_skirt_f7": {
+    "file": "common/walker_woman_knee_skirt_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#f1c27d",
+      "cloth-top": "#ffffff",
+      "hair": "#4a2f1b",
+      "shoe": "#e2e8f0",
+      "cloth-bottom": "#1d4ed8"
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers": {
+    "file": "common/walker_person_flat_chest_long_trousers.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "slim",
+        "chest": 0,
+        "hips": 0.2,
+        "hair": 0.55,
+        "lower": {
+          "kind": "trousers",
+          "length": 1
+        },
+        "sleeve": 1,
+        "colors": {
+          "skin": "#c68642",
+          "hair": "#8b5a2b",
+          "top": "#a78bfa",
+          "bottom": "#475569"
+        }
+      }
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers_f0": {
+    "file": "common/walker_person_flat_chest_long_trousers_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers_f1": {
+    "file": "common/walker_person_flat_chest_long_trousers_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers_f2": {
+    "file": "common/walker_person_flat_chest_long_trousers_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers_f3": {
+    "file": "common/walker_person_flat_chest_long_trousers_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers_f4": {
+    "file": "common/walker_person_flat_chest_long_trousers_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers_f5": {
+    "file": "common/walker_person_flat_chest_long_trousers_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers_f6": {
+    "file": "common/walker_person_flat_chest_long_trousers_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_person_flat_chest_long_trousers_f7": {
+    "file": "common/walker_person_flat_chest_long_trousers_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#c68642",
+      "cloth-top": "#a78bfa",
+      "hair": "#8b5a2b",
+      "cloth-bottom": "#475569",
+      "shoe": "#e2e8f0"
+    }
+  },
+  "common/walker_person_full_chest_trousers": {
+    "file": "common/walker_person_full_chest_trousers.svg",
+    "biome": "common",
+    "category": "person",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "leg-near": [
+        22,
+        36
+      ],
+      "shin-near": [
+        22,
+        53
+      ],
+      "leg-far": [
+        22,
+        36
+      ],
+      "shin-far": [
+        22,
+        53
+      ],
+      "arm-near": [
+        24,
+        17
+      ],
+      "forearm-near": [
+        24,
+        28
+      ],
+      "arm-far": [
+        24,
+        17
+      ],
+      "forearm-far": [
+        24,
+        28
+      ],
+      "hair-back": [
+        21.4,
+        11.5
+      ],
+      "skirt": [
+        22,
+        36
+      ]
+    },
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    },
+    "rig": {
+      "walk": {
+        "thigh": 17,
+        "shin": 15,
+        "upperArm": 11,
+        "foreArm": 10
+      },
+      "note": "walkPose(t, rig) in src/runtime/rig.ts; cycle about 1 s; options in docs/BIOME_ASSETS.md",
+      "options": {
+        "build": "broad",
+        "chest": 1,
+        "hips": 0.7,
+        "hair": 0.2,
+        "lower": {
+          "kind": "trousers",
+          "length": 0.8
+        },
+        "sleeve": 0.45,
+        "colors": {
+          "skin": "#5c3a1e",
+          "hair": "#161616",
+          "top": "#fb923c",
+          "bottom": "#0f766e"
+        }
+      }
+    }
+  },
+  "common/walker_person_full_chest_trousers_f0": {
+    "file": "common/walker_person_full_chest_trousers_f0.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_person_full_chest_trousers_f1": {
+    "file": "common/walker_person_full_chest_trousers_f1.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_person_full_chest_trousers_f2": {
+    "file": "common/walker_person_full_chest_trousers_f2.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_person_full_chest_trousers_f3": {
+    "file": "common/walker_person_full_chest_trousers_f3.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_person_full_chest_trousers_f4": {
+    "file": "common/walker_person_full_chest_trousers_f4.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_person_full_chest_trousers_f5": {
+    "file": "common/walker_person_full_chest_trousers_f5.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_person_full_chest_trousers_f6": {
+    "file": "common/walker_person_full_chest_trousers_f6.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    }
+  },
+  "common/walker_person_full_chest_trousers_f7": {
+    "file": "common/walker_person_full_chest_trousers_f7.svg",
+    "biome": "common",
+    "category": "frame",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "skin": "#5c3a1e",
+      "cloth-top": "#fb923c",
+      "cloth-bottom": "#0f766e",
+      "shoe": "#e2e8f0",
+      "hair": "#161616"
+    }
+  },
+  "euro_city/haussmann": {
+    "file": "euro_city/haussmann.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 100,
+    "height": 128,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#e7d9b8",
+      "roof": "#64748b",
+      "door": "#1e3a5f"
+    }
+  },
+  "euro_city/half_timbered": {
+    "file": "euro_city/half_timbered.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 80,
+    "height": 102,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#fef3c7",
+      "roof": "#9a3412",
+      "door": "#78350f"
+    }
+  },
+  "euro_city/canal_house": {
+    "file": "euro_city/canal_house.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 48,
+    "height": 134,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#b4532a",
+      "roof": "#f5f5f4",
+      "door": "#14532d"
+    }
+  },
+  "euro_city/town_hall": {
+    "file": "euro_city/town_hall.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 158,
+    "height": 96,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#f1e4c8",
+      "roof": "#64748b",
+      "door": "#7f1d1d"
+    }
+  },
+  "euro_city/cathedral": {
+    "file": "euro_city/cathedral.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 130,
+    "height": 190,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/clock_tower": {
+    "file": "euro_city/clock_tower.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 44,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/stone_gate": {
+    "file": "euro_city/stone_gate.svg",
+    "biome": "euro_city",
+    "category": "building",
+    "width": 130,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/gas_lamp": {
+    "file": "euro_city/gas_lamp.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 24,
+    "height": 90,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/cafe_terrace": {
+    "file": "euro_city/cafe_terrace.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 90,
+    "height": 62,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/kiosk": {
+    "file": "euro_city/kiosk.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 34,
+    "height": 84,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/fountain": {
+    "file": "euro_city/fountain.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 70,
+    "height": 64,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/statue": {
+    "file": "euro_city/statue.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 36,
+    "height": 92,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/bench": {
+    "file": "euro_city/bench.svg",
+    "biome": "euro_city",
+    "category": "prop",
+    "width": 50,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/river_barge": {
+    "file": "euro_city/river_barge.svg",
+    "biome": "euro_city",
+    "category": "boat",
+    "width": 150,
+    "height": 50,
+    "anchor": [
+      0.5,
+      0.8
+    ]
+  },
+  "euro_city/tram": {
+    "file": "euro_city/tram.svg",
+    "biome": "euro_city",
+    "category": "vehicle",
+    "width": 150,
+    "height": 60,
+    "anchor": [
+      0.5,
+      0.9833333333333333
+    ],
+    "tints": {
+      "paint": "#fbbf24",
+      "stripe": "#b91c1c"
+    },
+    "wheelbase": 98,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "euro_city/double_decker": {
+    "file": "euro_city/double_decker.svg",
+    "biome": "euro_city",
+    "category": "vehicle",
+    "width": 124,
+    "height": 76,
+    "anchor": [
+      0.5,
+      0.9868421052631579
+    ],
+    "tints": {
+      "paint": "#dc2626",
+      "stripe": "#fef3c7"
+    },
+    "wheelbase": 72,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "euro_city/vintage_car": {
+    "file": "euro_city/vintage_car.svg",
+    "biome": "euro_city",
+    "category": "vehicle",
+    "width": 100,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.9791666666666666
+    ],
+    "tints": {
+      "paint": "#2563eb"
+    },
+    "wheelbase": 54,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "euro_city/pigeon": {
+    "file": "euro_city/pigeon.svg",
+    "biome": "euro_city",
+    "category": "fauna",
+    "width": 36,
+    "height": 34,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_city/gull": {
+    "file": "euro_city/gull.svg",
+    "biome": "euro_city",
+    "category": "fauna",
+    "width": 44,
+    "height": 28,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "wing": [
+        18,
+        15
+      ]
+    }
+  },
+  "euro_city/bg_far": {
+    "file": "euro_city/bg_far.svg",
+    "biome": "euro_city",
+    "category": "background",
+    "width": 800,
+    "height": 220,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "euro_city/bg_mid": {
+    "file": "euro_city/bg_mid.svg",
+    "biome": "euro_city",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "euro_city/bg_near": {
+    "file": "euro_city/bg_near.svg",
+    "biome": "euro_city",
+    "category": "background",
+    "width": 800,
+    "height": 170,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "cyberpunk/neon_tower": {
+    "file": "cyberpunk/neon_tower.svg",
+    "biome": "cyberpunk",
+    "category": "building",
+    "width": 64,
+    "height": 178,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#1e1b4b",
+      "roof": "#0f172a"
+    }
+  },
+  "cyberpunk/megacorp_tower": {
+    "file": "cyberpunk/megacorp_tower.svg",
+    "biome": "cyberpunk",
+    "category": "building",
+    "width": 90,
+    "height": 220,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/container_stack": {
+    "file": "cyberpunk/container_stack.svg",
+    "biome": "cyberpunk",
+    "category": "building",
+    "width": 120,
+    "height": 108,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/pagoda_tech": {
+    "file": "cyberpunk/pagoda_tech.svg",
+    "biome": "cyberpunk",
+    "category": "building",
+    "width": 110,
+    "height": 130,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/holo_billboard": {
+    "file": "cyberpunk/holo_billboard.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 84,
+    "height": 120,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/neon_sign": {
+    "file": "cyberpunk/neon_sign.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 36,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/antenna": {
+    "file": "cyberpunk/antenna.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 30,
+    "height": 130,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/steam_vent": {
+    "file": "cyberpunk/steam_vent.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 54,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/vending_machine": {
+    "file": "cyberpunk/vending_machine.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 34,
+    "height": 64,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/floating_ad": {
+    "file": "cyberpunk/floating_ad.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 70,
+    "height": 54,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "cyberpunk/street_lamp": {
+    "file": "cyberpunk/street_lamp.svg",
+    "biome": "cyberpunk",
+    "category": "prop",
+    "width": 40,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/hover_car": {
+    "file": "cyberpunk/hover_car.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 110,
+    "height": 44,
+    "anchor": [
+      0.5,
+      0.85
+    ],
+    "tints": {
+      "paint": "#312e81"
+    }
+  },
+  "cyberpunk/maglev": {
+    "file": "cyberpunk/maglev.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 190,
+    "height": 46,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "cyberpunk/drone": {
+    "file": "cyberpunk/drone.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 76,
+    "height": 34,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "rotor-left": [
+        12,
+        6
+      ],
+      "rotor-right": [
+        64,
+        6
+      ]
+    }
+  },
+  "cyberpunk/armored_truck": {
+    "file": "cyberpunk/armored_truck.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 140,
+    "height": 66,
+    "anchor": [
+      0.5,
+      0.9848484848484849
+    ],
+    "tints": {
+      "paint": "#475569",
+      "stripe": "#fbbf24"
+    },
+    "wheelbase": 82,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-mid",
+      "wheel-front"
+    ]
+  },
+  "cyberpunk/auto_bus": {
+    "file": "cyberpunk/auto_bus.svg",
+    "biome": "cyberpunk",
+    "category": "vehicle",
+    "width": 130,
+    "height": 58,
+    "anchor": [
+      0.5,
+      0.9827586206896551
+    ],
+    "tints": {
+      "paint": "#7c3aed",
+      "stripe": "#22d3ee"
+    },
+    "wheelbase": 74,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "cyberpunk/robo_bird": {
+    "file": "cyberpunk/robo_bird.svg",
+    "biome": "cyberpunk",
+    "category": "fauna",
+    "width": 44,
+    "height": 28,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "wing": [
+        18,
+        15
+      ]
+    }
+  },
+  "cyberpunk/rain": {
+    "file": "cyberpunk/rain.svg",
+    "biome": "cyberpunk",
+    "category": "overlay",
+    "width": 200,
+    "height": 200,
+    "anchor": [
+      0,
+      0
+    ],
+    "tile": true
+  },
+  "cyberpunk/bg_far": {
+    "file": "cyberpunk/bg_far.svg",
+    "biome": "cyberpunk",
+    "category": "background",
+    "width": 800,
+    "height": 260,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "cyberpunk/bg_mid": {
+    "file": "cyberpunk/bg_mid.svg",
+    "biome": "cyberpunk",
+    "category": "background",
+    "width": 800,
+    "height": 230,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "cyberpunk/bg_near": {
+    "file": "cyberpunk/bg_near.svg",
+    "biome": "cyberpunk",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "euro_country/farmhouse": {
+    "file": "euro_country/farmhouse.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 92,
+    "height": 82,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#fef3c7",
+      "roof": "#b45309",
+      "door": "#7c2d12"
+    }
+  },
+  "euro_country/stone_cottage": {
+    "file": "euro_country/stone_cottage.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 72,
+    "height": 72,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#d6d3d1",
+      "roof": "#ca8a04",
+      "door": "#78350f"
+    }
+  },
+  "euro_country/vineyard_house": {
+    "file": "euro_country/vineyard_house.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 84,
+    "height": 82,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#f5e6c8",
+      "roof": "#c2410c",
+      "door": "#14532d"
+    }
+  },
+  "euro_country/village_church": {
+    "file": "euro_country/village_church.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 100,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/stone_barn": {
+    "file": "euro_country/stone_barn.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 130,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/windmill": {
+    "file": "euro_country/windmill.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 120,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "sails": [
+        60,
+        52
+      ]
+    }
+  },
+  "euro_country/hill_castle": {
+    "file": "euro_country/hill_castle.svg",
+    "biome": "euro_country",
+    "category": "building",
+    "width": 190,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/oak": {
+    "file": "euro_country/oak.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 150,
+    "height": 130,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/poplar": {
+    "file": "euro_country/poplar.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 40,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/hedge": {
+    "file": "euro_country/hedge.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 110,
+    "height": 38,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/vineyard_row": {
+    "file": "euro_country/vineyard_row.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 120,
+    "height": 44,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/lavender": {
+    "file": "euro_country/lavender.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 100,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/haystack": {
+    "file": "euro_country/haystack.svg",
+    "biome": "euro_country",
+    "category": "prop",
+    "width": 56,
+    "height": 50,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/wheat": {
+    "file": "euro_country/wheat.svg",
+    "biome": "euro_country",
+    "category": "vegetation",
+    "width": 90,
+    "height": 54,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/wooden_fence": {
+    "file": "euro_country/wooden_fence.svg",
+    "biome": "euro_country",
+    "category": "prop",
+    "width": 110,
+    "height": 36,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/drystone_wall": {
+    "file": "euro_country/drystone_wall.svg",
+    "biome": "euro_country",
+    "category": "prop",
+    "width": 120,
+    "height": 34,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/stone_bridge_small": {
+    "file": "euro_country/stone_bridge_small.svg",
+    "biome": "euro_country",
+    "category": "prop",
+    "width": 130,
+    "height": 58,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/scarecrow": {
+    "file": "euro_country/scarecrow.svg",
+    "biome": "euro_country",
+    "category": "prop",
+    "width": 50,
+    "height": 76,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/wooden_cart": {
+    "file": "euro_country/wooden_cart.svg",
+    "biome": "euro_country",
+    "category": "prop",
+    "width": 90,
+    "height": 52,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/tractor": {
+    "file": "euro_country/tractor.svg",
+    "biome": "euro_country",
+    "category": "vehicle",
+    "width": 96,
+    "height": 64,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "paint": "#16a34a"
+    },
+    "wheelbase": 54,
+    "foot": 0,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "euro_country/farm_truck": {
+    "file": "euro_country/farm_truck.svg",
+    "biome": "euro_country",
+    "category": "vehicle",
+    "width": 130,
+    "height": 60,
+    "anchor": [
+      0.5,
+      0.9833333333333333
+    ],
+    "tints": {
+      "paint": "#b91c1c",
+      "stripe": "#fef3c7"
+    },
+    "wheelbase": 72,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "euro_country/sheep": {
+    "file": "euro_country/sheep.svg",
+    "biome": "euro_country",
+    "category": "fauna",
+    "width": 48,
+    "height": 38,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/cow": {
+    "file": "euro_country/cow.svg",
+    "biome": "euro_country",
+    "category": "fauna",
+    "width": 82,
+    "height": 58,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/stork": {
+    "file": "euro_country/stork.svg",
+    "biome": "euro_country",
+    "category": "fauna",
+    "width": 36,
+    "height": 56,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "euro_country/bg_far": {
+    "file": "euro_country/bg_far.svg",
+    "biome": "euro_country",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "euro_country/bg_mid": {
+    "file": "euro_country/bg_mid.svg",
+    "biome": "euro_country",
+    "category": "background",
+    "width": 800,
+    "height": 180,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "euro_country/bg_near": {
+    "file": "euro_country/bg_near.svg",
+    "biome": "euro_country",
+    "category": "background",
+    "width": 800,
+    "height": 150,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "mountain/chalet": {
+    "file": "mountain/chalet.svg",
+    "biome": "mountain",
+    "category": "building",
+    "width": 98,
+    "height": 78,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#b45309",
+      "roof": "#475569",
+      "door": "#451a03"
+    }
+  },
+  "mountain/mountain_hut": {
+    "file": "mountain/mountain_hut.svg",
+    "biome": "mountain",
+    "category": "building",
+    "width": 62,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#92400e",
+      "roof": "#7f1d1d",
+      "door": "#451a03"
+    }
+  },
+  "mountain/cable_car_station": {
+    "file": "mountain/cable_car_station.svg",
+    "biome": "mountain",
+    "category": "building",
+    "width": 130,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/ski_lift_pylon": {
+    "file": "mountain/ski_lift_pylon.svg",
+    "biome": "mountain",
+    "category": "prop",
+    "width": 50,
+    "height": 110,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/mountain_chapel": {
+    "file": "mountain/mountain_chapel.svg",
+    "biome": "mountain",
+    "category": "building",
+    "width": 60,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/spruce_tall": {
+    "file": "mountain/spruce_tall.svg",
+    "biome": "mountain",
+    "category": "vegetation",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage": "#14532d",
+      "foliage-light": "#166534"
+    }
+  },
+  "mountain/spruce_snow": {
+    "file": "mountain/spruce_snow.svg",
+    "biome": "mountain",
+    "category": "vegetation",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage-light": "#166534",
+      "foliage": "#14532d"
+    }
+  },
+  "mountain/larch": {
+    "file": "mountain/larch.svg",
+    "biome": "mountain",
+    "category": "vegetation",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage-light": "#d97706",
+      "foliage": "#ca8a04"
+    }
+  },
+  "mountain/dead_trunk": {
+    "file": "mountain/dead_trunk.svg",
+    "biome": "mountain",
+    "category": "vegetation",
+    "width": 60,
+    "height": 110,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/edelweiss": {
+    "file": "mountain/edelweiss.svg",
+    "biome": "mountain",
+    "category": "vegetation",
+    "width": 26,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/meadow_tuft": {
+    "file": "mountain/meadow_tuft.svg",
+    "biome": "mountain",
+    "category": "vegetation",
+    "width": 60,
+    "height": 34,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/boulder": {
+    "file": "mountain/boulder.svg",
+    "biome": "mountain",
+    "category": "rock",
+    "width": 100,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/boulder_snow": {
+    "file": "mountain/boulder_snow.svg",
+    "biome": "mountain",
+    "category": "rock",
+    "width": 84,
+    "height": 56,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/scree": {
+    "file": "mountain/scree.svg",
+    "biome": "mountain",
+    "category": "rock",
+    "width": 130,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/glacier_tongue": {
+    "file": "mountain/glacier_tongue.svg",
+    "biome": "mountain",
+    "category": "terrain",
+    "width": 170,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/waterfall": {
+    "file": "mountain/waterfall.svg",
+    "biome": "mountain",
+    "category": "terrain",
+    "width": 90,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/icicles": {
+    "file": "mountain/icicles.svg",
+    "biome": "mountain",
+    "category": "terrain",
+    "width": 100,
+    "height": 40,
+    "anchor": [
+      0.5,
+      0
+    ]
+  },
+  "mountain/snow_cornice": {
+    "file": "mountain/snow_cornice.svg",
+    "biome": "mountain",
+    "category": "terrain",
+    "width": 130,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/cable_car_cabin": {
+    "file": "mountain/cable_car_cabin.svg",
+    "biome": "mountain",
+    "category": "vehicle",
+    "width": 60,
+    "height": 70,
+    "anchor": [
+      0.5,
+      0
+    ]
+  },
+  "mountain/snowplow": {
+    "file": "mountain/snowplow.svg",
+    "biome": "mountain",
+    "category": "vehicle",
+    "width": 154,
+    "height": 66,
+    "anchor": [
+      0.5,
+      0.9848484848484849
+    ],
+    "tints": {
+      "paint": "#f97316",
+      "stripe": "#1f2937"
+    },
+    "wheelbase": 82,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-mid",
+      "wheel-front"
+    ]
+  },
+  "mountain/rack_train": {
+    "file": "mountain/rack_train.svg",
+    "biome": "mountain",
+    "category": "vehicle",
+    "width": 130,
+    "height": 56,
+    "anchor": [
+      0.5,
+      0.9821428571428571
+    ],
+    "tints": {
+      "paint": "#dc2626",
+      "stripe": "#f8fafc"
+    },
+    "wheelbase": 82,
+    "foot": 1,
+    "wheels": [
+      "wheel-rear",
+      "wheel-front"
+    ]
+  },
+  "mountain/ibex": {
+    "file": "mountain/ibex.svg",
+    "biome": "mountain",
+    "category": "fauna",
+    "width": 80,
+    "height": 66,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/eagle": {
+    "file": "mountain/eagle.svg",
+    "biome": "mountain",
+    "category": "fauna",
+    "width": 44,
+    "height": 28,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "wing": [
+        18,
+        15
+      ]
+    }
+  },
+  "mountain/marmot": {
+    "file": "mountain/marmot.svg",
+    "biome": "mountain",
+    "category": "fauna",
+    "width": 44,
+    "height": 26,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "mountain/bg_far": {
+    "file": "mountain/bg_far.svg",
+    "biome": "mountain",
+    "category": "background",
+    "width": 800,
+    "height": 280,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "mountain/bg_mid": {
+    "file": "mountain/bg_mid.svg",
+    "biome": "mountain",
+    "category": "background",
+    "width": 800,
+    "height": 240,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "mountain/bg_near": {
+    "file": "mountain/bg_near.svg",
+    "biome": "mountain",
+    "category": "background",
+    "width": 800,
+    "height": 190,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "desert/adobe_house": {
+    "file": "desert/adobe_house.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 84,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#e8b07a",
+      "roof": "#c98a56",
+      "door": "#7c2d12"
+    }
+  },
+  "desert/mosque": {
+    "file": "desert/mosque.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 150,
+    "height": 130,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/oil_derrick": {
+    "file": "desert/oil_derrick.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 90,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/caravanserai": {
+    "file": "desert/caravanserai.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 170,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/ruined_temple": {
+    "file": "desert/ruined_temple.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 150,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/radar_dish": {
+    "file": "desert/radar_dish.svg",
+    "biome": "desert",
+    "category": "building",
+    "width": 70,
+    "height": 90,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/oasis": {
+    "file": "desert/oasis.svg",
+    "biome": "desert",
+    "category": "terrain",
+    "width": 130,
+    "height": 120,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/saguaro": {
+    "file": "desert/saguaro.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 60,
+    "height": 130,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/prickly_pear": {
+    "file": "desert/prickly_pear.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 70,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/date_palm": {
+    "file": "desert/date_palm.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 120,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/dry_shrub": {
+    "file": "desert/dry_shrub.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 60,
+    "height": 36,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/tumbleweed": {
+    "file": "desert/tumbleweed.svg",
+    "biome": "desert",
+    "category": "prop",
+    "width": 40,
+    "height": 40,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "desert/agave": {
+    "file": "desert/agave.svg",
+    "biome": "desert",
+    "category": "vegetation",
+    "width": 80,
+    "height": 56,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/mesa": {
+    "file": "desert/mesa.svg",
+    "biome": "desert",
+    "category": "rock",
+    "width": 170,
+    "height": 110,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/rock_arch": {
+    "file": "desert/rock_arch.svg",
+    "biome": "desert",
+    "category": "rock",
+    "width": 150,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/dune": {
+    "file": "desert/dune.svg",
+    "biome": "desert",
+    "category": "terrain",
+    "width": 220,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/skull": {
+    "file": "desert/skull.svg",
+    "biome": "desert",
+    "category": "prop",
+    "width": 44,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/camel": {
+    "file": "desert/camel.svg",
+    "biome": "desert",
+    "category": "fauna",
+    "width": 88,
+    "height": 68,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/camel_caravan": {
+    "file": "desert/camel_caravan.svg",
+    "biome": "desert",
+    "category": "fauna",
+    "width": 280,
+    "height": 68,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/vulture": {
+    "file": "desert/vulture.svg",
+    "biome": "desert",
+    "category": "fauna",
+    "width": 36,
+    "height": 44,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/lizard": {
+    "file": "desert/lizard.svg",
+    "biome": "desert",
+    "category": "fauna",
+    "width": 54,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/scorpion": {
+    "file": "desert/scorpion.svg",
+    "biome": "desert",
+    "category": "fauna",
+    "width": 54,
+    "height": 36,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "desert/bg_far": {
+    "file": "desert/bg_far.svg",
+    "biome": "desert",
+    "category": "background",
+    "width": 800,
+    "height": 190,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "desert/bg_mid": {
+    "file": "desert/bg_mid.svg",
+    "biome": "desert",
+    "category": "background",
+    "width": 800,
+    "height": 170,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "desert/bg_near": {
+    "file": "desert/bg_near.svg",
+    "biome": "desert",
+    "category": "background",
+    "width": 800,
+    "height": 140,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "common/wind_turbine": {
+    "file": "common/wind_turbine.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 130,
+    "height": 178,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "rotor": [
+        65,
+        62
+      ]
+    }
+  },
+  "common/wind_turbine_small": {
+    "file": "common/wind_turbine_small.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 70,
+    "height": 100,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "pivots": {
+      "rotor": [
+        35,
+        36
+      ]
+    }
+  },
+  "common/pillar_stone": {
+    "file": "common/pillar_stone.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 40,
+    "height": 120,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/pillar_concrete": {
+    "file": "common/pillar_concrete.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 36,
+    "height": 120,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/pillar_steel": {
+    "file": "common/pillar_steel.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 44,
+    "height": 120,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/pillar_eroded": {
+    "file": "common/pillar_eroded.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 42,
+    "height": 120,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/pylon_cable_stay": {
+    "file": "common/pylon_cable_stay.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 56,
+    "height": 200,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/suspension_tower": {
+    "file": "common/suspension_tower.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 70,
+    "height": 220,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/abutment": {
+    "file": "common/abutment.svg",
+    "biome": "common",
+    "category": "pillar",
+    "width": 90,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/tunnel_entrance": {
+    "file": "common/tunnel_entrance.svg",
+    "biome": "common",
+    "category": "terrain",
+    "width": 140,
+    "height": 110,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/road_sign": {
+    "file": "common/road_sign.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 30,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/lamp_post": {
+    "file": "common/lamp_post.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 26,
+    "height": 90,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/guardrail": {
+    "file": "common/guardrail.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 120,
+    "height": 24,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/power_pylon": {
+    "file": "common/power_pylon.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 70,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/bird_swallow": {
+    "file": "common/bird_swallow.svg",
+    "biome": "common",
+    "category": "fauna",
+    "width": 44,
+    "height": 28,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "wing": [
+        18,
+        15
+      ]
+    }
+  },
+  "common/bird_crow": {
+    "file": "common/bird_crow.svg",
+    "biome": "common",
+    "category": "fauna",
+    "width": 44,
+    "height": 28,
+    "anchor": [
+      0.5,
+      0.5
+    ],
+    "pivots": {
+      "wing": [
+        18,
+        15
+      ]
+    }
+  },
+  "common/bird_sparrow_perched": {
+    "file": "common/bird_sparrow_perched.svg",
+    "biome": "common",
+    "category": "fauna",
+    "width": 36,
+    "height": 34,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/bird_seagull_perched": {
+    "file": "common/bird_seagull_perched.svg",
+    "biome": "common",
+    "category": "fauna",
+    "width": 36,
+    "height": 38,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/birds_flock": {
+    "file": "common/birds_flock.svg",
+    "biome": "common",
+    "category": "fauna",
+    "width": 120,
+    "height": 50,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "common/tree_autumn_orange": {
+    "file": "common/tree_autumn_orange.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 100,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage": "#ea580c",
+      "foliage-dark": "#9a3412",
+      "foliage-light": "#fb923c"
+    }
+  },
+  "common/tree_autumn_red": {
+    "file": "common/tree_autumn_red.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 100,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage": "#b91c1c",
+      "foliage-dark": "#7f1d1d",
+      "foliage-light": "#ef4444"
+    }
+  },
+  "common/tree_autumn_yellow": {
+    "file": "common/tree_autumn_yellow.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 100,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage": "#ca8a04",
+      "foliage-dark": "#854d0e",
+      "foliage-light": "#fde047"
+    }
+  },
+  "common/tree_spring_blossom": {
+    "file": "common/tree_spring_blossom.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 100,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage": "#f9a8d4",
+      "foliage-dark": "#db2777",
+      "foliage-light": "#fbcfe8"
+    }
+  },
+  "common/tree_snow": {
+    "file": "common/tree_snow.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 100,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#57534e",
+      "foliage": "#4b6b3a",
+      "foliage-dark": "#344b28",
+      "foliage-light": "#6b8f5a"
+    }
+  },
+  "common/fir_snow": {
+    "file": "common/fir_snow.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "trunk": "#78350f",
+      "foliage": "#14532d",
+      "foliage-light": "#166534"
+    }
+  },
+  "common/tree_bare": {
+    "file": "common/tree_bare.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 90,
+    "height": 130,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/birch": {
+    "file": "common/birch.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/cypress": {
+    "file": "common/cypress.svg",
+    "biome": "common",
+    "category": "vegetation",
+    "width": 40,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/stump_log": {
+    "file": "common/stump_log.svg",
+    "biome": "common",
+    "category": "prop",
+    "width": 90,
+    "height": 36,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "common/grass_strip": {
+    "file": "common/grass_strip.svg",
+    "biome": "common",
+    "category": "terrain",
+    "width": 120,
+    "height": 20,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tile": true
+  },
+  "arctic/igloo": {
+    "file": "arctic/igloo.svg",
+    "biome": "arctic",
+    "category": "building",
+    "width": 100,
+    "height": 62,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "arctic/ice_blocks": {
+    "file": "arctic/ice_blocks.svg",
+    "biome": "arctic",
+    "category": "terrain",
+    "width": 100,
+    "height": 60,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "arctic/iceberg": {
+    "file": "arctic/iceberg.svg",
+    "biome": "arctic",
+    "category": "terrain",
+    "width": 150,
+    "height": 120,
+    "anchor": [
+      0.5,
+      0.42
+    ]
+  },
+  "arctic/penguin": {
+    "file": "arctic/penguin.svg",
+    "biome": "arctic",
+    "category": "fauna",
+    "width": 34,
+    "height": 52,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "arctic/icebreaker": {
+    "file": "arctic/icebreaker.svg",
+    "biome": "arctic",
+    "category": "boat",
+    "width": 190,
+    "height": 80,
+    "anchor": [
+      0.5,
+      0.7
+    ]
+  },
+  "arctic/aurora": {
+    "file": "arctic/aurora.svg",
+    "biome": "arctic",
+    "category": "overlay",
+    "width": 800,
+    "height": 220,
+    "anchor": [
+      0,
+      0
+    ],
+    "tile": true
+  },
+  "arctic/bg_far": {
+    "file": "arctic/bg_far.svg",
+    "biome": "arctic",
+    "category": "background",
+    "width": 800,
+    "height": 240,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "arctic/bg_mid": {
+    "file": "arctic/bg_mid.svg",
+    "biome": "arctic",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "arctic/bg_near": {
+    "file": "arctic/bg_near.svg",
+    "biome": "arctic",
+    "category": "background",
+    "width": 800,
+    "height": 160,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "tropical/palm_hut": {
+    "file": "tropical/palm_hut.svg",
+    "biome": "tropical",
+    "category": "building",
+    "width": 90,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "tropical/giant_fern": {
+    "file": "tropical/giant_fern.svg",
+    "biome": "tropical",
+    "category": "vegetation",
+    "width": 130,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "tropical/liana": {
+    "file": "tropical/liana.svg",
+    "biome": "tropical",
+    "category": "vegetation",
+    "width": 30,
+    "height": 150,
+    "anchor": [
+      0.5,
+      0
+    ]
+  },
+  "tropical/bamboo": {
+    "file": "tropical/bamboo.svg",
+    "biome": "tropical",
+    "category": "vegetation",
+    "width": 70,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "tropical/bamboo_bridge": {
+    "file": "tropical/bamboo_bridge.svg",
+    "biome": "tropical",
+    "category": "prop",
+    "width": 130,
+    "height": 30,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "tropical/palm_coconut": {
+    "file": "tropical/palm_coconut.svg",
+    "biome": "tropical",
+    "category": "vegetation",
+    "width": 120,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "tropical/toucan": {
+    "file": "tropical/toucan.svg",
+    "biome": "tropical",
+    "category": "fauna",
+    "width": 36,
+    "height": 34,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "tropical/bg_far": {
+    "file": "tropical/bg_far.svg",
+    "biome": "tropical",
+    "category": "background",
+    "width": 800,
+    "height": 220,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "tropical/bg_mid": {
+    "file": "tropical/bg_mid.svg",
+    "biome": "tropical",
+    "category": "background",
+    "width": 800,
+    "height": 190,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "tropical/bg_near": {
+    "file": "tropical/bg_near.svg",
+    "biome": "tropical",
+    "category": "background",
+    "width": 800,
+    "height": 150,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "harbour/port_crane": {
+    "file": "harbour/port_crane.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 170,
+    "height": 150,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "harbour/container_pile": {
+    "file": "harbour/container_pile.svg",
+    "biome": "harbour",
+    "category": "prop",
+    "width": 110,
+    "height": 72,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "harbour/cargo_ship": {
+    "file": "harbour/cargo_ship.svg",
+    "biome": "harbour",
+    "category": "boat",
+    "width": 230,
+    "height": 100,
+    "anchor": [
+      0.5,
+      0.72
+    ]
+  },
+  "harbour/factory": {
+    "file": "harbour/factory.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 128,
+    "height": 84,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#a8a29e",
+      "roof": "#57534e",
+      "door": "#44403c"
+    }
+  },
+  "harbour/warehouse": {
+    "file": "harbour/warehouse.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 138,
+    "height": 64,
+    "anchor": [
+      0.5,
+      1
+    ],
+    "tints": {
+      "wall": "#94a3b8",
+      "roof": "#64748b",
+      "door": "#475569"
+    }
+  },
+  "harbour/cooling_tower": {
+    "file": "harbour/cooling_tower.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 90,
+    "height": 130,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "harbour/silo": {
+    "file": "harbour/silo.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 40,
+    "height": 110,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "harbour/gas_station": {
+    "file": "harbour/gas_station.svg",
+    "biome": "harbour",
+    "category": "building",
+    "width": 120,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "harbour/radio_mast": {
+    "file": "harbour/radio_mast.svg",
+    "biome": "harbour",
+    "category": "prop",
+    "width": 40,
+    "height": 170,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "harbour/pier": {
+    "file": "harbour/pier.svg",
+    "biome": "harbour",
+    "category": "prop",
+    "width": 160,
+    "height": 50,
+    "anchor": [
+      0.5,
+      0
+    ]
+  },
+  "harbour/moored_boat": {
+    "file": "harbour/moored_boat.svg",
+    "biome": "harbour",
+    "category": "boat",
+    "width": 90,
+    "height": 70,
+    "anchor": [
+      0.5,
+      0.78
+    ]
+  },
+  "harbour/bg_far": {
+    "file": "harbour/bg_far.svg",
+    "biome": "harbour",
+    "category": "background",
+    "width": 800,
+    "height": 160,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "harbour/bg_mid": {
+    "file": "harbour/bg_mid.svg",
+    "biome": "harbour",
+    "category": "background",
+    "width": 800,
+    "height": 150,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "harbour/bg_near": {
+    "file": "harbour/bg_near.svg",
+    "biome": "harbour",
+    "category": "background",
+    "width": 800,
+    "height": 130,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "volcanic/lava_pool": {
+    "file": "volcanic/lava_pool.svg",
+    "biome": "volcanic",
+    "category": "terrain",
+    "width": 130,
+    "height": 34,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "volcanic/smoking_vent": {
+    "file": "volcanic/smoking_vent.svg",
+    "biome": "volcanic",
+    "category": "terrain",
+    "width": 70,
+    "height": 80,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "volcanic/basalt_columns": {
+    "file": "volcanic/basalt_columns.svg",
+    "biome": "volcanic",
+    "category": "rock",
+    "width": 110,
+    "height": 94,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "volcanic/lava_rock": {
+    "file": "volcanic/lava_rock.svg",
+    "biome": "volcanic",
+    "category": "rock",
+    "width": 70,
+    "height": 42,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "volcanic/volcano": {
+    "file": "volcanic/volcano.svg",
+    "biome": "volcanic",
+    "category": "terrain",
+    "width": 240,
+    "height": 170,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "volcanic/bg_far": {
+    "file": "volcanic/bg_far.svg",
+    "biome": "volcanic",
+    "category": "background",
+    "width": 800,
+    "height": 230,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "volcanic/bg_mid": {
+    "file": "volcanic/bg_mid.svg",
+    "biome": "volcanic",
+    "category": "background",
+    "width": 800,
+    "height": 200,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "volcanic/bg_near": {
+    "file": "volcanic/bg_near.svg",
+    "biome": "volcanic",
+    "category": "background",
+    "width": 800,
+    "height": 150,
+    "anchor": [
+      0,
+      1
+    ],
+    "tile": true
+  },
+  "car": {
+    "file": "common/car.svg",
+    "width": 100,
+    "height": 48,
+    "anchor": [
+      0.5,
+      0.9791666666666666
+    ],
+    "wheelbase": 56,
+    "pivot": [
+      54,
+      38
+    ],
+    "wheelRadius": 9,
+    "foot": 1,
+    "wheels": [
+      {
+        "group": "wheel-rear",
+        "at": [
+          26,
+          38
+        ]
+      },
+      {
+        "group": "wheel-front",
+        "at": [
+          82,
+          38
+        ]
+      }
+    ],
+    "hood": {
+      "pivot": [
+        78,
+        20
+      ],
+      "openAngle": -40
+    }
+  },
+  "jeep": {
+    "file": "common/jeep.svg",
+    "width": 110,
+    "height": 56,
+    "anchor": [
+      0.5,
+      0.9821428571428571
+    ],
+    "wheelbase": 62,
+    "pivot": [
+      55,
+      44
+    ],
+    "wheelRadius": 11,
+    "foot": 1,
+    "wheels": [
+      {
+        "group": "wheel-rear",
+        "at": [
+          24,
+          44
+        ]
+      },
+      {
+        "group": "wheel-front",
+        "at": [
+          86,
+          44
+        ]
+      }
+    ],
+    "hood": {
+      "pivot": [
+        80,
+        22
+      ],
+      "openAngle": -40
+    }
+  },
+  "truck": {
+    "file": "common/truck.svg",
+    "width": 150,
+    "height": 64,
+    "anchor": [
+      0.5,
+      0.984375
+    ],
+    "wheelbase": 92,
+    "pivot": [
+      76,
+      52
+    ],
+    "wheelRadius": 11,
+    "foot": 1,
+    "wheels": [
+      {
+        "group": "wheel-rear",
+        "at": [
+          30,
+          52
+        ]
+      },
+      {
+        "group": "wheel-mid",
+        "at": [
+          54,
+          52
+        ]
+      },
+      {
+        "group": "wheel-front",
+        "at": [
+          122,
+          52
+        ]
+      }
+    ]
+  },
+  "cloud1": {
+    "file": "common/cloud1.svg",
+    "width": 160,
+    "height": 70,
+    "anchor": [
+      0,
+      0
+    ]
+  },
+  "cloud2": {
+    "file": "common/cloud2.svg",
+    "width": 160,
+    "height": 70,
+    "anchor": [
+      0,
+      0
+    ]
+  },
+  "tree_round": {
+    "file": "common/tree_round.svg",
+    "width": 100,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "tree_fir": {
+    "file": "common/tree_fir.svg",
+    "width": 80,
+    "height": 140,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "bush": {
+    "file": "common/bush.svg",
+    "width": 70,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "rock1": {
+    "file": "common/rock1.svg",
+    "width": 90,
+    "height": 56,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "rock2": {
+    "file": "common/rock2.svg",
+    "width": 60,
+    "height": 40,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "rock3": {
+    "file": "common/rock3.svg",
+    "width": 110,
+    "height": 38,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
+  "explosion": {
+    "file": "common/explosion.svg",
+    "width": 140,
+    "height": 140,
+    "anchor": [
+      0.5,
+      0.5
+    ]
+  },
+  "flame": {
+    "file": "common/flame.svg",
+    "width": 44,
+    "height": 70,
+    "anchor": [
+      0.5,
+      1
+    ]
+  },
   "common/bus": {
     "file": "common/bus.svg",
     "biome": "common",
     "category": "vehicle",
     "width": 80,
     "height": 40,
-    "anchor": [0.5, 0.975],
+    "anchor": [
+      0.5,
+      0.975
+    ],
     "tints": {
       "paint": "#FFD700",
       "stripe": "#333"
     },
     "wheelbase": 60,
     "foot": 1,
-    "wheels": ["wheel-rear", "wheel-mid", "wheel-front"]
+    "wheels": [
+      "wheel-rear",
+      "wheel-mid",
+      "wheel-front"
+    ]
   },
   "common/train": {
     "file": "common/train.svg",
@@ -20,14 +5885,22 @@
     "category": "vehicle",
     "width": 120,
     "height": 40,
-    "anchor": [0.5, 0.975],
+    "anchor": [
+      0.5,
+      0.975
+    ],
     "tints": {
       "paint": "#D32F2F",
       "stripe": "#333"
     },
     "wheelbase": 100,
     "foot": 1,
-    "wheels": ["wheel-rear", "wheel-mid", "wheel-mid2", "wheel-front"]
+    "wheels": [
+      "wheel-rear",
+      "wheel-mid",
+      "wheel-mid2",
+      "wheel-front"
+    ]
   },
   "common/boat": {
     "file": "common/boat.svg",
@@ -35,7 +5908,10 @@
     "category": "vehicle",
     "width": 60,
     "height": 30,
-    "anchor": [0.5, 0.9666666666666666],
+    "anchor": [
+      0.5,
+      0.9666666666666666
+    ],
     "tints": {
       "paint": "#FFF",
       "stripe": "#333"
@@ -50,7 +5926,10 @@
     "category": "ship",
     "width": 40,
     "height": 20,
-    "anchor": [0.5, 0.95],
+    "anchor": [
+      0.5,
+      0.95
+    ],
     "tints": {
       "paint": "#FFF",
       "stripe": "#333"
@@ -62,7 +5941,10 @@
     "category": "ship",
     "width": 60,
     "height": 25,
-    "anchor": [0.5, 0.96],
+    "anchor": [
+      0.5,
+      0.96
+    ],
     "tints": {
       "paint": "#D32F2F",
       "stripe": "#333"
@@ -74,7 +5956,10 @@
     "category": "ship",
     "width": 80,
     "height": 30,
-    "anchor": [0.5, 0.9666666666666666],
+    "anchor": [
+      0.5,
+      0.9666666666666666
+    ],
     "tints": {
       "paint": "#FFF",
       "stripe": "#333"
@@ -86,7 +5971,10 @@
     "category": "icon",
     "width": 24,
     "height": 24,
-    "anchor": [0.5, 0.5]
+    "anchor": [
+      0.5,
+      0.5
+    ]
   },
   "common/icon_pause": {
     "file": "common/icon_pause.svg",
@@ -94,7 +5982,10 @@
     "category": "icon",
     "width": 24,
     "height": 24,
-    "anchor": [0.5, 0.5]
+    "anchor": [
+      0.5,
+      0.5
+    ]
   },
   "common/icon_reset": {
     "file": "common/icon_reset.svg",
@@ -102,7 +5993,10 @@
     "category": "icon",
     "width": 24,
     "height": 24,
-    "anchor": [0.5, 0.5]
+    "anchor": [
+      0.5,
+      0.5
+    ]
   },
   "common/icon_success": {
     "file": "common/icon_success.svg",
@@ -110,7 +6004,10 @@
     "category": "icon",
     "width": 24,
     "height": 24,
-    "anchor": [0.5, 0.5]
+    "anchor": [
+      0.5,
+      0.5
+    ]
   },
   "common/icon_failure": {
     "file": "common/icon_failure.svg",
@@ -118,7 +6015,10 @@
     "category": "icon",
     "width": 24,
     "height": 24,
-    "anchor": [0.5, 0.5]
+    "anchor": [
+      0.5,
+      0.5
+    ]
   },
   "common/icon_ship_event": {
     "file": "common/icon_ship_event.svg",
@@ -126,229 +6026,9 @@
     "category": "icon",
     "width": 24,
     "height": 24,
-    "anchor": [0.5, 0.5]
-  },
-  "common/car": {
-    "file": "common/car.svg",
-    "biome": "common",
-    "category": "vehicle",
-    "width": 100,
-    "height": 48,
-    "anchor": [0.5, 0.9791666666666666],
-    "tints": {
-      "paint": "#f59e0b"
-    },
-    "wheelbase": 56,
-    "foot": 1,
-    "wheels": ["wheel-rear", "wheel-front"],
-    "hood": {
-      "pivot": [78, 20],
-      "openAngle": -40
-    }
-  },
-  "common/jeep": {
-    "file": "common/jeep.svg",
-    "biome": "common",
-    "category": "vehicle",
-    "width": 110,
-    "height": 56,
-    "anchor": [0.5, 0.9821428571428571],
-    "tints": {
-      "paint": "#14b8a6"
-    },
-    "wheelbase": 62,
-    "foot": 1,
-    "wheels": ["wheel-rear", "wheel-front"],
-    "hood": {
-      "pivot": [80, 22],
-      "openAngle": -40
-    }
-  },
-  "common/truck": {
-    "file": "common/truck.svg",
-    "biome": "common",
-    "category": "vehicle",
-    "width": 150,
-    "height": 64,
-    "anchor": [0.5, 0.984375],
-    "tints": {
-      "cargo": "#f8fafc",
-      "paint": "#0ea5e9"
-    },
-    "wheelbase": 92,
-    "foot": 1,
-    "wheels": ["wheel-rear", "wheel-mid", "wheel-front"]
-  },
-  "common/cloud1": {
-    "file": "common/cloud1.svg",
-    "biome": "common",
-    "category": "cloud",
-    "width": 160,
-    "height": 70,
-    "anchor": [0, 0]
-  },
-  "common/cloud2": {
-    "file": "common/cloud2.svg",
-    "biome": "common",
-    "category": "cloud",
-    "width": 160,
-    "height": 70,
-    "anchor": [0, 0]
-  },
-  "common/tree_round": {
-    "file": "common/tree_round.svg",
-    "biome": "common",
-    "category": "vegetation",
-    "width": 100,
-    "height": 140,
-    "anchor": [0.5, 1],
-    "tints": {
-      "trunk": "#78350f",
-      "foliage": "#4d7c0f",
-      "foliage-dark": "#3f6212",
-      "foliage-light": "#65a30d"
-    }
-  },
-  "common/tree_fir": {
-    "file": "common/tree_fir.svg",
-    "biome": "common",
-    "category": "vegetation",
-    "width": 80,
-    "height": 140,
-    "anchor": [0.5, 1]
-  },
-  "common/bush": {
-    "file": "common/bush.svg",
-    "biome": "common",
-    "category": "vegetation",
-    "width": 70,
-    "height": 40,
-    "anchor": [0.5, 1]
-  },
-  "common/rock1": {
-    "file": "common/rock1.svg",
-    "biome": "common",
-    "category": "rock",
-    "width": 90,
-    "height": 56,
-    "anchor": [0.5, 1]
-  },
-  "common/rock2": {
-    "file": "common/rock2.svg",
-    "biome": "common",
-    "category": "rock",
-    "width": 60,
-    "height": 40,
-    "anchor": [0.5, 1]
-  },
-  "common/rock3": {
-    "file": "common/rock3.svg",
-    "biome": "common",
-    "category": "rock",
-    "width": 110,
-    "height": 38,
-    "anchor": [0.5, 1]
-  },
-  "common/explosion": {
-    "file": "common/explosion.svg",
-    "biome": "common",
-    "category": "effect",
-    "width": 140,
-    "height": 140,
-    "anchor": [0.5, 0.5]
-  },
-  "common/flame": {
-    "file": "common/flame.svg",
-    "biome": "common",
-    "category": "effect",
-    "width": 44,
-    "height": 70,
-    "anchor": [0.5, 1]
-  },
-  "common/cyclist": {
-    "file": "common/cyclist.svg",
-    "biome": "common",
-    "category": "vehicle",
-    "width": 84,
-    "height": 78,
-    "anchor": [0.5, 1],
-    "pivots": {
-      "wheel-rear": [18, 64],
-      "wheel-front": [66, 64],
-      "crank": [38, 63],
-      "leg-near": [33, 35],
-      "shin-near": [42.28, 51.58],
-      "leg-far": [33, 35],
-      "shin-far": [50, 43.49]
-    },
-    "tints": {
-      "cloth-bottom": "#1f2937",
-      "paint": "#dc2626",
-      "cloth-top": "#3b82f6",
-      "skin": "#f1c27d",
-      "helmet": "#f59e0b"
-    },
-    "rig": {
-      "legs": {
-        "hip": [33, 35],
-        "bb": [38, 63],
-        "crank": 8,
-        "thigh": 19,
-        "shin": 19,
-        "baseAngle": 70
-      },
-      "note": "see docs/BIOME_ASSETS.md (rigs) and src/runtime/rig.ts legPose()"
-    },
-    "wheelbase": 48,
-    "foot": 0,
-    "wheels": ["wheel-rear", "wheel-front"]
-  },
-  "common/bicycle": {
-    "file": "common/bicycle.svg",
-    "biome": "common",
-    "category": "vehicle",
-    "width": 84,
-    "height": 78,
-    "anchor": [0.5, 1],
-    "pivots": {
-      "crank": [38, 63]
-    },
-    "tints": {
-      "paint": "#dc2626"
-    },
-    "wheelbase": 48,
-    "foot": 0,
-    "wheels": ["wheel-rear", "wheel-front"]
-  },
-  "common/delivery_van": {
-    "file": "common/delivery_van.svg",
-    "biome": "common",
-    "category": "vehicle",
-    "width": 112,
-    "height": 58,
-    "anchor": [0.5, 0.9827586206896551],
-    "tints": {
-      "paint": "#f8fafc",
-      "stripe": "#0ea5e9",
-      "sign": "#fef9c3"
-    },
-    "wheelbase": 62,
-    "foot": 1,
-    "wheels": ["wheel-rear", "wheel-front"]
-  },
-  "common/pickup_truck": {
-    "file": "common/pickup_truck.svg",
-    "biome": "common",
-    "category": "vehicle",
-    "width": 126,
-    "height": 58,
-    "anchor": [0.5, 0.9827586206896551],
-    "tints": {
-      "paint": "#f59e0b",
-      "stripe": "#7c2d12"
-    },
-    "wheelbase": 70,
-    "foot": 1,
-    "wheels": ["wheel-rear", "wheel-front"]
+    "anchor": [
+      0.5,
+      0.5
+    ]
   }
 }

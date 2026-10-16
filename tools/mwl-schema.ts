@@ -10,8 +10,8 @@ export const schemas: Record<string, MwlTagSchema> = {
     cardinality: { anchor: { min: 2, max: 24 }, view: { max: 1 }, bridge_solution: { max: 1 }, event: { max: 10 } },
   },
   event: {
-    attributes: { type: 'string', time: 'number', duration: 'number?', shipType: 'string?', waterY: 'number?' },
-    required: ['type', 'time'],
+    attributes: { type: 'string', time: 'number', shipType: 'string' },
+    required: ['type', 'time', 'shipType'],
     children: []
   },
   bridge_solution: { children: ['bridge_node', 'bridge_beam'] },

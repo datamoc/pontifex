@@ -1,6 +1,6 @@
 // Données pures du jeu : matériaux, niveaux. Aucune dépendance au rendu.
 
-export type MaterialId = 'road' | 'wood' | 'steel' | 'rope' | 'cable';
+export type MaterialId = 'road' | 'wood' | 'steel' | 'rope' | 'cable' | 'concrete' | 'hydraulics';
 
 export interface MaterialDef {
   id: MaterialId;
@@ -36,10 +36,36 @@ export interface VehicleDef {
   width: number;
   height: number;
   /** planche de sprites utilisée (voir art.ts) */
-  sprite: 'citadine' | 'jeep1' | 'jeep2';
+  sprite: 'citadine' | 'jeep1' | 'jeep2' | 'train' | 'bike' | 'bus' | 'boat';
 }
 
 export interface Pt { x: number; y: number }
+
+export type ShipType = 'small' | 'medium' | 'large';
+
+export interface ShipDef {
+  name: string;
+  /** dessin dans assets/common (ship_<type>.svg, rendu à 2× sa taille : voir SHIP_SCALE) */
+  sprite: string;
+  /** gabarit : largeur de la coque et hauteur au-dessus de l'eau (px) ; tout ce qui y pénètre casse */
+  width: number;
+  height: number;
+  /** vitesse de traversée (px/s) */
+  speed: number;
+}
+
+/** les SVG des navires font 40×20, 60×25 et 80×30 ; le jeu les affiche à cette échelle */
+export const SHIP_SCALE = 2;
+/** enfoncement de la coque sous la ligne d'eau (px) */
+export const SHIP_DRAFT = 10;
+export const SHIPS: Record<ShipType, ShipDef> = {
+  small: { name: 'Petit navire', sprite: 'ship_small', width: 40 * SHIP_SCALE, height: 20 * SHIP_SCALE, speed: 60 },
+  medium: { name: 'Navire moyen', sprite: 'ship_medium', width: 60 * SHIP_SCALE, height: 25 * SHIP_SCALE, speed: 48 },
+  large: { name: 'Grand navire', sprite: 'ship_large', width: 80 * SHIP_SCALE, height: 30 * SHIP_SCALE, speed: 40 },
+};
+
+/** Événement programmé d'un niveau : un navire traverse le canal à la ligne d'eau à partir de `time` (s). */
+export interface LevelEvent { type: 'ship'; time: number; shipType: ShipType }
 
 export interface LevelDef {
   id: number;
@@ -66,6 +92,8 @@ export interface LevelDef {
   /** pylônes dessinés (les points d'ancrage en haut sont dans `anchors`) */
   towers: { x: number; top: number; base: number }[];
   waterY: number;
+  /** navires de passage, triés par `time` */
+  events: LevelEvent[];
 }
 
 export const WORLD_W = 800;

@@ -21,12 +21,13 @@ try {
     const raw: unknown = JSON.parse(readFileSync(positionals[0], 'utf8'));
     const parsed = parseSpec(raw);
     if ('error' in parsed) throw new Error(parsed.error);
-    const { anchors, towers, islands, materials, solution, ...attributes } = parsed.spec;
+    const { anchors, towers, islands, materials, solution, events = [], ...attributes } = parsed.spec;
     const view = (raw as Record<string, unknown>).view;
     const node = { tag: 'bridge_level', ...attributes, id, label: values.label ?? String(id), materials: materials.join(','), children: [
       ...anchors.map(point => ({ tag: 'anchor', ...point })),
       ...towers.map(point => ({ tag: 'tower', ...point })),
       ...islands.map(point => ({ tag: 'island', ...point })),
+      ...events.map(event => ({ tag: 'event', ...event })),
       ...(view === undefined ? [] : [{ tag: 'view', ...validateView(view) }]),
       ...(solution ? [{ tag: 'bridge_solution', children: [
         ...solution.nodes.map(point => ({ tag: 'bridge_node', ...point })),

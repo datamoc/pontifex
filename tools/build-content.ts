@@ -52,7 +52,8 @@ const levels = game.roots.filter(node => node.tag === 'bridge_level').map(node =
     nodes: solutionNode.children.filter(child => child.tag === 'bridge_node').map(child => ({ x: Number(child.attributes.x), y: Number(child.attributes.y), fixed: child.attributes.fixed === 'true' })),
     beams: solutionNode.children.filter(child => child.tag === 'bridge_beam').map(child => ({ a: Number(child.attributes.a), b: Number(child.attributes.b), mat: child.attributes.mat })),
   } : undefined;
-  const spec = { ...a, id: Number(a.id), budget: Number(a.budget), x0: Number(a.x0), x1: Number(a.x1), deckY: Number(a.deckY), waterY: Number(a.waterY), materials, anchors: geometry('anchor'), towers: geometry('tower'), islands: geometry('island'), ...(view ? { view } : {}), ...(solution ? { solution } : {}) };
+  const events = node.children.filter(child => child.tag === 'event').map(child => ({ type: child.attributes.type, time: Number(child.attributes.time), shipType: child.attributes.shipType }));
+  const spec = { ...a, id: Number(a.id), budget: Number(a.budget), x0: Number(a.x0), x1: Number(a.x1), deckY: Number(a.deckY), waterY: Number(a.waterY), materials, anchors: geometry('anchor'), towers: geometry('tower'), islands: geometry('island'), ...(events.length ? { events } : {}), ...(view ? { view } : {}), ...(solution ? { solution } : {}) };
   if (spec.id <= 0) throw new Error(`${a.name}: level id must be positive`);
   if (ids.has(spec.id)) throw new Error(`Duplicate level id ${spec.id}`);
   ids.add(spec.id);

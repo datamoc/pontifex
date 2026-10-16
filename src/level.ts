@@ -1,6 +1,6 @@
 // Niveaux = données. `LevelSpec` est le format compact (JSON) que l'éditeur produit, importe et exporte ;
 // `deriveLevel` en tire tout ce que le jeu utilise (falaises, îlots, pylônes, cadrage).
-import { CARS, GRID, MATERIALS, MATERIAL_ORDER, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt } from './data.ts';
+import { CARS, GRID, MATERIALS, MATERIAL_ORDER, SHIPS, WORLD_H, WORLD_W, type LevelDef, type LevelEvent, type MaterialId, type Pt } from './data.ts';
 import type { Structure } from './physics.ts';
 
 export type CarId = keyof typeof CARS;
@@ -23,6 +23,8 @@ export interface LevelSpec {
   /** îlots : `top` = surface ; le point d'ancrage est dans `anchors` */
   islands: { x: number; top: number }[];
   view?: { x: number; y: number; w: number; h: number };
+  /** navires de passage (au plus 10) */
+  events?: LevelEvent[];
   /** pont de référence validé par l'auteur (niveaux personnalisés) */
   solution?: Structure;
 }
@@ -58,6 +60,7 @@ export function deriveLevel(spec: LevelSpec): LevelDef {
     islands,
     towers: spec.towers.map((t) => ({ x: t.x, top: t.top, base: ground(t.x) })),
     view: spec.view ?? autoView(spec, gap),
+    events: [...(spec.events ?? [])].sort((a, b) => a.time - b.time),
   };
 }
 
@@ -111,13 +114,28 @@ export function parseSpec(raw: unknown): { spec: LevelSpec } | { error: string }
   };
   const towers = items(r.towers, 4), islands = items(r.islands, 3);
   if (!towers || !islands) return { error: 'Pylônes ou îlots invalides' };
-  const spec: LevelSpec = { id: 0, label: '', name, hint, budget, materials, car, x0, x1, deckY, waterY, anchors, towers, islands };
+  const events = parseEvents(r.events);
+  if (!events) return { error: 'Événements invalides' };
+  const spec: LevelSpec = { id: 0, label: '', name, hint, budget, materials, car, x0, x1, deckY, waterY, anchors, towers, islands, ...(events.length ? { events } : {}) };
   if (r.solution !== undefined) {
     const sol = parseStructure(r.solution, materials);
     if (!sol) return { error: 'Solution invalide' };
     spec.solution = sol;
   }
   return { spec };
+}
+
+function parseEvents(raw: unknown): LevelEvent[] | null {
+  if (raw === undefined) return [];
+  if (!Array.isArray(raw) || raw.length > 10) return null;
+  const out: LevelEvent[] = [];
+  for (const e of raw) {
+    const time = num((e as { time: unknown })?.time, 0, 40);
+    const shipType = (e as { shipType: unknown })?.shipType;
+    if ((e as { type: unknown })?.type !== 'ship' || time === null || typeof shipType !== 'string' || !(shipType in SHIPS)) return null;
+    out.push({ type: 'ship', time, shipType: shipType as LevelEvent['shipType'] });
+  }
+  return out;
 }
 
 function parseStructure(raw: unknown, materials: MaterialId[]): Structure | null {

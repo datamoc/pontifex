@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="60" viewBox="0 0 100 60"><path fill="#f9fafb" d="M0 0h100v60H0z"/><path fill="#fff" stroke="#1e293b" d="M10 30q10-10 30-10t10 10 10-10 20 0 10 10v10H20Q0 40 10 30Z"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60" width="100" height="60">
+  <rect x="0" y="0" width="100" height="60" fill="#f9fafb" />
+  
+      <path d="M10,30 Q20,20 40,20 T50,30 T60,20 T80,20 T90,30 L90,40 Q80,40 60,40 T40,40 T20,40 T10,30 Z" fill="#ffffff" stroke="#1e293b" />
+    
+</svg>

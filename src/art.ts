@@ -10,7 +10,8 @@ import { get, load, loadSvgParts, texture } from '@datamoc/mwg/assets';
 import type { Texture2D } from '@datamoc/mwg/two-d/render';
 import { Node2D, Sprite2D } from '@datamoc/mwg/two-d';
 import { Random } from '@datamoc/mwg/core';
-import type { LevelDef, VehicleDef } from './data.ts';
+import { SHIPS, type LevelDef, type VehicleDef } from './data.ts';
+import type { BridgeSim } from './physics.ts';
 import { BIOME_FILES, type Biome } from './biomes.ts';
 
 /** rasterisation des SVG à 2× leur taille d'origine : la caméra cadre chaque niveau, le trait reste net */
@@ -78,7 +79,7 @@ export async function loadArt(): Promise<void> {
 
 export type CarState = 'idle' | 'ride' | 'destroyed';
 
-const SPRITE_OF: Record<VehicleDef['sprite'], string> = {
+const SPRITE_OF: Record<VehicleDef['sprite'] | 'ship_small' | 'ship_medium' | 'ship_large', string> = {
   citadine: 'car',
   jeep1: 'jeep',
   jeep2: 'truck',
@@ -191,6 +192,38 @@ export class Vehicle extends Node2D {
 
 export function makeVehicle(def: VehicleDef): Vehicle {
   return new Vehicle(def);
+}
+
+export interface Fleet { update(sim: BridgeSim | null, time: number): void }
+
+/**
+ * Les navires du niveau (un sprite par événement `ship`), invisibles tant qu'ils n'ont pas
+ * pris la mer. Ils sont posés sur la ligne d'eau, derrière les falaises : ils émergent de la roche.
+ */
+export function buildFleet(level: LevelDef, node: Node2D): Fleet {
+  node.removeChildren().forEach((child) => child.destroy());
+  const sprites = level.events.map((event) => {
+    const def = SHIPS[event.shipType];
+    const sprite = new Sprite2D(texture(`${DIR}/${def.sprite}.svg`));
+    sprite.anchor.set(...artOf(`${DIR}/${def.sprite}`).anchor);
+    // la texture est rastérisée à RES× : on dimensionne d'après sa largeur réelle, pour obtenir def.width en px monde
+    sprite.scale.set(def.width / sprite.width);
+    sprite.visible = false;
+    node.addChild(sprite);
+    return sprite;
+  });
+  return {
+    update(sim, time) {
+      sprites.forEach((sprite, i) => {
+        const ship = sim?.ships[i];
+        sprite.visible = !!ship?.sailing;
+        if (!ship?.sailing) return;
+        // houle : léger tangage et ballant, uniquement visuel (le gabarit physique reste fixe)
+        sprite.position.set(ship.x, level.waterY + 4 + Math.sin(time * 1.7 + i * 2) * 1.5);
+        sprite.rotation = Math.sin(time * 1.3 + i) * 0.015;
+      });
+    },
+  };
 }
 
 const TREES = ['tree_round', 'tree_fir'];

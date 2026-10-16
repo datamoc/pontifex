@@ -10,6 +10,7 @@ export class Sfx {
   private snap = make({ waveform: 'noise', frequency: 300, duration: 0.25, volume: 0.7, decay: 5 });
   private splash = make({ waveform: 'noise', frequency: 150, duration: 0.5, volume: 0.6, decay: 3 });
   private ding = make({ waveform: 'sine', frequency: 880, duration: 0.25, volume: 0.5, decay: 4 }, 6);
+  private horn = make({ waveform: 'square', frequency: 98, duration: 0.8, volume: 0.45, decay: 2.2 }, 2);
   private tick = make({ waveform: 'sine', frequency: 660, duration: 0.04, volume: 0.3, decay: 8 });
 
   private play(s: Sound, gain = 1, pitch = 1): void {
@@ -20,5 +21,6 @@ export class Sfx {
   onBreak(): void { this.play(this.snap, 1, 0.8 + Math.random() * 0.4); }
   onSplash(): void { this.play(this.splash); }
   onClick(): void { this.play(this.tick); }
+  onShip(): void { this.play(this.horn); }
   onWin(): void { [1, 1.25, 1.5, 2].forEach((p, i) => setTimeout(() => this.play(this.ding, 1, p), i * 110)); }
 }

@@ -1,9 +1,9 @@
 import { BIOMES, type Biome } from './biomes.ts';
 import { Shape2D, Label, Gradient, type Node2D } from '@datamoc/mwg/two-d';
-import { GRID, MATERIALS, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt } from './data.ts';
+import { GRID, MATERIALS, SHIPS, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt } from './data.ts';
 import type { BridgeSim, Structure } from './physics.ts';
 
-export interface Layers { sky: Shape2D; clouds: Node2D; landscape: Node2D; back: Shape2D; wildlife: Node2D; decor: Node2D; grid: Shape2D; bridge: Shape2D; car: Node2D; front: Shape2D; fx: Node2D }
+export interface Layers { sky: Shape2D; clouds: Node2D; landscape: Node2D; ships: Node2D; back: Shape2D; wildlife: Node2D; decor: Node2D; grid: Shape2D; bridge: Shape2D; car: Node2D; front: Shape2D; fx: Node2D }
 
 export interface DynamicArgs {
   level: LevelDef;
@@ -28,6 +28,7 @@ function ratioColor(r: number): number {
 }
 
 let lenLabel: Label | null = null;
+const gaugeLabels: Label[] = [];
 
 export const drawScene = {
   /** Décor fixe du niveau : ciel, montagnes, falaises, grille. Redessiné au changement de niveau. */
@@ -138,6 +139,17 @@ export const drawScene = {
     fr.moveTo(wx0, wave(wx0) + 3);
     for (let x = wx0; x <= wx1; x += 12) fr.lineTo(x, wave(x) + 3);
     fr.stroke({ width: 1.5, color: 0xa5f3fc, alpha: 0.55 });
+
+    // --- gabarit des navires : une ligne par type attendu, tant qu'on construit
+    const shipTypes = sim ? [] : [...new Set(lv.events.map((e) => e.shipType))];
+    shipTypes.forEach((type, i) => {
+      const def = SHIPS[type], gy = wy - def.height;
+      for (let x = lv.x0 + 4; x < lv.x1 - 8; x += 14) fr.rect(x, gy - 0.75, 8, 1.5).fill({ color: 0xfbbf24, alpha: 0.9 });
+      if (!gaugeLabels[i]) { gaugeLabels[i] = new Label({ text: '', size: 11, color: 0xfbbf24 }); layers.fx.addChild(gaugeLabels[i]); }
+      gaugeLabels[i].setText(`⚓ ${def.name} : gabarit ${def.height / 10} m`);
+      gaugeLabels[i].position.set(lv.x0 + 8, gy - 16);
+    });
+    gaugeLabels.forEach((label, i) => { label.visible = i < shipTypes.length; });
 
     if (a.flash > 0) fr.rect(0, 0, WORLD_W, WORLD_H).stroke({ width: 6, color: 0xf43f5e, alpha: a.flash * 0.6 });
   },

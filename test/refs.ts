@@ -66,6 +66,8 @@ export function reference(i: number): Structure {
       return build(L, [], [[0, 1, 'road']]);
     case 1: // 12 cases : tablier en deux tronçons soutenu par un triangle de bois (poutre « à poinçon »)
       return build(L, [[400, 340], [400, 380]], [[0, 2, 'road'], [2, 1, 'road'], [0, 3, 'wood'], [3, 1, 'wood'], [2, 3, 'wood']]);
+    case 8: // le cargo passe à 5 m au-dessus de l'eau (y > 390 casse) : même triangle de bois que 1bis, pointe à 380
+      return build(L, [[400, 340], [400, 380]], [[0, 2, 'road'], [2, 1, 'road'], [0, 3, 'wood'], [3, 1, 'wood'], [2, 3, 'wood']]);
     case 2: return legacy(0);
     case 3: return legacy(1);
     case 4: return legacy(2);

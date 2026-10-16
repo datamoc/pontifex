@@ -1,7 +1,4 @@
-import { noteToFrequency, parseMidi, scheduleMidi, renderMidiToBuffer, loadSoundFont } from '@datamoc/mwg/audio';
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { noteToFrequency, parseMidi, scheduleMidi } from '@datamoc/mwg/audio';
 
 import { MUSIC_TRACKS } from './music-catalog.ts';
 export { MUSIC_TRACKS } from './music-catalog.ts';
@@ -62,23 +59,10 @@ export class BackgroundMusic {
   private nextIdx = 0;
   private voices = new Set<AudioScheduledSourceNode>();
   private noise: AudioBuffer | null = null;
-  private soundFont: any = null;
   private request = 0;
   private disposed = false;
   private activated = false;
 
-  /** Charge le SoundFont `microgm-opt` depuis MWG pour améliorer la qualité de la musique. */
-  private async loadSoundFont(): Promise<void> {
-    if (this.soundFont) return;
-    try {
-      const soundFontPath = join(dirname(fileURLToPath(import.meta.url)), '../../node_modules/@datamoc/mw_games/data/microgm-opt.sf2');
-      const soundFontData = readFileSync(soundFontPath);
-      this.soundFont = await loadSoundFont(soundFontData.buffer);
-    } catch (error) {
-      console.error('Failed to load microgm-opt SoundFont:', error);
-      this.soundFont = null;
-    }
-  }
   private visibility = () => {
     if (!this.context) return;
     if (document.hidden) void this.context.suspend();
@@ -107,9 +91,12 @@ export class BackgroundMusic {
   }
 
   seek(pos: number): void {
-    if (!this.context) return;
+    if (!this.context || !this.notes.length) return;
+    this.killVoices();
     this.offsetBase = Math.min(Math.max(0, pos), Math.max(0, this.trackDuration - 0.001));
     this.startCtxTime = this.context.currentTime;
+    this.nextIdx = this.notes.findIndex((note) => note.time + note.duration > this.offsetBase);
+    if (this.nextIdx < 0) this.nextIdx = this.notes.length;
   }
 
   select(id: string, keepPaused = false): void {
@@ -175,49 +162,19 @@ export class BackgroundMusic {
     this.loading = true;
     this.error = '';
     try {
-      await this.loadSoundFont();
       const raw = MUSIC_MIDI[id];
       if (!raw) throw new Error(`MIDI introuvable : ${id}`);
       const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
-      const midi = parseMidi(bytes.buffer);
-      
+      const notes = scheduleMidi(parseMidi(bytes.buffer));
       if (token !== this.request || this.disposed) return;
-      
-      if (this.soundFont) {
-        // Utiliser le SoundFont pour améliorer la qualité
-        const buffer = await renderMidiToBuffer(midi, this.soundFont);
-        const source = context.createBufferSource();
-        source.buffer = buffer;
-        
-        // Créer un GainNode pour contrôler le volume
-        const gainNode = context.createGain();
-        gainNode.gain.value = 0.8; // Volume à 80%
-        
-        // Appliquer un pitch aléatoire pour varier légèrement le son
-        source.playbackRate.value = 1.0 + (Math.random() * 0.02 - 0.01); // ±1% de variation
-        
-        // Connecter la source au GainNode, puis au gain principal
-        source.connect(gainNode);
-        gainNode.connect(this.gain!);
-        
-        source.start(0);
-        this.channel = this;
-        this.trackDuration = buffer.duration;
-        this.offsetBase = 0;
-        this.startCtxTime = context.currentTime;
-        this.scheduledTotal = 1;
-      } else {
-        // Fallback sur le synthétiseur actuel
-        const notes = scheduleMidi(midi);
-        notes.sort((a, b) => a.time - b.time);
-        this.notes = notes;
-        this.trackDuration = Math.max(0, ...notes.map((note) => note.time + note.duration));
-        this.offsetBase = 0;
-        this.startCtxTime = context.currentTime;
-        this.nextIdx = 0;
-        this.scheduledTotal = 0;
-        this.channel = this;
-      }
+      notes.sort((a, b) => a.time - b.time);
+      this.notes = notes;
+      this.trackDuration = Math.max(0, ...notes.map((note) => note.time + note.duration));
+      this.offsetBase = 0;
+      this.startCtxTime = context.currentTime;
+      this.nextIdx = 0;
+      this.scheduledTotal = 0;
+      this.channel = this;
     } catch (error) {
       if (token === this.request) this.error = `Musique indisponible : ${String(error)}`;
     } finally {
@@ -225,8 +182,125 @@ export class BackgroundMusic {
     }
   }
 
+  private noiseBuffer(): AudioBuffer {
+    const context = this.context!;
+    if (!this.noise) {
+      this.noise = context.createBuffer(1, context.sampleRate / 4, context.sampleRate);
+      const data = this.noise.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    }
+    return this.noise;
+  }
+
+  /** Batterie (canal 9) : grosse caisse sinusoïdale, bruit filtré pour caisse claire et charleston. */
+  private drum(note: Note, when: number, peak: number): void {
+    const context = this.context!;
+    const out = context.createGain();
+    out.connect(this.gain!);
+    if (note.note === 35 || note.note === 36) {
+      const osc = context.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(120, when);
+      osc.frequency.exponentialRampToValueAtTime(42, when + 0.12);
+      out.gain.setValueAtTime(peak * 1.4, when);
+      out.gain.exponentialRampToValueAtTime(0.001, when + 0.24);
+      osc.connect(out);
+      osc.start(when);
+      osc.stop(when + 0.26);
+      this.voices.add(osc);
+      osc.onended = () => { this.voices.delete(osc); out.disconnect(); };
+      return;
+    }
+    const hat = note.note === 42 || note.note === 44 || note.note === 46;
+    const burst = context.createBufferSource();
+    burst.buffer = this.noiseBuffer();
+    const filter = context.createBiquadFilter();
+    filter.type = hat ? 'highpass' : 'bandpass';
+    filter.frequency.value = hat ? 7000 : 1800;
+    const length = hat ? (note.note === 46 ? 0.28 : 0.05) : 0.14;
+    out.gain.setValueAtTime(peak * (hat ? 0.5 : 0.9), when);
+    out.gain.exponentialRampToValueAtTime(0.001, when + length);
+    burst.connect(filter);
+    filter.connect(out);
+    burst.start(when);
+    burst.stop(when + length + 0.02);
+    this.voices.add(burst);
+    burst.onended = () => { this.voices.delete(burst); out.disconnect(); };
+  }
+
+  /** Une note : oscillateur principal + halo légèrement désaccordé, filtre passe-bas, vibrato sur les tenues. */
+  private strike(note: Note, when: number): void {
+    const context = this.context!;
+    const peak = 0.2 * (note.velocity / 127) * (note.gain ?? 1);
+    if (peak <= 0.001) return;
+    if (note.channel === 9) { this.drum(note, when, peak); return; }
+    const program = note.program ?? 0;
+    const family = program >> 3;
+    const f0 = noteToFrequency(note.note);
+    const length = Math.max(0.03, note.duration);
+    const filter = context.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = Math.min(9500, Math.max(900, f0 * 5 + (note.velocity / 127) * 2200));
+    filter.Q.value = 0.4;
+    const out = context.createGain();
+    filter.connect(out);
+    if (note.pan) {
+      const panner = context.createStereoPanner();
+      panner.pan.value = Math.max(-1, Math.min(1, note.pan));
+      out.connect(panner);
+      panner.connect(this.gain!);
+    } else {
+      out.connect(this.gain!);
+    }
+    const main = context.createOscillator();
+    main.type = waveformFor(program);
+    main.frequency.value = f0;
+    const halo = context.createOscillator();
+    halo.type = 'sine';
+    halo.frequency.value = f0;
+    halo.detune.value = 5;
+    const haloGain = context.createGain();
+    haloGain.gain.value = 0.45;
+    main.connect(filter);
+    halo.connect(haloGain);
+    haloGain.connect(filter);
+    let lfo: OscillatorNode | null = null;
+    if (length > 0.35 && (family === 5 || family === 6 || family === 7 || family === 8 || family === 9)) {
+      lfo = context.createOscillator();
+      lfo.frequency.value = 5.2;
+      const depth = context.createGain();
+      depth.gain.value = 4;
+      lfo.connect(depth);
+      depth.connect(main.detune);
+      depth.connect(halo.detune);
+      lfo.start(when + 0.12);
+      lfo.stop(when + length + 0.08);
+    }
+    const attack = family === 5 || family === 6 ? 0.07 : 0.008;
+    out.gain.setValueAtTime(0, when);
+    out.gain.linearRampToValueAtTime(peak, when + attack);
+    out.gain.exponentialRampToValueAtTime(0.001, when + length);
+    main.start(when);
+    main.stop(when + length + 0.08);
+    halo.start(when);
+    halo.stop(when + length + 0.08);
+    this.voices.add(main);
+    this.voices.add(halo);
+    if (lfo) this.voices.add(lfo);
+    main.onended = () => {
+      this.voices.delete(main);
+      this.voices.delete(halo);
+      if (lfo) this.voices.delete(lfo);
+      filter.disconnect();
+      out.disconnect();
+    };
+  }
+
   private killVoices(): void {
-    // Plus nécessaire avec le SoundFont, mais conservé pour la compatibilité
+    for (const voice of this.voices) {
+      try { voice.stop(); } catch { /* déjà arrêtée */ }
+      voice.disconnect();
+    }
     this.voices.clear();
   }
 
@@ -245,9 +319,16 @@ export class BackgroundMusic {
 
   update(): void {
     const context = this.context;
-    if (!context || this.paused || !this.enabled || document.hidden) return;
+    if (!context || !this.notes.length || this.paused || !this.enabled || document.hidden) return;
     if (context.state !== 'running') return;
     if (this.position() >= this.trackDuration) { this.next(); return; }
+    const horizon = this.position() + LOOKAHEAD;
+    while (this.nextIdx < this.notes.length && this.notes[this.nextIdx].time < horizon) {
+      const note = this.notes[this.nextIdx++];
+      const when = Math.max(this.startCtxTime + (note.time - this.offsetBase), context.currentTime);
+      this.strike(note, when);
+      this.scheduledTotal++;
+    }
   }
 
   dispose(): void {
@@ -256,6 +337,7 @@ export class BackgroundMusic {
     window.removeEventListener('pointerdown', this.gesture);
     window.removeEventListener('keydown', this.gesture);
     document.removeEventListener('visibilitychange', this.visibility);
+    this.killVoices();
     this.notes = [];
     this.channel = null;
     if (this.context) void this.context.close();

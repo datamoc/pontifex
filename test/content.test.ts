@@ -26,7 +26,9 @@ test('MWL préserve le catalogue et les niveaux après recalage des rives sur 12
     level.x0 = x0;
     level.x1 = x1;
   }
-  assert.deepEqual({ materials: MATERIALS, vehicles: CARS, levels: BUILTIN_SPECS.filter(level => before.levels.some((original: { id: number }) => original.id === level.id)) }, before);
+  // Le catalogue a pu s’enrichir (béton, hydraulique, train…) : on ne compare que les entrées d’origine.
+  const original = <T extends object>(all: T, ids: object) => Object.fromEntries(Object.entries(all).filter(([id]) => id in ids));
+  assert.deepEqual({ materials: original(MATERIALS, before.materials), vehicles: original(CARS, before.vehicles), levels: BUILTIN_SPECS.filter(level => before.levels.some((original: { id: number }) => original.id === level.id)) }, before);
 });
 
 test('niveaux intégrés : chaussée plate réalisable en tronçons complets de 12 m', () => {
@@ -95,7 +97,7 @@ test('player JSON converts to buildable MWL, preserving geometry, text and solut
   writeFileSync(join(dir, 'content/catalog.mwl'), readFileSync(new URL('../content/catalog.mwl', import.meta.url)));
   writeFileSync(join(dir, 'content/levels.mwl'), readFileSync(new URL('../content/levels.mwl', import.meta.url)));
   try {
-    const result = spawnSync(process.execPath, ['--import', tsx, converter, input, '--id', '9', '--label', '8', '-o', output], { encoding: 'utf8' });
+    const result = spawnSync(process.execPath, ['--import', tsx, converter, input, '--id', '90', '--label', '8', '-o', output], { encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr);
     assert.match(readFileSync(output, 'utf8'), /"name": _\(/);
     execFileSync(process.execPath, ['--import', tsx, builder], { cwd: dir });
@@ -104,15 +106,15 @@ test('player JSON converts to buildable MWL, preserving geometry, text and solut
     const validated = parseSpec(source);
     assert.ok('spec' in validated);
     const parsed = validated.spec;
-    assert.deepEqual(levels.at(-1), { ...parsed, id: 9, label: '8', view: source.view });
-    const again = spawnSync(process.execPath, ['--import', tsx, converter, input, '--id', '9', '-o', output], { encoding: 'utf8' });
+    assert.deepEqual(levels.at(-1), { ...parsed, id: 90, label: '8', view: source.view });
+    const again = spawnSync(process.execPath, ['--import', tsx, converter, input, '--id', '90', '-o', output], { encoding: 'utf8' });
     assert.notEqual(again.status, 0);
     assert.match(again.stderr, /EEXIST/);
     for (const [json, id, error] of [
       [source, '1', /already in use/],
       [source, '0', /positive safe integer/],
-      [{ ...source, budget: -1 }, '9', /Valeurs hors limites/],
-      [{ ...source, solution: { nodes: [], beams: [{ a: 0, b: 1, mat: 'road' }] } }, '9', /Solution invalide/],
+      [{ ...source, budget: -1 }, '90', /Valeurs hors limites/],
+      [{ ...source, solution: { nodes: [], beams: [{ a: 0, b: 1, mat: 'road' }] } }, '90', /Solution invalide/],
     ] as const) {
       writeFileSync(input, JSON.stringify(json));
       const bad = spawnSync(process.execPath, ['--import', tsx, converter, input, '--id', id], { encoding: 'utf8' });
