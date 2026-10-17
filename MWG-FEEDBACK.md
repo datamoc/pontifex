@@ -2,6 +2,66 @@
 
 Format : besoin → ce que MWG offre → contournement → suggestion.
 
+## Suivi après mise à jour vers 0.43.0 (17 octobre 2026)
+
+MWG 0.43.0 répond à presque tous les points 35 à 50 ci-dessous, le jour même. Pontifex l'adopte (`npm run check` : 123 tests, 9 e2e) et **supprime ses contournements** :
+
+| Point | Demande | 0.43.0 | Dans Pontifex |
+|---|---|---|---|
+| 35 | documenter MIDI → SoundFont | README + `AudioBus` (chargement MIDI par défaut) | déjà couvert par `compile-resources` ; `AudioBus` pas encore essayé |
+| 36 | lecteur de musique | `MusicPlayer`, `toAudioBuffer` | **adopté** : `C:\Users\miche\dev\pontifex\src\music.ts` (`MusicPlayer` l.136, `start` l.141), le lecteur maison passe de 225 à ~180 lignes |
+| 37 | assets jamais chargés, budget de page | rapports de poids et assets inutilisés dans le build | pas encore branchés (`npm run assets:report` à la main) |
+| 38 | XPBD | `XpbdLink.data`, `breakLink`, `linksInBox`, `snapshot`/`hash` | **adopté** : `C:\Users\miche\dev\pontifex\src\physics.ts` l.109 (`data`), l.187 (`linksInBox` + `breakLink`), l.95 (`stateHash`) ; `segmentInBox` et `Object.assign` supprimés |
+| 39 | MWL | `nodesToObjects`, unions générées depuis les tables, attributs optionnels documentés | **adopté** : `C:\Users\miche\dev\pontifex\tools\build-content.ts` l.40 ; contenu généré identique ; unions générées pas encore utilisées (`data.ts` les tient à la main) |
+| 40 | tests : hook, compteur de lectures | `exposeForTests` (`window.__mwg_test__`), `Sound.plays` | pas encore : mes e2e lisent `window.__pontifex` et patchent `HTMLMediaElement.prototype.play` |
+| 41 | dent de scie | `sawtooth` | **adopté** : `C:\Users\miche\dev\pontifex\src\audio.ts` l.13 |
+| 45 | liste déroulante qui défile | `DropdownView` : `maxVisibleRows`, `autoWidth`, `handleKey`, `handleOutsideClick`, `fitBelow` | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `createLevelPicker` l.784 ; `level-picker.ts` supprimé |
+| 46 | textes longs | `ScrollText`, `MarqueeLabel`, `ellipsize`, `truncateLines` | **adopté** pour la consigne : `C:\Users\miche\dev\pontifex\src\scene.ts` `createHint` l.893 ; `scroll.ts` supprimé |
+| 47 | `ScrollBox` | `touch` + inertie, `handleKey`, barre déplaçable, `autoHeight` | **adopté** pour la liste de musique : `C:\Users\miche\dev\pontifex\src\dialogs.ts` (`touch: true`) |
+| 48 | transitions | `tileShrink`, `shrink`, `pop`, `grow`, `slide`, `iris`, `dissolve`, `Game.transition`, `Scene2D.transitionTo`, `Window.open/close` animés, réduction de mouvement | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `goToLevel` l.236 (`tileShrink`) et `showWindow` l.608 (`pop`) ; `transitions.ts` supprimé |
+| 49 | infobulles tactiles | `TooltipHost` (appui long, boutons désactivés), `Button.tooltip` | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `feedPointerHelpers` l.879 ; mon suivi du pointeur supprimé |
+| 50 | bouton à icône | `Button.setIcon`, `iconSelected`, `tooltip` | `tooltip` adopté ; `setIcon`/`iconSelected` pas encore (je change encore la texture du sprite à la main, `setButtonIcon`) |
+
+### Nouveaux défauts trouvés en les adoptant (0.43.0)
+
+51. **`ScrollBox` : la molette n'atteint pas la boîte tant qu'elle n'a pas de `hitArea`.** `ScrollBox` écoute `wheel` sur lui-même (`eventMode = 'static'`), mais l'événement ne remonte pas depuis les lignes qu'il contient : testé dans Chrome sur la liste de 35 niveaux, aucun `wheel` ne parvient à la boîte (0 événement) tant qu'on ne lui donne pas une zone de contact explicite ; avec `box.hitArea = Rectangle(0, 0, largeur, viewportHeight)` la molette marche aussitôt. Le glisser, les clics et le clavier marchent sans.
+    La même chose vaut pour `DropdownView.scroller` et `ScrollText.box`. → `ScrollBox` devrait définir sa `hitArea` lui-même (et la mettre à jour dans `resize`/`setContentHeight`), comme un conteneur masqué qui défile.
+    **Contournement dans Pontifex** : `C:\Users\miche\dev\pontifex\src\scroll-wheel.ts` `ensureWheelArea` (l.7), appelé chaque image pour la liste des niveaux et la consigne (`C:\Users\miche\dev\pontifex\src\scene.ts` l.1008-1009) et une fois pour la liste de musique (`C:\Users\miche\dev\pontifex\src\dialogs.ts`).
+52. **Largeurs figées à la construction.** `DropdownView` et `ScrollText` n'ont pas de `resize(width)` : sur mobile (390 px), la liste des niveaux (290 px, plus `autoWidth`) faisait déborder la barre du haut et la consigne gardait sa largeur d'origine. → `resize(width)` sur les deux, et un `maxWidth` pour `autoWidth`.
+    **Contournements dans Pontifex** : je recrée la liste quand la largeur ou la place disponible change (`C:\Users\miche\dev\pontifex\src\scene.ts` `createLevelPicker` l.784, appelé l.958) et la consigne (`resizeHint` l.901).
+53. **Transition en cours.** Un clic de navigation pendant `Game.transition` ne change pas de niveau (comportement observé, plausible, mais non documenté : demande ignorée ? mise en file ?). Mes e2e attendent la fin (`Game.transitioning`, exposé par `scene.isTransitioning` `C:\Users\miche\dev\pontifex\src\scene.ts` l.232). → Documenter, et proposer `queue: true` / `interrupt: true`.
+54. **`DropdownView` : ouverture sur la ligne choisie.** La doc annonce « opening with the chosen row in view » ; avec une sélection posée par `model.setHighlight()` + `model.confirm()` avant l'ouverture, la liste s'est ouverte à `offset = 0` (à vérifier : possible effet de mon appel, hors du chemin `onChange`).
+
+## Suivi après mise à jour vers 0.43.0 (17 octobre 2026)
+
+MWG 0.43.0 répond à presque tous les points 35 à 50 ci-dessous, le jour même. Pontifex l'adopte (`npm run check` : 123 tests, 9 e2e) et **supprime ses contournements** :
+
+| Point | Demande | 0.43.0 | Dans Pontifex |
+|---|---|---|---|
+| 35 | documenter MIDI → SoundFont | README + `AudioBus` (chargement MIDI par défaut) | déjà couvert par `compile-resources` ; `AudioBus` pas encore essayé |
+| 36 | lecteur de musique | `MusicPlayer`, `toAudioBuffer` | **adopté** : `C:\Users\miche\dev\pontifex\src\music.ts` (`MusicPlayer` l.136, `start` l.141), le lecteur maison passe de 225 à ~180 lignes |
+| 37 | assets jamais chargés, budget de page | rapports de poids et assets inutilisés dans le build | pas encore branchés (`npm run assets:report` à la main) |
+| 38 | XPBD | `XpbdLink.data`, `breakLink`, `linksInBox`, `snapshot`/`hash` | **adopté** : `C:\Users\miche\dev\pontifex\src\physics.ts` l.109 (`data`), l.187 (`linksInBox` + `breakLink`), l.95 (`stateHash`) ; `segmentInBox` et `Object.assign` supprimés |
+| 39 | MWL | `nodesToObjects`, unions générées depuis les tables, attributs optionnels documentés | **adopté** : `C:\Users\miche\dev\pontifex\tools\build-content.ts` l.40 ; contenu généré identique ; unions générées pas encore utilisées (`data.ts` les tient à la main) |
+| 40 | tests : hook, compteur de lectures | `exposeForTests` (`window.__mwg_test__`), `Sound.plays` | pas encore : mes e2e lisent `window.__pontifex` et patchent `HTMLMediaElement.prototype.play` |
+| 41 | dent de scie | `sawtooth` | **adopté** : `C:\Users\miche\dev\pontifex\src\audio.ts` l.13 |
+| 45 | liste déroulante qui défile | `DropdownView` : `maxVisibleRows`, `autoWidth`, `handleKey`, `handleOutsideClick`, `fitBelow` | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `createLevelPicker` l.784 ; `level-picker.ts` supprimé |
+| 46 | textes longs | `ScrollText`, `MarqueeLabel`, `ellipsize`, `truncateLines` | **adopté** pour la consigne : `C:\Users\miche\dev\pontifex\src\scene.ts` `createHint` l.893 ; `scroll.ts` supprimé |
+| 47 | `ScrollBox` | `touch` + inertie, `handleKey`, barre déplaçable, `autoHeight` | **adopté** pour la liste de musique : `C:\Users\miche\dev\pontifex\src\dialogs.ts` (`touch: true`) |
+| 48 | transitions | `tileShrink`, `shrink`, `pop`, `grow`, `slide`, `iris`, `dissolve`, `Game.transition`, `Scene2D.transitionTo`, `Window.open/close` animés, réduction de mouvement | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `goToLevel` l.236 (`tileShrink`) et `showWindow` l.608 (`pop`) ; `transitions.ts` supprimé |
+| 49 | infobulles tactiles | `TooltipHost` (appui long, boutons désactivés), `Button.tooltip` | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `feedPointerHelpers` l.879 ; mon suivi du pointeur supprimé |
+| 50 | bouton à icône | `Button.setIcon`, `iconSelected`, `tooltip` | `tooltip` adopté ; `setIcon`/`iconSelected` pas encore (je change encore la texture du sprite à la main, `setButtonIcon`) |
+
+### Nouveaux défauts trouvés en les adoptant (0.43.0)
+
+51. **`ScrollBox` : la molette n'atteint pas la boîte tant qu'elle n'a pas de `hitArea`.** `ScrollBox` écoute `wheel` sur lui-même (`eventMode = 'static'`), mais l'événement ne remonte pas depuis les lignes qu'il contient : testé dans Chrome sur la liste de 35 niveaux, aucun `wheel` ne parvient à la boîte (0 événement) tant qu'on ne lui donne pas une zone de contact explicite ; avec `box.hitArea = Rectangle(0, 0, largeur, viewportHeight)` la molette marche aussitôt. Le glisser, les clics et le clavier marchent sans.
+    La même chose vaut pour `DropdownView.scroller` et `ScrollText.box`. → `ScrollBox` devrait définir sa `hitArea` lui-même (et la mettre à jour dans `resize`/`setContentHeight`), comme un conteneur masqué qui défile.
+    **Contournement dans Pontifex** : `C:\Users\miche\dev\pontifex\src\scroll-wheel.ts` `ensureWheelArea` (l.7), appelé chaque image pour la liste des niveaux et la consigne (`C:\Users\miche\dev\pontifex\src\scene.ts` l.1008-1009) et une fois pour la liste de musique (`C:\Users\miche\dev\pontifex\src\dialogs.ts`).
+52. **Largeurs figées à la construction.** `DropdownView` et `ScrollText` n'ont pas de `resize(width)` : sur mobile (390 px), la liste des niveaux (290 px, plus `autoWidth`) faisait déborder la barre du haut et la consigne gardait sa largeur d'origine. → `resize(width)` sur les deux, et un `maxWidth` pour `autoWidth`.
+    **Contournements dans Pontifex** : je recrée la liste quand la largeur ou la place disponible change (`C:\Users\miche\dev\pontifex\src\scene.ts` `createLevelPicker` l.784, appelé l.959) et la consigne (`resizeHint` l.901).
+53. **Transition en cours.** Un clic de navigation pendant `Game.transition` ne change pas de niveau (comportement observé, plausible, mais non documenté : demande ignorée ? mise en file ?). Mes e2e attendent la fin (`Game.transitioning`, exposé par `scene.isTransitioning` `C:\Users\miche\dev\pontifex\src\scene.ts` l.232). → Documenter, et proposer `queue: true` / `interrupt: true`.
+54. **`DropdownView` : ouverture sur la ligne choisie.** La doc annonce « opening with the chosen row in view » ; avec une sélection posée par `model.setHighlight()` + `model.confirm()` avant l'ouverture, la liste s'est ouverte à `offset = 0` (à vérifier : possible effet de mon appel, hors du chemin `onChange`).
+
 ## Bilan du 16 octobre au soir (MWG 0.42.0) — ce qui aiderait un jeu comme Pontifex
 
 Constat de départ : en une journée, Pontifex a perdu son moteur de jeu et sa musique (voir BILAN.md), et sa page autonome pesait **4,0 Mo** dont
@@ -40,7 +100,7 @@ d'oscillateurs écrits à la main). Ce mécanisme existe et marche très bien, m
     `world.onBreak.dispatch` à la main ; (b) un type générique `XpbdLink<T>` (ou `userData`) : j'attache le matériau et l'index source avec `Object.assign` ;
     (c) requêtes géométriques de base (`linksInBox`, `linksNear`) ; (d) `snapshot()`/`hash()` pour les tests de déterminisme (je compare tous les nœuds à la main) ;
     (e) un exemple de « charge mobile » (véhicule qui roule sur des poutres via `applyForce`), c'est le cas d'usage central d'un jeu de pont.
-    **Contournements dans Pontifex** (à remplacer par l'API de MWG) :
+    **Anciens contournements (supprimés en 0.43.0, sauf (e))** :
     (a) rupture forcée au contact d'un navire : `C:\Users\miche\dev\pontifex\src\physics.ts` l.216-217 (`link.broken = true` puis `world.onBreak.dispatch(...)`), dans `sailShips()` l.201-221 ;
     (b) données attachées aux poutres : `C:\Users\miche\dev\pontifex\src\physics.ts` l.19 (type `Link = XpbdLink & { mat; src }`) et l.134 (`Object.assign(this.world.links[index], { mat, src })`) ;
     (c) requête géométrique segment/rectangle : `C:\Users\miche\dev\pontifex\src\physics.ts` l.31-51 (`segmentInBox`, Liang-Barsky) ;
@@ -79,13 +139,13 @@ d'oscillateurs écrits à la main). Ce mécanisme existe et marche très bien, m
     défilement molette / glisser tactile / flèches et Page↑/↓, `scrollIntoView` de la ligne sélectionnée à l'ouverture, et lignes qui restent cliquables pendant le défilement.
     Aussi dans `DropdownView` : fond opaque (les lignes translucides laissent voir le décor), fermeture au clic extérieur et sur Échap, largeur automatique selon le plus long libellé
     (le texte de « 3. Le Fleuve profond  (verrouillé) » était rogné à 210 px), et un état « ligne désactivée » plus lisible.
-    **Contournement dans Pontifex** (implémenté, à remplacer par le composant de MWG) : `C:\Users\miche\dev\pontifex\src\level-picker.ts` (`LevelPicker`, l.14) remplace `DropdownView` :
+    **Ancien contournement (supprimé en 0.43.0, voir le suivi ci-dessus)** : `C:\Users\miche\dev\pontifex\src\level-picker.ts` (`LevelPicker`, l.14) remplace `DropdownView` :
     tête + liste dans un `ScrollBox` plafonnée à la place disponible (molette, glisser, Page↑/↓, flèches, Début/Fin, Entrée, Échap), ligne sélectionnée ramenée dans la vue, fond opaque ;
     branchement dans `C:\Users\miche\dev\pontifex\src\scene.ts` : `buildLevelNav` l.769, `refreshLevelNav` l.798, hauteur maximale l.931 (`levelPicker.setMaxHeight`). Reste manquant côté MWG : la fermeture au clic extérieur
     (je l'appelle depuis `onDown` de la scène) et la largeur automatique (`PICKER_WIDTH` fixé à la main).
 46. **Défilement des textes longs** : `Label` ne défile pas et ne se tronque pas ; un texte plus long que son conteneur déborde simplement. Pontifex en a trois cas :
     la consigne du niveau, les crédits des morceaux et le message de résultat.
-    **Contournement dans Pontifex** (implémenté pour la consigne) : `C:\Users\miche\dev\pontifex\src\scroll.ts` `ScrollText` (l.61), un `Label` dans un `ScrollBox` plafonné à `maxHeight`, utilisé pour la consigne du niveau
+    **Ancien contournement (supprimé en 0.43.0)** : `C:\Users\miche\dev\pontifex\src\scroll.ts` `ScrollText` (l.61), un `Label` dans un `ScrollBox` plafonné à `maxHeight`, utilisé pour la consigne du niveau
     (`C:\Users\miche\dev\pontifex\src\scene.ts` l.117, `lblHint`, plafonnée à 58 px). Il mesure lui-même la hauteur du texte et recale le défilement à chaque `setText`/`setWrapWidth`. Pas encore appliqué aux crédits et au message de résultat
     (`C:\Users\miche\dev\pontifex\src\dialogs.ts` l.39 et l.161, fenêtres à hauteur fixe). À ajouter côté MWG : `ScrollText`, la troncature (`ellipsis`, `maxLines`) et le texte déroulant (marquee).
 47. **`ScrollBox`** : (a) la molette est gérée (`handleWheel`) mais pas le **glisser** ni l'inertie : `C:\Users\miche\dev\pontifex\src\scroll.ts` `enableDragScroll` (l.14) l'ajoute (seuil de 6 px pour ne pas confondre avec un clic,
@@ -102,7 +162,7 @@ d'oscillateurs écrits à la main). Ce mécanisme existe et marche très bien, m
     API proposée : `Game.switchScene(Next, { transition: tileShrink({ columns: 8, rows: 5 }), duration: 0.6, easing: 'easeInOut' })`, `scene.transitionTo(swap, transition)` pour changer le contenu d'une même scène
     (c'est le cas de Pontifex : `loadLevel` remplace décor, véhicule et structure d'un coup), `Window.open({ animation: 'pop' | 'grow' | 'slide', from: Point })` et `Window.close` symétrique,
     `reducedMotion` respecté (voir point 6 du suivi 0.41), un signal `onDone`, la possibilité d'ignorer les entrées pendant la transition, et une pause de la simulation.
-    **Contournement dans Pontifex** (implémenté, à jeter quand MWG aura l'équivalent) : `C:\Users\miche\dev\pontifex\src\transitions.ts` — `TileShrink` (l.56) photographie l'écran de jeu (`renderer.generateTexture`) et le découpe en 8 × 5 tuiles
+    **Ancien contournement (supprimé en 0.43.0)** : `C:\Users\miche\dev\pontifex\src\transitions.ts` — `TileShrink` (l.56) photographie l'écran de jeu (`renderer.generateTexture`) et le découpe en 8 × 5 tuiles
     qui rétrécissent en tournant, en diagonale depuis le coin haut gauche, par-dessus le niveau suivant (calcul pur `tileProgress` l.23, testé) ; `PopIn` (l.113) fait jaillir une fenêtre depuis son centre
     (`popPose` l.36 : 70 % → dépassement → 100 %) ; `prefersReducedMotion` (l.41) les désactive. Branchement : `C:\Users\miche\dev\pontifex\src\scene.ts` `captureForTransition` l.231 et `startTransition` l.239 (appelés par `loadLevel`),
     `showWindow` l.616 (toutes les fenêtres). Limites : pas d'`easing` nommé ni d'ordre configurable (diagonale seulement), pas de transition entre scènes (`switchScene` reste instantané), le pas de temps plafonné

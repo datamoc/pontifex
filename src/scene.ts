@@ -539,7 +539,7 @@ export class PontifexScene extends Scene2D {
     for (const ev of sim.events) {
       if (ev.type === 'break') {
         this.sfx.onBreak();
-        this.debris.burst(14, { x: ev.x, y: ev.y, tint: MATERIALS[sim.links[ev.beam].mat].color });
+        this.debris.burst(14, { x: ev.x, y: ev.y, tint: MATERIALS[sim.links[ev.beam].data!.mat].color });
         this.camera.shake(3, 0.25);
       } else if (ev.type === 'crash') {
         this.sfx.onBreak();

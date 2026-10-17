@@ -16,40 +16,14 @@ export type SimEvent =
   | { type: 'ship'; ship: ShipType; x: number }
   | { type: 'win' };
 
-type Link = XpbdLink & { mat: MaterialId; src: number };
-type Point = { x: number; y: number };
+/** Ce que le jeu attache à chaque poutre du solveur (XpbdLink.data) : son matériau. */
+export interface BeamData { mat: MaterialId }
+export type Link = XpbdLink<BeamData>;
 /** Point de la chaussée sous une roue : poutre touchée, position t le long de la poutre (0..1) et hauteur y. */
 type RoadContact = { link: Link; t: number; y: number };
 
 /** Un navire de passage : `x` est le centre de la coque, `sailing` vrai de son entrée dans le canal à sa sortie. */
 export interface ShipState { type: ShipType; x: number; sailing: boolean; done: boolean }
-
-/**
- * Découpe le segment from→to par le rectangle (Liang-Barsky) et renvoie le milieu de la partie
- * qui s'y trouve, ou null si le segment ne touche pas le rectangle.
- */
-function segmentInBox(from: Point, to: Point, left: number, top: number, right: number, bottom: number): Point | null {
-  let enter = 0, leave = 1;
-  const dx = to.x - from.x, dy = to.y - from.y;
-  // un bord après l'autre : direction du segment par rapport au bord, et distance du point de départ à ce bord
-  const edges = [[-dx, from.x - left], [dx, right - from.x], [-dy, from.y - top], [dy, bottom - from.y]];
-  for (const [direction, distance] of edges) {
-    if (direction === 0) {
-      if (distance < 0) return null; // parallèle au bord et dehors
-      continue;
-    }
-    const crossing = distance / direction;
-    if (direction < 0) {
-      if (crossing > leave) return null;
-      enter = Math.max(enter, crossing);
-    } else {
-      if (crossing < enter) return null;
-      leave = Math.min(leave, crossing);
-    }
-  }
-  const middle = (enter + leave) / 2;
-  return { x: from.x + middle * dx, y: from.y + middle * dy };
-}
 
 export const GRAVITY = 520;
 export const FRAME_DT = 1 / 60;
@@ -100,9 +74,10 @@ export function structureCost(s: Structure): number {
 
 export class BridgeSim {
   readonly level: LevelDef;
-  private world = new XpbdWorld({ gravity: GRAVITY, step: FRAME_DT });
+  private world = new XpbdWorld<BeamData>({ gravity: GRAVITY, step: FRAME_DT });
   bodies: XpbdNode[] = this.world.nodes;
-  links: Link[] = [];
+  /** poutres du solveur, dans l'ordre de la structure : l'indice d'une poutre cassée est celui de la structure */
+  readonly links: Link[] = this.world.links;
   status: SimStatus = 'running';
   time = 0;
   maxRatio = 0;
@@ -116,6 +91,8 @@ export class BridgeSim {
   /** vitesse le long de la route (px/s) et distance parcourue le long de la route (px) */
   carSpeed = 0;
   distance = 0;
+  /** Empreinte exacte de l'état du solveur : deux simulations identiques donnent la même (tests de déterminisme). */
+  get stateHash(): string { return this.world.hash(); }
   get speedKmh(): number { return Math.abs(this.carSpeed) / PIXELS_PER_METRE * KMH_PER_MS; }
   crashed = false;
   private vx = 0; private vvy = 0; private vspin = 0; private splashed = false;
@@ -126,16 +103,14 @@ export class BridgeSim {
     // chaque navire attend caché dans la roche de la rive gauche, étrave au bord du canal
     this.ships = level.events.map((e) => ({ type: e.shipType, x: level.x0 - SHIPS[e.shipType].width / 2, sailing: false, done: false }));
     for (const n of s.nodes) this.world.addNode({ ...n, mass: 0.5 });
-    s.beams.forEach((b, i) => {
+    for (const b of s.beams) {
       const m = MATERIALS[b.mat];
       const rest = beamLength(s, b);
-      const index = this.world.addLink({ a: b.a, b: b.b, rest, mass: rest * m.density,
+      this.world.addLink({ a: b.a, b: b.b, rest, mass: rest * m.density, data: { mat: b.mat },
         stiffness: m.stiffness, strength: m.strength, tensionStrength: m.tensionStrength, tensionOnly: m.tensionOnly });
-      const link = Object.assign(this.world.links[index], { mat: b.mat, src: i });
-      this.links.push(link);
-    });
+    }
     this.world.onBreak.add(({ link, x, y }) => {
-      this.events.push({ type: 'break', beam: this.links[link].src, x, y });
+      this.events.push({ type: 'break', beam: link, x, y });
     });
     this.carX = level.x0 - level.vehicle.width;
     this.carY = level.deckY - WHEEL_R;
@@ -162,7 +137,7 @@ export class BridgeSim {
     let best: RoadContact | null = null;
     let bestD = Infinity;
     for (const l of this.links) {
-      if (l.broken || !MATERIALS[l.mat].isRoad) continue;
+      if (l.broken || !MATERIALS[l.data!.mat].isRoad) continue;
       const p = this.bodies[l.a], q = this.bodies[l.b];
       const lo = Math.min(p.x, q.x), hi = Math.max(p.x, q.x);
       if (x < lo || x > hi || hi - lo < 1e-6) continue;
@@ -209,13 +184,7 @@ export class BridgeSim {
       ship.x += def.speed * FRAME_DT;
       const left = ship.x - def.width / 2, right = ship.x + def.width / 2;
       const top = this.level.waterY - def.height, bottom = this.level.waterY + SHIP_DRAFT;
-      this.links.forEach((link, index) => {
-        if (link.broken) return;
-        const hit = segmentInBox(this.bodies[link.a], this.bodies[link.b], left, top, right, bottom);
-        if (!hit) return;
-        link.broken = true;
-        this.world.onBreak.dispatch({ link: index, x: hit.x, y: hit.y });
-      });
+      for (const index of this.world.linksInBox(left, top, right, bottom)) this.world.breakLink(index);
       if (left > this.level.x1) { ship.sailing = false; ship.done = true; }
     });
   }

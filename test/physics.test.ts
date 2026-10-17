@@ -33,7 +33,7 @@ test('déterminisme : deux simulations identiques donnent exactement le même é
   const lv = LEVELS[0];
   const a = new BridgeSim(lv, reference(0)), b = new BridgeSim(lv, reference(0));
   for (let i = 0; i < 400; i++) { a.step(); b.step(); }
-  assert.deepEqual(a.bodies.map((p) => [p.x, p.y]), b.bodies.map((p) => [p.x, p.y]));
+  assert.equal(a.stateHash, b.stateHash);
   assert.equal(a.carX, b.carX);
 });
 
@@ -126,7 +126,7 @@ test('un câble ne résiste pas en compression', () => {
     [[0, 2, 'road'], [2, 3, 'road'], [3, 4, 'road'], [4, 1, 'road'], [0, 5, 'cable'], [5, 2, 'cable']]);
   const sim = new BridgeSim(lv, s);
   for (let i = 0; i < 200; i++) sim.step();
-  for (const l of sim.links) if (l.mat === 'cable') assert.ok(l.force >= -1e-6 || l.broken);
+  for (const l of sim.links) if (l.data!.mat === 'cable') assert.ok(l.force >= -1e-6 || l.broken);
 });
 
 // Chaque étoile doit être atteignable : en retirant glouton des poutres d'un pont de référence qui

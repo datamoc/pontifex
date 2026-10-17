@@ -84,7 +84,7 @@ export const drawScene = {
       for (const l of sim.links) {
         if (l.broken) continue;
         const p = sim.bodies[l.a], q = sim.bodies[l.b];
-        beams.push({ x1: p.x, y1: p.y, x2: q.x, y2: q.y, mat: l.mat, ratio: l.ratio });
+        beams.push({ x1: p.x, y1: p.y, x2: q.x, y2: q.y, mat: l.data!.mat, ratio: l.ratio });
       }
     } else {
       for (const m of a.structure.beams) {

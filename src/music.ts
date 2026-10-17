@@ -1,4 +1,4 @@
-import { parseMidi, scheduleMidi, renderMidiToBufferAsync } from '@datamoc/mwg/audio';
+import { MusicPlayer, parseMidi, scheduleMidi, renderMidiToBufferAsync } from '@datamoc/mwg/audio';
 import { getBinary, loadBinary } from '@datamoc/mwg/assets';
 
 import { MUSIC_TRACKS, SOUNDFONT_FILE } from './music-catalog.ts';
@@ -27,7 +27,8 @@ function reverbImpulse(context: AudioContext): AudioBuffer {
 /**
  * Musique de fond : MWG rend le MIDI en PCM (échantillons du SoundFont `microgm-opt`, réduit au build
  * aux seuls instruments de nos huit morceaux ; synthétiseur de MWG pour un instrument absent), puis le
- * morceau se lit comme n'importe quel tampon audio.
+ * morceau se lit avec le `MusicPlayer` de MWG (pause, position, fin de morceau). Le graphe audio (gain,
+ * analyseur, compresseur, réverbération) et la suspension du contexte (pause, onglet masqué) sont propres au jeu.
  */
 export class BackgroundMusic {
   selected: string = MUSIC_TRACKS[0].id;
@@ -42,11 +43,9 @@ export class BackgroundMusic {
   /** 1 une fois le morceau rendu et lancé, 0 avant : prouve qu'un tampon joue. */
   scheduledTotal = 0;
   private enabled = true;
-  private buffer: AudioBuffer | null = null;
-  private source: AudioBufferSourceNode | null = null;
-  private trackDuration = 0;
-  private startCtxTime = 0;
-  private offsetBase = 0;
+  private player: MusicPlayer | null = null;
+  /** un morceau est rendu et chargé dans le lecteur */
+  private hasTrack = false;
   private request = 0;
   private disposed = false;
   private activated = false;
@@ -65,32 +64,27 @@ export class BackgroundMusic {
   }
 
   get isPlaying(): boolean {
-    return !!this.context && !!this.buffer && !this.paused && this.enabled
-      && !document.hidden && this.position() < this.trackDuration;
+    return !!this.player && this.hasTrack && this.player.isPlaying && this.enabled && !document.hidden;
   }
 
   get duration(): number {
-    return this.trackDuration;
+    return this.player?.duration ?? 0;
   }
 
   position(): number {
-    if (!this.context || !this.buffer) return this.offsetBase;
-    return Math.min(this.trackDuration, Math.max(0, this.offsetBase + this.context.currentTime - this.startCtxTime));
+    return this.player?.position() ?? 0;
   }
 
   seek(pos: number): void {
-    if (!this.context || !this.buffer) return;
-    this.playFrom(Math.min(Math.max(0, pos), Math.max(0, this.trackDuration - 0.001)));
+    if (this.hasTrack) this.player?.seek(pos);
   }
 
   select(id: string, keepPaused = false): void {
     this.paused = keepPaused;
     this.selected = MUSIC_TRACKS.some((track) => track.id === id) ? id : '';
     this.request++;
-    this.stopSource();
-    this.buffer = null;
-    this.trackDuration = 0;
-    this.offsetBase = 0;
+    this.player?.stop();
+    this.hasTrack = false;
     this.channel = null;
     this.loading = false;
     this.error = '';
@@ -112,7 +106,7 @@ export class BackgroundMusic {
     // Création et reprise dans un geste utilisateur : respecte l'autoplay du navigateur.
     if (!this.context) this.createAudioGraph();
     void this.context!.resume().then(() => {
-      if (this.enabled && !this.paused && this.selected && !document.hidden && !this.buffer && !this.loading && !this.disposed) void this.start();
+      if (this.enabled && !this.paused && this.selected && !document.hidden && !this.hasTrack && !this.loading && !this.disposed) void this.start();
     }).catch((error: unknown) => { this.error = String(error); });
   }
 
@@ -139,6 +133,8 @@ export class BackgroundMusic {
     wet.connect(this.analyser);
     this.analyser.connect(compressor);
     compressor.connect(context.destination);
+    this.player = new MusicPlayer(context, { destination: this.gain });
+    this.player.onEnded.add(() => this.next());
   }
 
   /** Rend le morceau choisi (sur un worker de MWG, sans figer l'écran) puis le lance. */
@@ -160,37 +156,16 @@ export class BackgroundMusic {
         soundFontBytes: getBinary(SOUNDFONT_FILE), missingProgram: 'synth', sampleRate: context.sampleRate,
       });
       if (token !== this.request || this.disposed) return;
-      const buffer = context.createBuffer(2, rendered.left.length, rendered.sampleRate);
-      buffer.copyToChannel(new Float32Array(rendered.left), 0);
-      buffer.copyToChannel(new Float32Array(rendered.right), 1);
-      this.buffer = buffer;
-      this.trackDuration = rendered.duration;
-      this.playFrom(firstNoteTime);
+      this.player!.load(rendered);
+      this.player!.play({ pos: firstNoteTime });
+      this.hasTrack = true;
+      this.scheduledTotal = 1;
+      this.channel = this;
     } catch (error) {
       if (token === this.request) this.error = `Musique indisponible : ${String(error)}`;
     } finally {
       if (token === this.request) this.loading = false;
     }
-  }
-
-  private playFrom(offset: number): void {
-    this.stopSource();
-    const source = this.context!.createBufferSource();
-    source.buffer = this.buffer;
-    source.connect(this.gain!);
-    source.start(0, offset);
-    this.source = source;
-    this.offsetBase = offset;
-    this.startCtxTime = this.context!.currentTime;
-    this.scheduledTotal = 1;
-    this.channel = this;
-  }
-
-  private stopSource(): void {
-    if (!this.source) return;
-    try { this.source.stop(); } catch { /* déjà arrêtée */ }
-    this.source.disconnect();
-    this.source = null;
   }
 
   togglePause(): void {
@@ -208,9 +183,9 @@ export class BackgroundMusic {
 
   update(): void {
     const context = this.context;
-    if (!context || !this.buffer || this.paused || !this.enabled || document.hidden) return;
+    if (!context || !this.hasTrack || this.paused || !this.enabled || document.hidden) return;
     if (context.state !== 'running') return;
-    if (this.position() >= this.trackDuration) this.next();
+    this.player?.update();
   }
 
   dispose(): void {
@@ -219,8 +194,8 @@ export class BackgroundMusic {
     window.removeEventListener('pointerdown', this.gesture);
     window.removeEventListener('keydown', this.gesture);
     document.removeEventListener('visibilitychange', this.visibility);
-    this.stopSource();
-    this.buffer = null;
+    this.player?.stop();
+    this.hasTrack = false;
     this.channel = null;
     if (this.context) void this.context.close();
   }

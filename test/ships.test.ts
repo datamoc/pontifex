@@ -53,7 +53,7 @@ test('un petit navire passe sous un pont qu’un grand navire détruirait', () =
   assert.ok(run(flat(cargo, 'large', 0.5), mid).breaks > 0);
 });
 
-test('le navire brisé émet un événement de rupture à l’endroit du choc', () => {
+test('le navire brise d’abord une poutre qui plonge dans son gabarit', () => {
   const level = cargo;
   const below = build(level, [[400, 340], [400, 420]], [[0, 2, 'road'], [2, 1, 'road'], [0, 3, 'wood'], [3, 1, 'wood'], [2, 3, 'wood']]);
   const sim = new BridgeSim(level, below);
@@ -61,14 +61,18 @@ test('le navire brisé émet un événement de rupture à l’endroit du choc', 
   for (let i = 0; i < 20 / FRAME_DT && sim.status === 'running'; i++) { sim.step(); breaks.push(...sim.events.splice(0).filter((e) => e.type === 'break')); }
   assert.ok(breaks.length > 0);
   const first = breaks[0];
-  assert.ok(first.type === 'break' && first.y >= level.waterY - SHIPS.medium.height, 'la première rupture est dans le gabarit');
+  assert.ok(first.type === 'break');
+  // la poutre brisée a un bout dans le gabarit du navire (sous 5 m au-dessus de l'eau) : c'est ce que MWG teste (linksInBox)
+  const beam = below.beams[first.beam];
+  const reachesHull = [beam.a, beam.b].some((node) => below.nodes[node].y >= level.waterY - SHIPS.medium.height);
+  assert.ok(reachesHull, 'la première poutre brisée plonge dans le gabarit');
 });
 
 test('un navire est déterministe et ne modifie pas un niveau sans événement', () => {
   const a = new BridgeSim(cargo, reference(8)), b = new BridgeSim(cargo, reference(8));
   for (let i = 0; i < 400; i++) { a.step(); b.step(); }
   assert.deepEqual(a.ships, b.ships);
-  assert.deepEqual(a.bodies.map((p) => [p.x, p.y]), b.bodies.map((p) => [p.x, p.y]));
+  assert.equal(a.stateHash, b.stateHash);
   const quiet = new BridgeSim(LEVELS[0], reference(0));
   assert.deepEqual(quiet.ships, []);
 });

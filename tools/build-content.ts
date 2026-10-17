@@ -1,6 +1,5 @@
 import { readFileSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
-import { compileSources, contentCatalog, extractCatalog, validateCatalog } from '@datamoc/mwg/mwl';
-import type { MwlCompiledNode } from '@datamoc/mwg/mwl';
+import { compileSources, contentCatalog, extractCatalog, nodesToObjects, validateCatalog } from '@datamoc/mwg/mwl';
 import { MATERIAL_ORDER, type VehicleDef } from '../src/data.ts';
 import { schemas } from './mwl-schema.ts';
 import { parseSpec } from '../src/level.ts';
@@ -36,29 +35,25 @@ validateRows(vehicleRows, sprites, ['mass', 'zeroTo100', 'width', 'height']);
 for (const row of vehicleRows) {
   if (row.sprite !== row.id) throw new Error(`${row.id}: sprite must match the vehicle id`);
 }
-function numericAttributes(node: MwlCompiledNode): Record<string, number> {
-  return Object.fromEntries(Object.entries(node.attributes).map(([key, value]) => [key, Number(value)]));
-}
+// Les niveaux : MWG convertit les nœuds compilés en objets selon le schéma (nombres, booléens, enfants regroupés par tag).
+const levelNodes = game.roots.filter((node) => node.tag === 'bridge_level');
+const converted = nodesToObjects(levelNodes, schemas);
+if (converted.diagnostics.length > 0) throw new Error(JSON.stringify(converted.diagnostics, null, 2));
 const ids = new Set<number>();
-const levels = game.roots.filter(node => node.tag === 'bridge_level').map(node => {
-  const a = node.attributes;
-  const materials = a.materials.split(',').map(id => id.trim());
-  if (!vehicleIds.includes(a.car) || materials.some(id => !materialIds.includes(id))) throw new Error(`${node.location?.file}: unknown vehicle or material in ${a.name}`);
-  const geometry = (tag: string) => node.children.filter(child => child.tag === tag).map(numericAttributes);
-  const view = geometry('view')[0];
-  if (view && (view.w <= 0 || view.h <= 0)) throw new Error(`${a.name}: view dimensions must be positive`);
-  const solutionNode = node.children.find(child => child.tag === 'bridge_solution');
-  const solution = solutionNode ? {
-    nodes: solutionNode.children.filter(child => child.tag === 'bridge_node').map(child => ({ x: Number(child.attributes.x), y: Number(child.attributes.y), fixed: child.attributes.fixed === 'true' })),
-    beams: solutionNode.children.filter(child => child.tag === 'bridge_beam').map(child => ({ a: Number(child.attributes.a), b: Number(child.attributes.b), mat: child.attributes.mat })),
-  } : undefined;
-  const events = node.children.filter(child => child.tag === 'event').map(child => ({ type: child.attributes.type, time: Number(child.attributes.time), shipType: child.attributes.shipType }));
-  const spec = { ...a, id: Number(a.id), budget: Number(a.budget), x0: Number(a.x0), x1: Number(a.x1), deckY: Number(a.deckY), waterY: Number(a.waterY), materials, anchors: geometry('anchor'), towers: geometry('tower'), islands: geometry('island'), ...(events.length ? { events } : {}), ...(view ? { view } : {}), ...(solution ? { solution } : {}) };
-  if (spec.id <= 0) throw new Error(`${a.name}: level id must be positive`);
+const levels = converted.value.map((object, index) => {
+  const { anchor = [], tower = [], island = [], event = [], view, bridge_solution: solutionObject, ...rest } = object as Record<string, any>;
+  const attributes: Record<string, any> = rest;
+  const file = levelNodes[index].location?.file;
+  const materials = String(attributes.materials).split(',').map((id) => id.trim());
+  if (!vehicleIds.includes(attributes.car) || materials.some((id) => !materialIds.includes(id))) throw new Error(`${file}: unknown vehicle or material in ${attributes.name}`);
+  if (view && (view.w <= 0 || view.h <= 0)) throw new Error(`${attributes.name}: view dimensions must be positive`);
+  const solution = solutionObject ? { nodes: solutionObject.bridge_node ?? [], beams: solutionObject.bridge_beam ?? [] } : undefined;
+  const spec: Record<string, any> = { ...attributes, materials, anchors: anchor, towers: tower, islands: island, ...(event.length ? { events: event } : {}), ...(view ? { view } : {}), ...(solution ? { solution } : {}) };
+  if (spec.id <= 0) throw new Error(`${attributes.name}: level id must be positive`);
   if (ids.has(spec.id)) throw new Error(`Duplicate level id ${spec.id}`);
   ids.add(spec.id);
   const parsed = parseSpec(spec);
-  if ('error' in parsed) throw new Error(`${node.location?.file}: ${a.name}: ${parsed.error}`);
+  if ('error' in parsed) throw new Error(`${file}: ${attributes.name}: ${parsed.error}`);
   return spec;
 });
 const materials = Object.fromEntries(materialRows.map(({ tensionStrength, ...row }) => [String(row.id), {
