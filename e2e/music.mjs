@@ -100,7 +100,7 @@ try {
   await page.evaluate(() => window.__pontifex.windows.closeAll());
   await page.setViewport({ width: 390, height: 844 });
   await page.evaluate(() => { const s = window.__pontifex; s.resize(390, 844); s.showMusic(); });
-  await page.waitForFunction(() => window.__pontifex.pops.length === 0); // la fenêtre jaillit : on vise une fois posée
+  await page.waitForFunction(() => { const w = window.__pontifex.windows.top; return w.scale.x === 1 && w.alpha === 1; }); // la fenêtre jaillit : on vise une fois posée
   const scrollState = await page.evaluate(() => {
     const win = window.__pontifex.windows.top;
     const list = win.content.children.find((child) => typeof child.scrollBy === 'function');

@@ -41,15 +41,15 @@ try {
     const [x, y] = await center(name);
     await page.mouse.move(x, y);
     await sleep(150);
-    assert.equal(await page.evaluate(() => window.__pontifex.tooltip.isShowing), false, `${name} : pas d’infobulle avant le délai`);
+    assert.equal(await page.evaluate(() => window.__pontifex.tooltips.tooltip.isShowing), false, `${name} : pas d’infobulle avant le délai`);
     await sleep(900);
-    const shown = await page.evaluate(() => ({ showing: window.__pontifex.tooltip.isShowing, text: window.__pontifex.tooltip.text }));
+    const shown = await page.evaluate(() => ({ showing: window.__pontifex.tooltips.tooltip.isShowing, text: window.__pontifex.tooltips.tooltip.text }));
     assert.equal(shown.showing, true, `${name} : infobulle attendue après le délai`);
     assert.ok(shown.text.startsWith(start), `${name} : « ${shown.text} » ne commence pas par « ${start} »`);
     if (name === 'btnGrid') await page.screenshot({ path: `${out}/tooltip-grille.png` });
     await page.mouse.move(640, 300);
     await sleep(100);
-    assert.equal(await page.evaluate(() => window.__pontifex.tooltip.isShowing), false, `${name} : infobulle masquée en quittant le bouton`);
+    assert.equal(await page.evaluate(() => window.__pontifex.tooltips.tooltip.isShowing), false, `${name} : infobulle masquée en quittant le bouton`);
     console.log(`✔ ${name} : « ${shown.text} »`);
   }
 
@@ -61,7 +61,7 @@ try {
   });
   await page.mouse.move(mx, my);
   await sleep(1000);
-  const material = await page.evaluate(() => window.__pontifex.tooltip.text);
+  const material = await page.evaluate(() => window.__pontifex.tooltips.tooltip.text);
   assert.match(material, /Chaussée · \d+ €\/m · poutre de \d+(\.\d+)? m max \(touche 1\)/);
   await page.screenshot({ path: `${out}/tooltip-materiau.png` });
   console.log(`✔ matériau : « ${material} »`);
@@ -69,7 +69,7 @@ try {
   // cliquer fait disparaître l'infobulle et exécute l'action
   await page.mouse.click(mx, my);
   await sleep(100);
-  assert.equal(await page.evaluate(() => window.__pontifex.tooltip.isShowing), false);
+  assert.equal(await page.evaluate(() => window.__pontifex.tooltips.tooltip.isShowing), false);
   console.log('✔ un clic masque l’infobulle');
 
   // sous une fenêtre ouverte, aucune infobulle
@@ -78,7 +78,7 @@ try {
   const [bx, by] = await center('btnUndo');
   await page.mouse.move(bx, by);
   await sleep(1000);
-  assert.equal(await page.evaluate(() => window.__pontifex.tooltip.isShowing), false, 'pas d’infobulle sous une fenêtre modale');
+  assert.equal(await page.evaluate(() => window.__pontifex.tooltips.tooltip.isShowing), false, 'pas d’infobulle sous une fenêtre modale');
   console.log('✔ pas d’infobulle sous une fenêtre ouverte');
   assert.deepEqual(errors, []);
 } finally {

@@ -1,15 +1,12 @@
 import { buildPopulation, type Population } from './population.ts';
 import { BIOMES, randomBiome, type Biome } from './biomes.ts';
 import {
-  Game, Scene2D, Button, Label, Sprite2D, Bar, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt, Tooltip,
+  Game, Scene2D, Button, Label, Sprite2D, Bar, WindowStack, ScreenEffects, ParticleEmitter, Shape2D, Node2D, TextPrompt, Tooltip, TooltipHost, DropdownView, ScrollText,
 } from '@datamoc/mwg/two-d';
 import { texture } from '@datamoc/mwg/assets';
-import { Camera } from '@datamoc/mwg/two-d/render';
+import { Camera, tileShrink } from '@datamoc/mwg/two-d/render';
 import { Settings, UndoHistory, Input, FixedStepper } from '@datamoc/mwg/core';
 import { Texture, FederatedPointerEvent, Rectangle, type Container } from 'pixi.js';
-import { LevelPicker } from './level-picker.ts';
-import { ScrollText } from './scroll.ts';
-import { PopIn, TileShrink, prefersReducedMotion } from './transitions.ts';
 import {
   MATERIALS, MATERIAL_ORDER, SHIPS, WORLD_H, WORLD_W, type LevelDef, type MaterialId, type Pt,
 } from './data.ts';
@@ -21,6 +18,7 @@ import { deriveLevel, isInsideWorld, isSolid, slug, type LevelSpec } from './lev
 import { ProgressStore, rateAttempt } from './progress.ts';
 import { accessibleIndexes, isLevelUnlocked, navigationTargets, type NavigationTargets } from './level-navigation.ts';
 import type { Window } from '@datamoc/mwg/two-d';
+import { ensureWheelArea } from './scroll-wheel.ts';
 import { buildConfirmWindow, buildLevelsWindow, buildMusicWindow, buildResultWindow } from './dialogs.ts';
 import { CustomLevels, parseLevelFile } from './custom-levels.ts';
 import { LevelEditor } from './editor-ui.ts';
@@ -35,6 +33,11 @@ const SNAP_R = 14;
 const MAGNET_R = 22;
 /** largeur de la liste déroulante des niveaux, assez pour « 3. Le Fleuve profond  (verrouillé) » */
 const PICKER_WIDTH = 290;
+/** événements du canevas relayés aux infobulles et à la liste des niveaux */
+const POINTER_HELPER_EVENTS = ['pointermove', 'pointerdown', 'pointerup', 'pointercancel', 'pointerleave'];
+/** lignes visibles au plus dans la liste des niveaux */
+const MAX_PICKER_ROWS = 12;
+const HINT_STYLE = { size: 13, bold: true, color: 0x0b1220 };
 
 const clone = (s: Structure): Structure => JSON.parse(JSON.stringify(s));
 
@@ -106,7 +109,11 @@ export class PontifexScene extends Scene2D {
   private btnLevel!: Button;
   /** premier · précédent · liste déroulante · suivant · dernier, pour jouer */
   private levelNav = new Node2D();
-  private levelPicker!: LevelPicker;
+  private levelPicker!: DropdownView;
+  /** nombre de lignes visibles de la liste : s'adapte à la place sous la barre du haut */
+  private pickerRows = 0;
+  private pickerWidth = PICKER_WIDTH;
+  private syncingPicker = false;
   private navButtons!: Record<keyof NavigationTargets, Button>;
   private navTargets: NavigationTargets = { first: null, previous: null, next: null, last: null };
   private lblBudget = new Label({ text: '', size: 13 });
@@ -114,7 +121,9 @@ export class PontifexScene extends Scene2D {
   private lblStress = new Label({ text: '', size: 13 });
   private barStress = new Bar({ width: 120, height: 10, color: 0x10b981, background: 0x1e293b, max: 1 });
   /** consigne du niveau : défile au-delà de 3 lignes (écrans étroits) */
-  private lblHint = new ScrollText({ width: 600, maxHeight: 58, size: 13, bold: true, color: 0x0b1220 });
+  private lblHint = this.createHint(600);
+  private hintText = '';
+  private hintWidth = 600;
   private lblToast = new Label({ text: '', size: 15, bold: true, color: 0xfda4af });
   private matButtons = new Map<Tool, Button>();
   private btnDelete!: Button;
@@ -130,15 +139,9 @@ export class PontifexScene extends Scene2D {
   private btnMusicNext!: Button;
   private btnFullscreen!: Button;
   private buttonIcons = new Map<Button, Sprite2D>();
-  /** explication des boutons à icône, affichée quand le pointeur s'y attarde */
-  private tooltip = new Tooltip({ delay: 0.6, maxWidth: 260 });
-  private tips = new Map<Button, () => string>();
-  /** transition entre deux niveaux : tuiles de l'ancien écran qui rétrécissent */
-  private transition: TileShrink | null = null;
-  private pops: PopIn[] = [];
-  /** position du pointeur (souris ou stylet) dans le repère de l'écran, ou null hors du canevas */
-  private screenPointer: Pt | null = null;
-  private hoverHandler = (event: PointerEvent) => this.trackScreenPointer(event);
+  /** explication des boutons, affichée au survol prolongé (souris) ou à l'appui long (doigt), même sur un bouton grisé */
+  private tooltips = new TooltipHost({ tooltip: new Tooltip({ delay: 0.6, maxWidth: 260 }) });
+  private hoverHandler = (event: PointerEvent) => this.feedPointerHelpers(event);
   private btnTest!: Button;
   private btnBack!: Button;
   private vw = 0;
@@ -192,10 +195,10 @@ export class PontifexScene extends Scene2D {
     this.buildHud();
     this.editor = new LevelEditor(this.editorHost());
     for (const it of this.editor.items) this.stage.addChild(it);
-    this.stage.addChild(this.effects, this.windows, this.tooltip);
+    this.stage.addChild(this.effects, this.windows, this.tooltips);
     // clic droit = effacer : pas de menu contextuel du navigateur par-dessus le jeu
     Game.current.app.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-    for (const type of ['pointermove', 'pointerdown', 'pointerleave']) canvas.addEventListener(type, this.hoverHandler as EventListener);
+    for (const type of POINTER_HELPER_EVENTS) canvas.addEventListener(type, this.hoverHandler as EventListener);
     window.addEventListener('keydown', this.keyHandler);
     window.addEventListener('fullscreenchange', this.fullscreenHandler);
     Input.onAction.add(this.actionHandler);
@@ -207,14 +210,13 @@ export class PontifexScene extends Scene2D {
   }
 
   override teardown(): void {
-    this.transition?.destroy();
     this.music.dispose();
     for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) {
       Game.current.app.canvas.removeEventListener(type, this.touchHandler as EventListener, true);
     }
     this.touches.clear();
     this.cancelBuild();
-    for (const type of ['pointermove', 'pointerdown', 'pointerleave']) Game.current.app.canvas.removeEventListener(type, this.hoverHandler as EventListener);
+    for (const type of POINTER_HELPER_EVENTS) Game.current.app.canvas.removeEventListener(type, this.hoverHandler as EventListener);
     window.removeEventListener('keydown', this.keyHandler);
     window.removeEventListener('fullscreenchange', this.fullscreenHandler);
     Input.onAction.remove(this.actionHandler);
@@ -227,29 +229,20 @@ export class PontifexScene extends Scene2D {
   private unlocked(idx: number): boolean { return isLevelUnlocked(idx, this.builtinCount, (previous) => this.progress.starsOf(this.levels[previous].id)); }
 
   // ------------------------------------------------------------------ niveau
-  /** Capture l'écran de jeu avant un changement de niveau, pour que ses tuiles rétrécissent par-dessus le nouveau. */
-  private captureForTransition(): TileShrink | null {
-    this.transition?.destroy();
-    this.transition = null;
-    const height = this.botY - this.topH;
-    if (!this.level || this.editing || !this.vw || height <= 0 || prefersReducedMotion()) return null;
-    return new TileShrink(Game.current.app.renderer, this.stage, new Rectangle(0, this.topH, this.vw, height));
-  }
+  /** Vrai pendant une transition d'écran : les e2e attendent sa fin. */
+  get isTransitioning(): boolean { return Game.current.transitioning; }
 
-  private startTransition(tiles: TileShrink | null): void {
-    if (!tiles) return;
-    this.stage.addChildAt(tiles.container, this.stage.getChildIndex(this.world) + 1);
-    this.transition = tiles;
+  /** Change de niveau sous une transition : les tuiles de l'ancien écran rétrécissent et révèlent le nouveau (MWG). */
+  private goToLevel(idx: number): void {
+    this.transitionTo(() => this.loadLevel(idx), { transition: tileShrink({ columns: 8, rows: 5 }), duration: 0.8 });
   }
 
   private loadLevel(idx: number): void {
-    const tiles = this.captureForTransition();
     this.levelIdx = idx;
     this.editing = false;
     this.testingSpec = null;
     if (idx < this.builtinCount) this.settings.setCustom('level2', idx);
     this.applyLevel(this.levels[idx]);
-    this.startTransition(tiles);
   }
 
   /** Installe un niveau : décor, ancrages, véhicule, interface. */
@@ -266,7 +259,7 @@ export class PontifexScene extends Scene2D {
     this.debris.clear(); this.spray.clear();
     if (this.tool !== 'delete' && !this.level.materials.includes(this.tool)) this.tool = this.level.materials[0];
     const v = this.level.vehicle;
-    this.lblHint.setText(`${this.level.hint}  ·  ${this.biome.name}  ·  Véhicule : ${v.name}, ${(v.mass / 10).toFixed(1).replace('.', ',')} t`);
+    this.setHint(`${this.level.hint}  ·  ${this.biome.name}  ·  Véhicule : ${v.name}, ${(v.mass / 10).toFixed(1).replace('.', ',')} t`);
     drawScene.static(this.layers, this.level, this.snapOn, this.biome);
     buildLandscape(this.level, this.layers.landscape, this.biome);
     this.fleet = buildFleet(this.level, this.layers.ships);
@@ -418,7 +411,6 @@ export class PontifexScene extends Scene2D {
   }
 
   private onDown(e: FederatedPointerEvent): void {
-    this.closeLevelPicker();
     if (this.sim || !this.windows.isEmpty || this.pinching) return;
     const raw = this.toWorld(e);
     this.pointer = raw;
@@ -584,7 +576,7 @@ export class PontifexScene extends Scene2D {
         if (!won) { this.stopSim(); this.toggleSim(); }
         else if (testing) this.backToEditor();
         else if (custom) { this.stopSim(); this.showLevels(); }
-        else this.loadLevel(lastBuiltin ? 0 : this.levelIdx + 1);
+        else this.goToLevel(lastBuiltin ? 0 : this.levelIdx + 1);
       },
     }));
   }
@@ -598,8 +590,8 @@ export class PontifexScene extends Scene2D {
         label: level.label, name: level.name, stars: this.progress.starsOf(level.id), unlocked: this.unlocked(i),
       })),
       customs: customs.map((spec) => ({ name: spec.name, validated: !!spec.solution, stars: this.progress.starsOf(spec.id) })),
-      onPlayBuiltin: (index) => this.loadLevel(index),
-      onPlayCustom: (index) => this.loadLevel(this.builtinCount + index),
+      onPlayBuiltin: (index) => this.goToLevel(index),
+      onPlayCustom: (index) => this.goToLevel(this.builtinCount + index),
       onEdit: (index) => this.enterEditor(customs[index]),
       onDelete: (index) => this.confirm(`Supprimer « ${customs[index].name} » ?`, () => {
         this.customLevels.remove(index);
@@ -612,10 +604,10 @@ export class PontifexScene extends Scene2D {
     }));
   }
 
-  /** Ouvre une fenêtre avec un jaillissement depuis son centre (sans mouvement si l'utilisateur le préfère). */
+  /** Ouvre une fenêtre qui jaillit depuis son centre (sans mouvement si l'utilisateur le préfère : MWG s'en charge). */
   private showWindow(win: Window): void {
     this.windows.push(win);
-    if (!prefersReducedMotion()) this.pops.push(new PopIn(win, win.width, win.height));
+    win.open({ animation: 'pop', duration: 0.28 });
   }
 
   private confirm(message: string, onYes: () => void): void {
@@ -718,8 +710,10 @@ export class PontifexScene extends Scene2D {
   }
 
   // ------------------------------------------------------------------ interface
-  private button(text: string, onClick: () => void, w = 96, size = 12): Button {
-    return new Button({ width: w, height: 34, text, label: { size }, onClick: () => { this.sfx.onClick(); onClick(); } });
+  private button(text: string, onClick: () => void, w = 96, size = 12, tip?: () => string): Button {
+    const button = new Button({ width: w, height: 34, text, label: { size }, tooltip: tip, onClick: () => { this.sfx.onClick(); onClick(); } });
+    if (tip) this.tooltips.addButton(button);
+    return button;
   }
   private setButtonIcon(button: Button, name: string): void {
     const icon = this.buttonIcons.get(button);
@@ -732,9 +726,9 @@ export class PontifexScene extends Scene2D {
     icon.width = 20;
     icon.height = 20;
     icon.eventMode = 'none';
-    const button = new Button({ ...size, icon, onClick: () => { this.sfx.onClick(); onClick(); } });
+    const button = new Button({ ...size, icon, tooltip: tip, onClick: () => { this.sfx.onClick(); onClick(); } });
     this.buttonIcons.set(button, icon);
-    this.tips.set(button, tip);
+    this.tooltips.addButton(button);
     return button;
   }
 
@@ -768,9 +762,7 @@ export class PontifexScene extends Scene2D {
 
   private buildLevelNav(): void {
     const step = (text: string, tip: () => string, key: keyof NavigationTargets): Button => {
-      const button = this.button(text, () => { const target = this.navTargets[key]; if (target !== null) this.loadLevel(target); }, 36, 16);
-      this.tips.set(button, tip);
-      return button;
+      return this.button(text, () => { const target = this.navTargets[key]; if (target !== null) this.goToLevel(target); }, 36, 16, tip);
     };
     const named = (prefix: string, key: keyof NavigationTargets) => () => {
       const target = this.navTargets[key];
@@ -782,16 +774,25 @@ export class PontifexScene extends Scene2D {
       next: step('›', named('Niveau suivant', 'next'), 'next'),
       last: step('»', named('Dernier niveau ouvert', 'last'), 'last'),
     };
-    this.levelPicker = new LevelPicker(PICKER_WIDTH);
-    this.levelPicker.onChoose = (index) => {
-      if (index >= this.levels.length) { this.showLevels(); this.refreshLevelNav(); } else this.loadLevel(index);
-    };
     const { first, previous, next, last } = this.navButtons;
     previous.x = 40;
+    this.levelNav.addChild(first, previous, next, last);
+    this.createLevelPicker(MAX_PICKER_ROWS, PICKER_WIDTH);
+  }
+
+  /** (Re)crée la liste déroulante pour `maxRows` lignes visibles ; au-delà, elle défile (molette, doigt, clavier). */
+  private createLevelPicker(maxRows: number, width: number): void {
+    const previous = this.levelPicker;
+    this.pickerRows = maxRows;
+    this.pickerWidth = width;
+    this.levelPicker = new DropdownView({ width, rowHeight: 34, maxVisibleRows: maxRows, options: [] });
+    this.levelPicker.model.onChange.add(({ option, index }) => {
+      if (this.syncingPicker) return;
+      if (option.id === 'manage') { this.showLevels(); this.refreshLevelNav(); } else this.goToLevel(index);
+    });
     this.levelPicker.x = 80;
-    next.x = 80 + PICKER_WIDTH + 4;
-    last.x = next.x + 40;
-    this.levelNav.addChild(first, previous, next, last, this.levelPicker);
+    if (previous) { this.levelNav.removeChild(previous); previous.destroy({ children: true }); }
+    this.levelNav.addChild(this.levelPicker);
   }
 
   /** Boutons et liste des niveaux : état d'ouverture, étoiles et niveau courant. */
@@ -807,10 +808,17 @@ export class PontifexScene extends Scene2D {
       return { id: String(index), label: `${level.label}. ${level.name}${rating}`, disabled: !open };
     });
     options.push({ id: 'manage', label: 'Mes niveaux : éditer, importer…', disabled: false });
-    this.levelPicker.setEntries(options, this.levelIdx);
-  }
-  private closeLevelPicker(): void {
-    this.levelPicker?.close();
+    const model = this.levelPicker.model;
+    this.syncingPicker = true;
+    model.close();
+    model.setOptions(options);
+    model.setHighlight(this.levelIdx);
+    model.confirm();
+    this.syncingPicker = false;
+    this.levelPicker.refresh();
+    // la largeur de la liste suit son plus long libellé : les boutons de droite se recalent
+    this.navButtons.next.x = 80 + this.levelPicker.viewWidth + 4;
+    this.navButtons.last.x = this.navButtons.next.x + 40;
   }
 
   private showMusic(): void {
@@ -864,25 +872,41 @@ export class PontifexScene extends Scene2D {
     if (this.music.loading) return 'Musique : préparation du morceau…';
     return this.music.selected ? 'Choisir la musique' : 'Musique coupée : cliquer pour choisir un morceau';
   }
-  private trackScreenPointer(event: PointerEvent): void {
-    if (event.pointerType === 'touch') return;
-    if (event.type === 'pointerleave' || event.type === 'pointerdown') { this.screenPointer = null; return; }
-    const bounds = Game.current.app.canvas.getBoundingClientRect();
-    this.screenPointer = { x: (event.clientX - bounds.left) * this.vw / bounds.width, y: (event.clientY - bounds.top) * this.vh / bounds.height };
-  }
   /**
-   * Montre l'explication du bouton sous le pointeur une fois qu'il s'y est arrêté ; jamais sous une fenêtre ouverte.
-   * Les bornes sont testées ici plutôt que par les événements du bouton : un bouton désactivé n'en reçoit plus,
-   * et c'est justement celui dont on veut savoir à quoi il servira.
+   * Relaie le pointeur du canevas aux infobulles (survol à la souris, appui long au doigt) et à la liste des niveaux
+   * (un appui ailleurs la referme). Pas d'infobulle sous une fenêtre ouverte.
    */
-  private updateTooltip(dt: number): void {
-    const pointer = this.screenPointer;
-    const hovered = pointer && this.windows.isEmpty
-      ? [...this.tips].find(([button]) => button.visible && button.getBounds().containsPoint(pointer.x, pointer.y))
-      : undefined;
-    if (hovered && pointer) this.tooltip.hover(hovered[1](), pointer.x, pointer.y);
-    else this.tooltip.leave();
-    this.tooltip.update(dt);
+  private feedPointerHelpers(event: PointerEvent): void {
+    const bounds = Game.current.app.canvas.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) * this.vw / bounds.width;
+    const y = (event.clientY - bounds.top) * this.vh / bounds.height;
+    if (event.type === 'pointerdown') this.levelPicker.handleOutsideClick(x, y);
+    if (!this.windows.isEmpty || event.type === 'pointerup' || event.type === 'pointercancel' || event.type === 'pointerleave') {
+      this.tooltips.pointerUp();
+    } else if (event.type === 'pointerdown') {
+      if (event.pointerType === 'touch') this.tooltips.pointerDown(x, y);
+      else this.tooltips.pointerUp();
+    } else if (event.pointerType !== 'touch') {
+      this.tooltips.pointerMove(x, y);
+    }
+  }
+  private createHint(width: number): ScrollText {
+    return new ScrollText({ width, maxHeight: 58, label: HINT_STYLE, touch: true });
+  }
+  private setHint(text: string): void {
+    this.hintText = text;
+    this.lblHint.setText(text);
+  }
+  /** ScrollText garde la largeur de sa construction : on le refait quand la fenêtre change de largeur. */
+  private resizeHint(width: number): void {
+    if (width === this.hintWidth) return;
+    this.hintWidth = width;
+    const old = this.lblHint;
+    const index = this.stage.getChildIndex(old);
+    this.lblHint = this.createHint(width);
+    this.lblHint.setText(this.hintText);
+    this.stage.addChildAt(this.lblHint, index);
+    old.destroy({ children: true });
   }
   private setStress(r: number): void {
     const pct = Math.min(100, Math.round(r * 100));
@@ -928,9 +952,13 @@ export class PontifexScene extends Scene2D {
     for (const it of botItems) it.y += oy;
     if (h <= 56 && !this.editing) { this.btnTest.x = vw - this.btnTest.width - 10; }
     this.botY = oy;
-    this.levelPicker.setMaxHeight(oy - (this.levelNav.y + 34) - 8);
+    const rowsBelow = Math.floor((oy - 8 - (this.levelNav.y + 34)) / 34);
+    const pickerRows = Math.max(3, Math.min(MAX_PICKER_ROWS, rowsBelow));
+    // la liste tient entre « ‹ » (80 px de décalage) et « › » « » » (84 px), avec 10 px de marge à droite
+    const pickerWidth = Math.max(150, Math.min(PICKER_WIDTH, vw - 80 - 84 - 10));
+    if (pickerRows !== this.pickerRows || pickerWidth !== this.pickerWidth) { this.createLevelPicker(pickerRows, pickerWidth); this.refreshLevelNav(); }
+    this.resizeHint(Math.max(160, vw - 20));
     this.lblHint.position.set(10, this.topH + 6);
-    this.lblHint.setWrapWidth(Math.max(160, vw - 20));
     this.topBar.clear().rect(0, 0, vw, this.topH).fill({ color: 0x0f172a, alpha: 0.92 }).rect(0, this.topH - 1, vw, 1).fill(0x1e293b);
     this.botBar.clear().rect(0, oy, vw, h).fill({ color: 0x0f172a, alpha: 0.92 }).rect(0, oy, vw, 1).fill(0x1e293b);
     // caméra : le monde 800×550 tient dans l'espace libre
@@ -952,12 +980,12 @@ export class PontifexScene extends Scene2D {
     this.vw = w; this.vh = h;
     this.effects.setViewport(w, h);
     this.windows.setViewport(w, h);
-    this.tooltip.setViewport(w, h);
+    this.tooltips.tooltip.setViewport(w, h);
     this.layoutHud();
   }
 
   private onKey(e: KeyboardEvent): void {
-    if (this.levelPicker.handleKey(e.code)) { e.preventDefault(); return; }
+    if (this.levelPicker.model.isOpen && this.levelPicker.handleKey(e.code)) { e.preventDefault(); return; }
     if (e.code === 'Escape') this.cancelBuild();
     if (e.repeat || this.editing) return;
     if (e.code === 'Space') { e.preventDefault(); if (this.windows.isEmpty) this.toggleSim(); }
@@ -975,10 +1003,10 @@ export class PontifexScene extends Scene2D {
   override update(dt: number): void {
     this.music.update();
     this.setButtonIcon(this.btnMusicPause, this.music.paused ? 'music_play' : 'music_pause');
-    this.setButtonIcon(this.btnMusicPause, this.music.paused ? 'music_play' : 'music_pause');
-    this.updateTooltip(dt);
-    if (this.transition?.update(dt)) this.transition = null;
-    this.pops = this.pops.filter((pop) => !pop.tick(dt));
+    this.tooltips.update(dt);
+    this.lblHint.update(dt);
+    ensureWheelArea(this.levelPicker.scroller, this.levelPicker.viewWidth);
+    ensureWheelArea(this.lblHint.box, this.hintWidth);
     this.time += dt;
     if (this.sim) {
       const sim = this.sim;
@@ -1015,7 +1043,7 @@ export class PontifexScene extends Scene2D {
     if (this.toastT > 0) { this.lblToast.setText(this.toastMsg); this.lblToast.position.set((this.vw - this.lblToast.width) / 2, this.botY - 40); }
     if (this.editing) {
       const st = this.editor.status();
-      if (st !== this.lastHint) { this.lastHint = st; this.lblHint.setText(st); }
+      if (st !== this.lastHint) { this.lastHint = st; this.setHint(st); }
     }
     this.lblHint.visible = this.editing || (!this.sim && this.structure.beams.length === 0);
   }

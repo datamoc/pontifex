@@ -1,4 +1,4 @@
-// Défilement (liste des niveaux, texte long) et transitions (tuiles entre niveaux, jaillissement des fenêtres),
+// Défilement (liste des niveaux, texte long) et transitions (tuiles entre niveaux, jaillissement des fenêtres) fournis par MWG,
 // avec de vrais clics, glissés et roulettes dans Chrome. npm run e2e:scroll (après npm run build). Captures dans e2e/out/.
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -26,47 +26,39 @@ try {
   }, propertyPath);
   const picker = () => scene(() => {
     const p = window.__pontifex.levelPicker;
-    return { open: p.isOpen, scrollable: p.isScrollable, offset: p.scrollOffset, height: p.listHeight, rows: p.rows.length, level: window.__pontifex.levelIdx };
+    const box = p.scroller;
+    return { open: p.model.isOpen, scrollable: box?.scrollable ?? false, offset: box?.offset ?? 0, height: box?.viewportHeight ?? 0, rows: box?.content.children.length ?? 0, level: window.__pontifex.levelIdx };
   });
+  const settled = () => page.waitForFunction(() => !window.__pontifex.isTransitioning);
 
-  // ------------------------------------------------------------ transitions
+  // ------------------------------------------------------------ transitions (MWG : tileShrink, Window.open)
   await scene(() => window.__pontifex.loadLevel(0));
-  await page.waitForFunction(() => !window.__pontifex.transition);
-  await scene(() => window.__pontifex.loadLevel(1));
-  const started = await scene(() => ({ tiles: window.__pontifex.transition?.tileCount, children: window.__pontifex.transition?.container.children.length }));
-  assert.deepEqual(started, { tiles: 40, children: 40 }, 'changement de niveau : 8 × 5 tuiles');
-  await sleep(100);
-  // Chrome sans carte graphique est lent : on fige la transition à 45 % pour une vérification et une capture reproductibles
-  await scene(() => { const t = window.__pontifex.transition; const next = t.update.bind(t); t.elapsed = 0.45 * t.duration; next(0); t.update = () => false; t.next = next; });
-  const middle = await scene(() => window.__pontifex.transition.container.children.map((tile) => (tile.visible ? tile.scale.x : 0)));
-  assert.ok(middle.some((scale) => scale > 0.95) && middle.some((scale) => scale < 0.05), 'à 45 % : des tuiles intactes, d’autres disparues');
+  await sleep(300);
+  await scene(() => window.__pontifex.goToLevel(1));
+  await page.waitForFunction(() => window.__pontifex.levelIdx === 1);
+  assert.equal(await scene(() => window.__pontifex.isTransitioning), true, 'changement de niveau : une transition joue');
   await page.screenshot({ path: `${out}/transition-tuiles.png` });
-  await scene(() => { const t = window.__pontifex.transition; t.update = t.next; });
-  console.log(`✔ tuiles : 40 tuiles, ${middle.filter((s) => s === 0).length} déjà disparues à mi-parcours (e2e/out/transition-tuiles.png)`);
-  await sleep(900);
-  const ended = await scene(() => ({ transition: window.__pontifex.transition, level: window.__pontifex.levelIdx }));
-  assert.deepEqual(ended, { transition: null, level: 1 });
-  console.log('✔ la transition se termine et libère ses tuiles');
+  await settled();
+  console.log('✔ changement de niveau : transition en tuiles, niveau 2 chargé, transition terminée (e2e/out/transition-tuiles.png)');
 
   // ouverture et lecture dans le même tour : aucune image n'a encore fait avancer l'animation
   const popStart = await scene(() => { window.__pontifex.confirm('Fenêtre de test', () => undefined); const w = window.__pontifex.windows.top; return { scale: w.scale.x, alpha: w.alpha }; });
   assert.ok(popStart.scale < 0.9 && popStart.alpha < 1, 'la fenêtre jaillit : petite et transparente au départ');
-  await page.waitForFunction(() => window.__pontifex.pops.length === 0);
-  const popEnd = await scene(() => { const w = window.__pontifex.windows.top; return { scale: w.scale.x, alpha: w.alpha, x: w.x, y: w.y }; });
-  assert.equal(popEnd.scale, 1);
-  assert.equal(popEnd.alpha, 1);
+  await page.waitForFunction(() => { const w = window.__pontifex.windows.top; return w.scale.x === 1 && w.alpha === 1; });
   await page.screenshot({ path: `${out}/pop-fenetre.png` });
   await scene(() => window.__pontifex.windows.closeAll());
-  console.log('✔ jaillissement : la fenêtre se pose à sa taille et sa place normales');
+  console.log('✔ jaillissement : la fenêtre se pose à sa taille normale');
 
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
-  await scene(() => window.__pontifex.loadLevel(2));
-  assert.equal(await scene(() => window.__pontifex.transition), null, 'mouvement réduit : pas de tuiles');
+  await scene(() => window.__pontifex.goToLevel(2));
+  await page.waitForFunction(() => window.__pontifex.levelIdx === 2);
+  assert.equal(await scene(() => window.__pontifex.isTransitioning), false, 'mouvement réduit : pas de transition');
   await scene(() => window.__pontifex.confirm('Sans animation', () => undefined));
   assert.equal(await scene(() => window.__pontifex.windows.top.scale.x), 1, 'mouvement réduit : fenêtre posée directement');
   await scene(() => window.__pontifex.windows.closeAll());
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
   console.log('✔ « réduire les animations » : ni tuiles ni jaillissement');
+  await settled();
 
   // ------------------------------------------------------------ liste déroulante qui défile
   await scene(() => {
@@ -78,20 +70,21 @@ try {
     s.rebuildLevels();
     s.loadLevel(0);
   });
-  await sleep(1200);
+  await settled();
   await page.mouse.click(...(await centerOf('levelPicker.head')));
   await sleep(300);
   let state = await picker();
   const botY = await scene(() => window.__pontifex.botY);
-  assert.equal(state.rows, 9 + 25 + 1, '9 niveaux + 25 du joueur + « Mes niveaux »');
+  assert.equal(await scene(() => window.__pontifex.levelPicker.model.options.length), 9 + 25 + 1, '9 niveaux + 25 du joueur + « Mes niveaux »');
+  assert.ok(state.rows >= 12, 'les lignes sont créées (au moins celles visibles)');
   assert.equal(state.scrollable, true, 'la liste dépasse l’écran : elle défile');
   assert.ok(state.height < 35 * 34 && state.height > 100, `hauteur plafonnée (${state.height} px au lieu de ${35 * 34})`);
-  const listBottom = await scene(() => { const p = window.__pontifex.levelPicker; return p.getGlobalPosition().y + 34 + p.listHeight; });
+  const listBottom = await scene(() => { const p = window.__pontifex.levelPicker; return p.getGlobalPosition().y + 34 + p.scroller.viewportHeight; });
   assert.ok(listBottom <= botY, `la liste reste au-dessus de la barre du bas (${Math.round(listBottom)} ≤ ${Math.round(botY)})`);
   await page.screenshot({ path: `${out}/liste-defilante.png` });
   console.log(`✔ liste de 35 entrées plafonnée à ${Math.round(state.height)} px, au-dessus de la barre du bas`);
 
-  const [px, py] = await centerOf('levelPicker.rows.3');
+  const [px, py] = await centerOf('levelPicker.scroller.content.children.3');
   await page.mouse.move(px, py);
   await page.mouse.wheel({ deltaY: 200 });
   await sleep(200);
@@ -119,27 +112,29 @@ try {
   await sleep(100);
   await page.keyboard.press('ArrowUp');
   await page.keyboard.press('Enter');
-  await sleep(300);
+  await page.waitForFunction(() => window.__pontifex.levelIdx === 33);
+  await settled();
   state = await picker();
   assert.equal(state.level, 33, 'Fin, ↑, Entrée : dernier niveau du joueur');
   assert.equal(state.open, false);
   console.log('✔ clavier : Page↑, Fin, ↑, Entrée → dernier niveau du joueur chargé');
 
   // un clic sur une ligne après défilement choisit la bonne
-  await sleep(1000);
   await page.mouse.click(...(await centerOf('levelPicker.head')));
   await sleep(300);
+  await page.mouse.move(...(await centerOf('levelPicker.scroller.content.children.2')));
   await page.mouse.wheel({ deltaY: 300 });
-  await sleep(200);
+  await sleep(300);
   const target = await scene(() => {
     const p = window.__pontifex.levelPicker;
     const top = p.getGlobalPosition().y + 34;
-    const index = p.rows.findIndex((row) => { const y = row.getGlobalPosition().y; return y >= top + 40 && y <= top + 80 && !row.disabled; });
+    const index = p.scroller.content.children.findIndex((row) => { const y = row.getGlobalPosition().y; return y >= top + 40 && y <= top + 200 && !row.disabled; });
     return index;
   });
   assert.ok(target > 0);
-  await page.mouse.click(...(await centerOf(`levelPicker.rows.${target}`)));
-  await sleep(300);
+  await page.mouse.click(...(await centerOf(`levelPicker.scroller.content.children.${target}`)));
+  await page.waitForFunction((index) => window.__pontifex.levelIdx === index, {}, target);
+  await settled();
   assert.equal((await picker()).level, target, 'le clic après défilement charge la ligne visée');
   console.log(`✔ clic après défilement : niveau ${target + 1} chargé`);
 
@@ -151,7 +146,7 @@ try {
   const hint = await scene((text) => {
     const h = window.__pontifex.lblHint;
     h.setText(text);
-    return { scrollable: h.isScrollable, height: h.viewHeight };
+    return { scrollable: h.box.scrollable, height: h.box.viewportHeight };
   }, long);
   assert.equal(hint.scrollable, true, 'texte long : il défile');
   assert.ok(hint.height <= 58, `hauteur plafonnée à 58 px (${hint.height})`);
@@ -159,9 +154,9 @@ try {
   await page.mouse.move(hx, hy);
   await page.mouse.wheel({ deltaY: 100 });
   await sleep(200);
-  assert.ok(await scene(() => window.__pontifex.lblHint.offset) > 0, 'la molette fait défiler le texte');
+  assert.ok(await scene(() => window.__pontifex.lblHint.box.offset) > 0, 'la molette fait défiler le texte');
   await page.screenshot({ path: `${out}/texte-defilant.png` });
-  const short = await scene(() => { const h = window.__pontifex.lblHint; h.setText('Court.'); return { scrollable: h.isScrollable, offset: h.offset }; });
+  const short = await scene(() => { const h = window.__pontifex.lblHint; h.setText('Court.'); return { scrollable: h.box.scrollable, offset: h.box.offset }; });
   assert.deepEqual(short, { scrollable: false, offset: 0 }, 'texte court : pas de défilement, retour en haut');
   console.log('✔ texte long : plafonné à 58 px et défilant ; texte court : inchangé');
   assert.deepEqual(errors, []);
