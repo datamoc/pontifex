@@ -28,36 +28,6 @@ MWG 0.43.0 répond à presque tous les points 35 à 50 ci-dessous, le jour même
     La même chose vaut pour `DropdownView.scroller` et `ScrollText.box`. → `ScrollBox` devrait définir sa `hitArea` lui-même (et la mettre à jour dans `resize`/`setContentHeight`), comme un conteneur masqué qui défile.
     **Contournement dans Pontifex** : `C:\Users\miche\dev\pontifex\src\scroll-wheel.ts` `ensureWheelArea` (l.7), appelé chaque image pour la liste des niveaux et la consigne (`C:\Users\miche\dev\pontifex\src\scene.ts` l.1008-1009) et une fois pour la liste de musique (`C:\Users\miche\dev\pontifex\src\dialogs.ts`).
 52. **Largeurs figées à la construction.** `DropdownView` et `ScrollText` n'ont pas de `resize(width)` : sur mobile (390 px), la liste des niveaux (290 px, plus `autoWidth`) faisait déborder la barre du haut et la consigne gardait sa largeur d'origine. → `resize(width)` sur les deux, et un `maxWidth` pour `autoWidth`.
-    **Contournements dans Pontifex** : je recrée la liste quand la largeur ou la place disponible change (`C:\Users\miche\dev\pontifex\src\scene.ts` `createLevelPicker` l.784, appelé l.958) et la consigne (`resizeHint` l.901).
-53. **Transition en cours.** Un clic de navigation pendant `Game.transition` ne change pas de niveau (comportement observé, plausible, mais non documenté : demande ignorée ? mise en file ?). Mes e2e attendent la fin (`Game.transitioning`, exposé par `scene.isTransitioning` `C:\Users\miche\dev\pontifex\src\scene.ts` l.232). → Documenter, et proposer `queue: true` / `interrupt: true`.
-54. **`DropdownView` : ouverture sur la ligne choisie.** La doc annonce « opening with the chosen row in view » ; avec une sélection posée par `model.setHighlight()` + `model.confirm()` avant l'ouverture, la liste s'est ouverte à `offset = 0` (à vérifier : possible effet de mon appel, hors du chemin `onChange`).
-
-## Suivi après mise à jour vers 0.43.0 (17 octobre 2026)
-
-MWG 0.43.0 répond à presque tous les points 35 à 50 ci-dessous, le jour même. Pontifex l'adopte (`npm run check` : 123 tests, 9 e2e) et **supprime ses contournements** :
-
-| Point | Demande | 0.43.0 | Dans Pontifex |
-|---|---|---|---|
-| 35 | documenter MIDI → SoundFont | README + `AudioBus` (chargement MIDI par défaut) | déjà couvert par `compile-resources` ; `AudioBus` pas encore essayé |
-| 36 | lecteur de musique | `MusicPlayer`, `toAudioBuffer` | **adopté** : `C:\Users\miche\dev\pontifex\src\music.ts` (`MusicPlayer` l.136, `start` l.141), le lecteur maison passe de 225 à ~180 lignes |
-| 37 | assets jamais chargés, budget de page | rapports de poids et assets inutilisés dans le build | pas encore branchés (`npm run assets:report` à la main) |
-| 38 | XPBD | `XpbdLink.data`, `breakLink`, `linksInBox`, `snapshot`/`hash` | **adopté** : `C:\Users\miche\dev\pontifex\src\physics.ts` l.109 (`data`), l.187 (`linksInBox` + `breakLink`), l.95 (`stateHash`) ; `segmentInBox` et `Object.assign` supprimés |
-| 39 | MWL | `nodesToObjects`, unions générées depuis les tables, attributs optionnels documentés | **adopté** : `C:\Users\miche\dev\pontifex\tools\build-content.ts` l.40 ; contenu généré identique ; unions générées pas encore utilisées (`data.ts` les tient à la main) |
-| 40 | tests : hook, compteur de lectures | `exposeForTests` (`window.__mwg_test__`), `Sound.plays` | pas encore : mes e2e lisent `window.__pontifex` et patchent `HTMLMediaElement.prototype.play` |
-| 41 | dent de scie | `sawtooth` | **adopté** : `C:\Users\miche\dev\pontifex\src\audio.ts` l.13 |
-| 45 | liste déroulante qui défile | `DropdownView` : `maxVisibleRows`, `autoWidth`, `handleKey`, `handleOutsideClick`, `fitBelow` | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `createLevelPicker` l.784 ; `level-picker.ts` supprimé |
-| 46 | textes longs | `ScrollText`, `MarqueeLabel`, `ellipsize`, `truncateLines` | **adopté** pour la consigne : `C:\Users\miche\dev\pontifex\src\scene.ts` `createHint` l.893 ; `scroll.ts` supprimé |
-| 47 | `ScrollBox` | `touch` + inertie, `handleKey`, barre déplaçable, `autoHeight` | **adopté** pour la liste de musique : `C:\Users\miche\dev\pontifex\src\dialogs.ts` (`touch: true`) |
-| 48 | transitions | `tileShrink`, `shrink`, `pop`, `grow`, `slide`, `iris`, `dissolve`, `Game.transition`, `Scene2D.transitionTo`, `Window.open/close` animés, réduction de mouvement | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `goToLevel` l.236 (`tileShrink`) et `showWindow` l.608 (`pop`) ; `transitions.ts` supprimé |
-| 49 | infobulles tactiles | `TooltipHost` (appui long, boutons désactivés), `Button.tooltip` | **adopté** : `C:\Users\miche\dev\pontifex\src\scene.ts` `feedPointerHelpers` l.879 ; mon suivi du pointeur supprimé |
-| 50 | bouton à icône | `Button.setIcon`, `iconSelected`, `tooltip` | `tooltip` adopté ; `setIcon`/`iconSelected` pas encore (je change encore la texture du sprite à la main, `setButtonIcon`) |
-
-### Nouveaux défauts trouvés en les adoptant (0.43.0)
-
-51. **`ScrollBox` : la molette n'atteint pas la boîte tant qu'elle n'a pas de `hitArea`.** `ScrollBox` écoute `wheel` sur lui-même (`eventMode = 'static'`), mais l'événement ne remonte pas depuis les lignes qu'il contient : testé dans Chrome sur la liste de 35 niveaux, aucun `wheel` ne parvient à la boîte (0 événement) tant qu'on ne lui donne pas une zone de contact explicite ; avec `box.hitArea = Rectangle(0, 0, largeur, viewportHeight)` la molette marche aussitôt. Le glisser, les clics et le clavier marchent sans.
-    La même chose vaut pour `DropdownView.scroller` et `ScrollText.box`. → `ScrollBox` devrait définir sa `hitArea` lui-même (et la mettre à jour dans `resize`/`setContentHeight`), comme un conteneur masqué qui défile.
-    **Contournement dans Pontifex** : `C:\Users\miche\dev\pontifex\src\scroll-wheel.ts` `ensureWheelArea` (l.7), appelé chaque image pour la liste des niveaux et la consigne (`C:\Users\miche\dev\pontifex\src\scene.ts` l.1008-1009) et une fois pour la liste de musique (`C:\Users\miche\dev\pontifex\src\dialogs.ts`).
-52. **Largeurs figées à la construction.** `DropdownView` et `ScrollText` n'ont pas de `resize(width)` : sur mobile (390 px), la liste des niveaux (290 px, plus `autoWidth`) faisait déborder la barre du haut et la consigne gardait sa largeur d'origine. → `resize(width)` sur les deux, et un `maxWidth` pour `autoWidth`.
     **Contournements dans Pontifex** : je recrée la liste quand la largeur ou la place disponible change (`C:\Users\miche\dev\pontifex\src\scene.ts` `createLevelPicker` l.784, appelé l.959) et la consigne (`resizeHint` l.901).
 53. **Transition en cours.** Un clic de navigation pendant `Game.transition` ne change pas de niveau (comportement observé, plausible, mais non documenté : demande ignorée ? mise en file ?). Mes e2e attendent la fin (`Game.transitioning`, exposé par `scene.isTransitioning` `C:\Users\miche\dev\pontifex\src\scene.ts` l.232). → Documenter, et proposer `queue: true` / `interrupt: true`.
 54. **`DropdownView` : ouverture sur la ligne choisie.** La doc annonce « opening with the chosen row in view » ; avec une sélection posée par `model.setHighlight()` + `model.confirm()` avant l'ouverture, la liste s'est ouverte à `offset = 0` (à vérifier : possible effet de mon appel, hors du chemin `onChange`).
