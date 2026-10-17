@@ -53,9 +53,9 @@ try {
   console.log('✔ précédent revient au niveau 1');
 
   // la liste montre tous les niveaux, les fermés sont grisés
-  await page.mouse.click(...(await centerOf('levelPicker.children.0')));
+  await page.mouse.click(...(await centerOf('levelPicker.head')));
   await sleep(200);
-  const rows = await scene(() => window.__pontifex.levelPicker.children[1].children.map((row) => ({ disabled: row.disabled })));
+  const rows = await scene(() => window.__pontifex.levelPicker.rows.map((row) => ({ disabled: row.disabled })));
   const levelCount = await scene(() => window.__pontifex.levels.length);
   assert.equal(rows.length, levelCount + 1, 'tous les niveaux + « Mes niveaux »');
   assert.equal(rows.slice(0, levelCount).filter((row) => !row.disabled).length, 2, 'seuls les niveaux 1 et 2 sont ouverts');
@@ -65,13 +65,13 @@ try {
   // tout ouvrir, puis choisir dans la liste
   await page.keyboard.press('Escape');
   await scene(() => { const s = window.__pontifex; s.levels.slice(0, s.builtinCount).forEach((level) => s.progress.record(level.id, 3)); s.refreshLevelNav(); });
-  await page.mouse.click(...(await centerOf('levelPicker.children.0')));
+  await page.mouse.click(...(await centerOf('levelPicker.head')));
   await sleep(200);
-  await page.mouse.click(...(await centerOf('levelPicker.children.1.children.4')));
+  await page.mouse.click(...(await centerOf('levelPicker.rows.4')));
   await sleep(400);
   now = await state();
   assert.equal(now.level, 4, 'le niveau choisi dans la liste est chargé');
-  assert.equal(await scene(() => window.__pontifex.levelPicker.model.isOpen), false, 'la liste se referme');
+  assert.equal(await scene(() => window.__pontifex.levelPicker.isOpen), false, 'la liste se referme');
   console.log('✔ choix dans la liste : niveau 5 chargé, liste refermée');
 
   await page.mouse.click(...(await centerOf('navButtons.last')));
@@ -84,18 +84,18 @@ try {
   console.log('✔ dernier puis premier niveau');
 
   // un clic dans le jeu referme la liste ouverte
-  await page.mouse.click(...(await centerOf('levelPicker.children.0')));
+  await page.mouse.click(...(await centerOf('levelPicker.head')));
   await sleep(200);
-  assert.equal(await scene(() => window.__pontifex.levelPicker.model.isOpen), true);
+  assert.equal(await scene(() => window.__pontifex.levelPicker.isOpen), true);
   await page.mouse.click(640, 400);
   await sleep(200);
-  assert.equal(await scene(() => window.__pontifex.levelPicker.model.isOpen), false);
+  assert.equal(await scene(() => window.__pontifex.levelPicker.isOpen), false);
   console.log('✔ un clic hors de la liste la referme');
 
   // « Mes niveaux » ouvre la gestion des niveaux
-  await page.mouse.click(...(await centerOf('levelPicker.children.0')));
+  await page.mouse.click(...(await centerOf('levelPicker.head')));
   await sleep(200);
-  await page.mouse.click(...(await centerOf(`levelPicker.children.1.children.${builtin}`)));
+  await page.mouse.click(...(await centerOf(`levelPicker.rows.${builtin}`)));
   await sleep(300);
   assert.equal(await scene(() => !window.__pontifex.windows.isEmpty), true, 'la fenêtre de gestion des niveaux s’ouvre');
   console.log('✔ « Mes niveaux » ouvre la gestion (éditer, importer)');

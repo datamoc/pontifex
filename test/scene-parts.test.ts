@@ -7,6 +7,7 @@ import { beamExists, beamNear, distToSegment, snapPoint } from '../src/structure
 import { isInsideWorld, type LevelSpec } from '../src/level.ts';
 import { BUILTIN_SPECS } from '../src/levels.ts';
 import { accessibleIndexes, isLevelUnlocked, navigationTargets } from '../src/level-navigation.ts';
+import { easeInOutQuad, easeOutBack, easeOutCubic, popPose, tileProgress, tileShrinkPose } from '../src/transitions.ts';
 import { LEVELS } from './helpers.ts';
 
 function memoryStore(initial: Record<string, string> = {}): SettingsStore & { data: Record<string, string> } {
@@ -160,4 +161,41 @@ test('navigation : premier, précédent, suivant, dernier ; null quand on y est 
   assert.deepEqual(navigationTargets(accessible, 6), { first: 0, previous: 5, next: null, last: null });
   assert.deepEqual(navigationTargets([0], 0), { first: null, previous: null, next: null, last: null });
   assert.deepEqual(navigationTargets([], 0), { first: null, previous: null, next: null, last: null });
+});
+
+// ---------------------------------------------------------------- transitions
+test('transitions : bornes des courbes (départ à 0, arrivée à 1, léger dépassement)', () => {
+  for (const ease of [easeOutCubic, easeInOutQuad, easeOutBack]) {
+    assert.ok(Math.abs(ease(0)) < 1e-9, 'part de 0');
+    assert.ok(Math.abs(ease(1) - 1) < 1e-9, 'arrive à 1');
+  }
+  assert.ok(Math.max(...Array.from({ length: 101 }, (_, i) => easeOutBack(i / 100))) > 1, 'le jaillissement dépasse 1 avant de se poser');
+  assert.ok(Math.max(...Array.from({ length: 101 }, (_, i) => easeInOutQuad(i / 100))) <= 1);
+});
+
+test('tuiles : démarrent en diagonale depuis le coin haut gauche, toutes finies à la fin', () => {
+  const grid = { columns: 8, rows: 5 };
+  assert.equal(tileProgress(0, 0, grid, 0.001), 0.002, 'la tuile du coin démarre tout de suite');
+  assert.equal(tileProgress(7, 4, grid, 0.5), 0, 'la dernière tuile attend la moitié de la durée');
+  assert.ok(tileProgress(3, 2, grid, 0.4) > tileProgress(6, 3, grid, 0.4), 'plus loin du coin = plus tard');
+  for (let row = 0; row < grid.rows; row++) for (let column = 0; column < grid.columns; column++) {
+    assert.equal(tileProgress(column, row, grid, 1), 1, `tuile ${column},${row} finie à progress = 1`);
+    assert.equal(tileProgress(column, row, grid, 0), 0);
+  }
+  assert.equal(tileProgress(0, 0, { columns: 1, rows: 1 }, 0.5), 1, 'une seule tuile : pas de division par zéro');
+});
+
+test('tuile : pleine taille au départ, disparue à l’arrivée, en tournant un peu', () => {
+  assert.deepEqual(tileShrinkPose(0), { scale: 1, rotation: 0 });
+  const end = tileShrinkPose(1);
+  assert.ok(Math.abs(end.scale) < 1e-9 && end.rotation > 0 && end.rotation < 0.5);
+  assert.ok(tileShrinkPose(0.3).scale > tileShrinkPose(0.7).scale, 'rétrécit de façon monotone');
+});
+
+test('fenêtre qui jaillit : part à 70 %, transparente, et se pose exactement à 100 %', () => {
+  const start = popPose(0);
+  assert.ok(Math.abs(start.scale - 0.7) < 1e-9 && start.alpha === 0);
+  const end = popPose(1);
+  assert.ok(Math.abs(end.scale - 1) < 1e-9 && end.alpha === 1, 'état final identique à une fenêtre sans animation');
+  assert.ok(popPose(0.15).alpha < 1 && popPose(0.4).alpha === 1, 'fondu rapide');
 });

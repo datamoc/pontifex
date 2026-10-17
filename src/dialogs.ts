@@ -2,6 +2,7 @@
 // ni la simulation, seulement les données à afficher et les actions à déclencher.
 import { Button, Label, ScrollBox, Window } from '@datamoc/mwg/two-d';
 import { MUSIC_TRACKS } from './music-catalog.ts';
+import { enableDragScroll } from './scroll.ts';
 import { STRESS_LIMIT, BUDGET_LEFT_RATIO, type Rating } from './progress.ts';
 
 /** Fabrique de bouton de la scène (joue le clic sonore avant l'action). */
@@ -150,6 +151,7 @@ export function buildMusicWindow(options: MusicOptions): Window {
   win.content.addChild(now);
   const listHeight = win.contentHeight - 96;
   const list = new ScrollBox({ width: win.contentWidth - 48, height: listHeight, contentHeight: MUSIC_TRACKS.length * TRACK_ROW_HEIGHT });
+  enableDragScroll(list, win.contentWidth - 48);
   list.position.set(4, 44);
   win.content.addChild(list);
   const choose = (id: string) => { options.onChoose(id); win.close(); };

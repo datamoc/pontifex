@@ -79,17 +79,17 @@ d'oscillateurs écrits à la main). Ce mécanisme existe et marche très bien, m
     défilement molette / glisser tactile / flèches et Page↑/↓, `scrollIntoView` de la ligne sélectionnée à l'ouverture, et lignes qui restent cliquables pendant le défilement.
     Aussi dans `DropdownView` : fond opaque (les lignes translucides laissent voir le décor), fermeture au clic extérieur et sur Échap, largeur automatique selon le plus long libellé
     (le texte de « 3. Le Fleuve profond  (verrouillé) » était rogné à 210 px), et un état « ligne désactivée » plus lisible.
-    **Contournements dans Pontifex** : fond opaque `C:\Users\miche\dev\pontifex\src\scene.ts` l.110 (`pickerBackdrop`) et l.790-795 (`drawPickerBackdrop`) ; fermeture au clic / Échap
-    `C:\Users\miche\dev\pontifex\src\scene.ts` l.796-800 (`closeLevelPicker`), appelée l.398 (clic dans le monde) et l.945 (touche Échap) ; largeur fixée à la main l.33 (`PICKER_WIDTH`) ;
-    construction l.740-768 (`buildLevelNav`), resynchronisation sélection/options l.770-788 (`refreshLevelNav`, avec le drapeau `syncingPicker` pour ne pas rejouer `onChange`).
-    Le défilement lui-même n'est **pas implémenté** : la liste dépasse de l'écran au-delà d'une quinzaine de niveaux.
+    **Contournement dans Pontifex** (implémenté, à remplacer par le composant de MWG) : `C:\Users\miche\dev\pontifex\src\level-picker.ts` (`LevelPicker`, l.14) remplace `DropdownView` :
+    tête + liste dans un `ScrollBox` plafonnée à la place disponible (molette, glisser, Page↑/↓, flèches, Début/Fin, Entrée, Échap), ligne sélectionnée ramenée dans la vue, fond opaque ;
+    branchement dans `C:\Users\miche\dev\pontifex\src\scene.ts` : `buildLevelNav` l.769, `refreshLevelNav` l.798, hauteur maximale l.931 (`levelPicker.setMaxHeight`). Reste manquant côté MWG : la fermeture au clic extérieur
+    (je l'appelle depuis `onDown` de la scène) et la largeur automatique (`PICKER_WIDTH` fixé à la main).
 46. **Défilement des textes longs** : `Label` ne défile pas et ne se tronque pas ; un texte plus long que son conteneur déborde simplement. Pontifex en a trois cas :
-    la consigne du niveau (`C:\Users\miche\dev\pontifex\src\scene.ts` l.918, `lblHint.setWrapWidth`, qui prend 2 à 3 lignes sur mobile et recouvre le décor), les crédits des morceaux
-    (`C:\Users\miche\dev\pontifex\src\dialogs.ts` l.161) et le message de résultat (`C:\Users\miche\dev\pontifex\src\dialogs.ts` l.39). À ajouter : `ScrollText` (ou `Label` avec `maxHeight` + défilement) qui entoure un `Label` d'un `ScrollBox`
-    et mesure la hauteur du texte lui-même ; options de troncature (`ellipsis`, `maxLines`) ; et un « texte déroulant » (marquee) pour une ligne trop longue qui doit rester sur une ligne.
-    Aujourd'hui l'appelant doit mesurer le `Label`, calculer `contentHeight` et appeler `ScrollBox.setContentHeight` à chaque changement de texte (comme dans `C:\Users\miche\dev\pontifex\src\dialogs.ts` l.152 pour la liste de musique).
-47. **`ScrollBox`** : (a) la molette est gérée (`handleWheel`) mais pas le **glisser tactile** ni l'inertie ; sur mobile la liste de musique n'est défilable que par les boutons ↑/↓
-    que j'ai ajoutés à la main (`C:\Users\miche\dev\pontifex\src\dialogs.ts` l.170-171) ; (b) pas de défilement au clavier (Page↑/↓, Début/Fin, flèches) ni de `focus` ; (c) pas de défilement automatique vers un élément
+    la consigne du niveau, les crédits des morceaux et le message de résultat.
+    **Contournement dans Pontifex** (implémenté pour la consigne) : `C:\Users\miche\dev\pontifex\src\scroll.ts` `ScrollText` (l.61), un `Label` dans un `ScrollBox` plafonné à `maxHeight`, utilisé pour la consigne du niveau
+    (`C:\Users\miche\dev\pontifex\src\scene.ts` l.117, `lblHint`, plafonnée à 58 px). Il mesure lui-même la hauteur du texte et recale le défilement à chaque `setText`/`setWrapWidth`. Pas encore appliqué aux crédits et au message de résultat
+    (`C:\Users\miche\dev\pontifex\src\dialogs.ts` l.39 et l.161, fenêtres à hauteur fixe). À ajouter côté MWG : `ScrollText`, la troncature (`ellipsis`, `maxLines`) et le texte déroulant (marquee).
+47. **`ScrollBox`** : (a) la molette est gérée (`handleWheel`) mais pas le **glisser** ni l'inertie : `C:\Users\miche\dev\pontifex\src\scroll.ts` `enableDragScroll` (l.14) l'ajoute (seuil de 6 px pour ne pas confondre avec un clic,
+    clics des lignes suspendus pendant le glisser), appliqué à la liste de musique (`C:\Users\miche\dev\pontifex\src\dialogs.ts` l.154) et à la liste des niveaux ; les boutons ↑/↓ de la liste de musique restent (`dialogs.ts` l.172-173) ; (b) pas de défilement au clavier (Page↑/↓, Début/Fin, flèches) ni de `focus` ; (c) pas de défilement automatique vers un élément
     (`scrollIntoView` existe mais n'est jamais relié à la sélection) ; (d) l'indicateur (`track`/`thumb`) n'est pas cliquable ni déplaçable ; (e) un `ScrollBox` imbriqué dans une `Window`
     demande de calculer à la main `width = contentWidth - 48` pour laisser la place aux boutons (`dialogs.ts` l.152). → `ScrollBox` avec `touch: true`, `keyboard: true`, barre déplaçable et `autoHeight` (se cale sur son contenu jusqu'à un maximum).
 48. **Transitions entre écrans** : `ScreenEffects` ne propose que `fadeOut`, `fadeIn`, `flash` et `hold` (un voile de couleur), et `Game.switchScene` change de scène instantanément.
@@ -102,8 +102,12 @@ d'oscillateurs écrits à la main). Ce mécanisme existe et marche très bien, m
     API proposée : `Game.switchScene(Next, { transition: tileShrink({ columns: 8, rows: 5 }), duration: 0.6, easing: 'easeInOut' })`, `scene.transitionTo(swap, transition)` pour changer le contenu d'une même scène
     (c'est le cas de Pontifex : `loadLevel` remplace décor, véhicule et structure d'un coup), `Window.open({ animation: 'pop' | 'grow' | 'slide', from: Point })` et `Window.close` symétrique,
     `reducedMotion` respecté (voir point 6 du suivi 0.41), un signal `onDone`, la possibilité d'ignorer les entrées pendant la transition, et une pause de la simulation.
-    **Contournement dans Pontifex** : aucun, les changements sont brusques. Changer de niveau remplace tout d'un coup (`C:\Users\miche\dev\pontifex\src\scene.ts` l.224-250, `loadLevel`/`applyLevel`) ;
-    les fenêtres apparaissent sans animation (`this.windows.push(...)`, l.557, 573, 594, 622, 805). Une transition « tuiles » entre deux niveaux et un jaillissement des fenêtres seraient les deux premiers usages.
+    **Contournement dans Pontifex** (implémenté, à jeter quand MWG aura l'équivalent) : `C:\Users\miche\dev\pontifex\src\transitions.ts` — `TileShrink` (l.56) photographie l'écran de jeu (`renderer.generateTexture`) et le découpe en 8 × 5 tuiles
+    qui rétrécissent en tournant, en diagonale depuis le coin haut gauche, par-dessus le niveau suivant (calcul pur `tileProgress` l.23, testé) ; `PopIn` (l.113) fait jaillir une fenêtre depuis son centre
+    (`popPose` l.36 : 70 % → dépassement → 100 %) ; `prefersReducedMotion` (l.41) les désactive. Branchement : `C:\Users\miche\dev\pontifex\src\scene.ts` `captureForTransition` l.231 et `startTransition` l.239 (appelés par `loadLevel`),
+    `showWindow` l.616 (toutes les fenêtres). Limites : pas d'`easing` nommé ni d'ordre configurable (diagonale seulement), pas de transition entre scènes (`switchScene` reste instantané), le pas de temps plafonné
+    de MWG rallonge l'animation sur une machine lente, et un clic pendant les 0,3 s du jaillissement vise la fenêtre en mouvement (mes e2e attendent la fin : `scene.pops` vide).
+    Pas encore faits : jaillissement depuis un point (le bouton cliqué), agrandissement/rétrécissement à la fermeture des fenêtres.
 49. **Infobulles tactiles** (suite du point 40) : `Tooltip` s'appuie sur le survol, donc rien sur mobile. À ajouter : déclenchement par appui long avec le même `delay` et fermeture au relâchement, et un
     `TooltipHost` qui gère les cibles (zones rectangulaires, y compris **désactivées**) : j'ai dû tester les bornes des boutons à la main parce qu'un `Button` désactivé passe en `eventMode = 'none'` et ne reçoit plus
     `pointerover` (`C:\Users\miche\dev\pontifex\src\scene.ts` l.853-875, `trackScreenPointer` et `updateTooltip`, avec les écouteurs du canevas). Un bouton grisé est justement celui qu'on veut expliquer.
