@@ -29,7 +29,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@datamoc/mwg": "^0.42.0",
+    "@datamoc/mwg": "^0.43.0",
     "pixi.js": "^8.22.0",
     "svg.js": "^2.7.1"
   },
